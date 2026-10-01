@@ -11,8 +11,11 @@ matplotlib.use("Agg")  # بدون شاشة، حتى يشتغل على السير
 import matplotlib.pyplot as plt
 import pandas as pd
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
+
+
 
 # لدعم العربي داخل الرسومات (pip install arabic-reshaper python-bidi)
 try:
@@ -29,6 +32,10 @@ except ImportError:
 
 load_dotenv()
 app = FastAPI()
+
+@app.get("/")
+def home():
+    return FileResponse("index.html") 
 
 # Groq (طبقة مجانية). المفتاح يُقرأ من المتغير GROQ_API_KEY
 # اسم الموديل: تحقّق منه في صفحة الموديلات بحسابك في موقع Groq لأنه يتغير
