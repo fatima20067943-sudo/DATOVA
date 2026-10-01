@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DATOVA — Discover What Data Hides.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23E7DFF7'/%3E%3Ccircle cx='50' cy='50' r='26' fill='none' stroke='%239B87F5' stroke-width='7'/%3E%3Cpath transform='translate(50 50) scale(1.3) translate(-12 -12)' d='M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z' fill='%237C5CFF'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ivory:#F5F1EE;
+  --lavender:#E7DFF7;
+  --pink:#F7C8D8;
+  --lilac:#C9B8FF;
+  --blue:#A7E3FF;
+  --gray:#8B8F9B;
+  --ink:#2A2350;
+  --body:#5B5F73;
+  --purple:#7C5CFF;
+  --purple-2:#A78BFA;
+  --glass:rgba(255,255,255,.58);
+  --glass-line:rgba(255,255,255,.85);
+  --shadow:0 18px 50px -20px rgba(124,92,255,.35);
+  --radius:22px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;
+  font-family:Inter,Cairo,system-ui,sans-serif;
+  color:var(--body);background:var(--ivory);
+  line-height:1.65;overflow-x:hidden;
+}
+:lang(ar) body,body:lang(ar){font-family:Cairo,Inter,system-ui,sans-serif}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--purple);outline-offset:3px;border-radius:8px}
+
+/* ---------- background ---------- */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;
+  background:
+    radial-gradient(60% 50% at 12% 8%,rgba(201,184,255,.65),transparent 70%),
+    radial-gradient(50% 45% at 92% 18%,rgba(247,200,216,.6),transparent 70%),
+    radial-gradient(55% 50% at 80% 95%,rgba(167,227,255,.55),transparent 70%),
+    radial-gradient(45% 40% at 5% 90%,rgba(231,223,247,.9),transparent 70%),
+    var(--ivory);}
+.bubble{position:absolute;border-radius:50%;
+  background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.95),rgba(201,184,255,.28) 42%,rgba(167,227,255,.22) 72%,rgba(247,200,216,.12));
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:inset -10px -14px 30px rgba(167,139,250,.18),0 20px 50px -25px rgba(124,92,255,.4);
+  backdrop-filter:blur(3px)}
+.b1{width:190px;height:190px;top:-50px;inset-inline-end:-40px}
+.b2{width:120px;height:120px;bottom:12%;inset-inline-start:-30px}
+.b3{width:70px;height:70px;top:46%;inset-inline-end:6%}
+.spark{position:absolute;width:22px;height:22px;fill:#B9A6FF;opacity:.85}
+.s1{top:120px;inset-inline-start:9%}
+.s2{top:38%;inset-inline-end:14%;width:14px;height:14px}
+.s3{bottom:16%;inset-inline-end:30%;width:18px;height:18px}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1080px;margin:0 auto;padding:18px 20px 60px}
+.glass{background:var(--glass);border:1px solid var(--glass-line);border-radius:var(--radius);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+
+header.top{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 20px;border-radius:999px;margin-bottom:56px}
+.wordmark{direction:ltr;unicode-bidi:isolate;display:inline-flex;align-items:center;
+  font-family:Montserrat,sans-serif;font-weight:300;letter-spacing:.09em;
+  background:linear-gradient(100deg,#8E7CF0 0%,#B9A6FF 45%,#F0A6C6 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
+.wordmark.sm{font-size:24px}
+.wordmark.lg{font-size:54px}
+.logo-o{width:1.45em;height:1.45em;margin:0 .02em;flex:none;overflow:visible}
+.lang{border:1px solid var(--glass-line);background:rgba(255,255,255,.7);color:var(--ink);
+  padding:7px 16px;border-radius:999px;font-weight:600;font-size:14px}
+.lang:hover{background:#fff}
+
+/* ---------- hero ---------- */
+.hero{max-width:720px;margin:0 auto 34px;text-align:center}
+.hero h1{margin:0 0 14px;font-family:Montserrat,Cairo,sans-serif;font-weight:500;
+  font-size:clamp(30px,6vw,52px);line-height:1.2;color:var(--ink);letter-spacing:.01em}
+.hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,var(--purple),var(--purple-2) 60%,#E993B8);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin:0 auto;max-width:560px;font-size:17px}
+
+/* ---------- upload ---------- */
+.upload{max-width:640px;margin:0 auto;padding:22px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
+  padding:38px 20px;border-radius:18px;border:1.5px dashed var(--lilac);
+  background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(231,223,247,.45));
+  transition:background .2s,border-color .2s}
+.drop.over{border-color:var(--purple);background:rgba(201,184,255,.35)}
+.drop svg{width:54px;height:54px;margin-bottom:6px}
+.drop strong{color:var(--ink);font-size:18px}
+.drop small{color:var(--gray);font-size:14px}
+.btn{border:0;border-radius:999px;padding:12px 28px;font-weight:600;font-size:16px;color:#fff;
+  background:linear-gradient(120deg,#8B6CF6,#A78BFA);box-shadow:0 10px 24px -10px rgba(124,92,255,.7);
+  transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 14px 28px -10px rgba(124,92,255,.8)}
+.btn.ghost{color:var(--purple);background:rgba(255,255,255,.75);box-shadow:none;border:1px solid var(--lilac)}
+.btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
+input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+.chosen{display:none;align-items:center;gap:12px;margin-top:16px;padding:12px 16px;border-radius:16px;
+  background:rgba(255,255,255,.75);border:1px solid var(--glass-line)}
+.chosen.show{display:flex}
+.chosen .name{flex:1;min-width:0;color:var(--ink);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:ltr;text-align:start}
+.chosen .size{color:var(--gray);font-size:14px;direction:ltr}
+.actions{display:none;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.actions.show{display:flex}
+
+.error{display:none;margin-top:16px;padding:14px 16px;border-radius:16px;
+  background:rgba(247,200,216,.55);border:1px solid rgba(233,147,184,.6);color:#7A2148;font-weight:500}
+.error.show{display:block}
+
+/* ---------- loading ---------- */
+.loading{display:none;max-width:460px;margin:20px auto 0;padding:36px 28px;text-align:center}
+.loading .logo-o{width:96px;height:96px;margin:0 auto 18px;display:block}
+.orbit-g{transform-box:view-box;transform-origin:50% 50%;animation:orbit 5s linear infinite}
+.pulse{transform-box:view-box;transform-origin:50% 50%;animation:pulse 2.4s ease-in-out infinite}
+@keyframes orbit{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{transform:scale(1.25)}}
+.steps{list-style:none;margin:0;padding:0;text-align:start;display:grid;gap:10px}
+.steps li{display:flex;align-items:center;gap:12px;color:var(--gray);transition:color .3s}
+.steps li::before{content:"";flex:none;width:12px;height:12px;border-radius:50%;
+  border:2px solid var(--lilac);background:transparent;transition:all .3s}
+.steps li.active{color:var(--ink);font-weight:600}
+.steps li.active::before{background:var(--purple);border-color:var(--purple);box-shadow:0 0 0 5px rgba(124,92,255,.18)}
+.steps li.done{color:var(--body)}
+.steps li.done::before{background:var(--blue);border-color:var(--blue)}
+
+/* ---------- results ---------- */
+.results{display:none}
+.res-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;
+  background:rgba(255,255,255,.75);border:1px solid var(--glass-line);color:var(--ink);font-weight:600}
+.chip small{color:var(--gray);font-weight:500}
+.summary{padding:24px 26px;margin-bottom:18px}
+.summary h2,.card h3{margin:0 0 8px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600}
+.summary h2{font-size:20px}
+.summary p{margin:0;font-size:17px;color:var(--ink)}
+
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
+.stat{padding:16px 18px;border-radius:18px;background:rgba(255,255,255,.7);border:1px solid var(--glass-line)}
+.stat small{display:block;color:var(--gray);font-size:13px}
+.stat b{display:block;color:var(--ink);font-family:Montserrat,sans-serif;font-weight:500;font-size:26px;line-height:1.3}
+.stat span{font-size:13px;color:var(--gray)}
+.notes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
+.note{padding:5px 12px;border-radius:999px;font-size:13px;background:rgba(231,223,247,.8);color:var(--ink)}
+.note.warn{background:rgba(247,200,216,.7)}
+
+.sec-title{margin:30px 0 14px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600;font-size:20px}
+.charts{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.card{padding:22px}
+.charts .card:last-child:nth-child(odd){grid-column:1/-1}
+.card h3{font-size:17px;margin-bottom:16px}
+
+.hbar{display:grid;grid-template-columns:minmax(70px,30%) 1fr 84px;align-items:center;gap:10px;margin:9px 0;font-size:14px}
+.hb-label{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-track{height:12px;border-radius:99px;background:rgba(201,184,255,.22);overflow:hidden}
+.hb-track i{display:block;height:100%;border-radius:99px;width:0;
+  background:linear-gradient(90deg,var(--lilac),var(--purple-2));transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.hb-track i.neg{background:linear-gradient(90deg,var(--pink),#E993B8)}
+.hb-val{color:var(--body);font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;text-align:start}
+
+.vbars{direction:ltr;display:flex;align-items:stretch;gap:4px;height:240px}
+.vb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
+.vb-plot{flex:1;width:100%;display:flex;align-items:flex-end}
+.vb-plot i{display:block;width:100%;height:0;min-height:2px;border-radius:8px 8px 3px 3px;
+  background:linear-gradient(180deg,var(--purple-2),var(--lilac));transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.vb span{margin-top:6px;font-size:11px;color:var(--gray);white-space:nowrap;height:16px}
+
+.donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center}
+.donut-wrap svg{width:190px;height:190px;flex:none;transform:none}
+.legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px;flex:1;min-width:150px}
+.legend li{display:flex;align-items:center;gap:10px}
+.legend i{width:12px;height:12px;border-radius:50%;flex:none}
+.legend .l{flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.legend .p{color:var(--gray);font-weight:600;direction:ltr}
+
+.two{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.list li{display:flex;gap:12px;align-items:flex-start;color:var(--ink)}
+.list svg{width:20px;height:20px;flex:none;margin-top:4px}
+.again{text-align:center;margin-top:34px}
+
+footer{margin-top:64px;text-align:center;color:var(--gray);font-size:14px}
+footer .wordmark{margin-bottom:8px}
+footer p{margin:2px 0}
+
+@media (max-width:820px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .charts,.two{grid-template-columns:1fr}
+  .wordmark.lg{font-size:40px}
+  header.top{margin-bottom:36px}
+}
+@media (prefers-reduced-motion:reduce){
+  .orbit-g,.pulse{animation:none}
+  .hb-track i,.vb-plot i{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- gradient + star symbol shared by the whole page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gO" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E7CF0"/><stop offset=".55" stop-color="#C9B8FF"/><stop offset="1" stop-color="#F3A9C9"/>
+    </linearGradient>
+    <symbol id="star" viewBox="0 0 24 24"><path d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z"/></symbol>
+  </defs>
+</svg>
+
+<div class="bg" aria-hidden="true">
+  <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+  <svg class="spark s1"><use href="#star"/></svg>
+  <svg class="spark s2"><use href="#star"/></svg>
+  <svg class="spark s3"><use href="#star"/></svg>
+</div>
+
+<div class="wrap">
+  <header class="top glass">
+    <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
+    <button class="lang" id="langBtn" type="button">EN</button>
+  </header>
+
+  <!-- ===== upload view ===== -->
+  <main id="uploadView">
+    <section class="hero">
+      <h1><span data-i18n="heroPre"></span> <em data-i18n="heroTitle"></em></h1>
+      <p data-i18n="heroSub"></p>
+    </section>
+
+    <section class="upload glass">
+      <label class="drop" id="drop" for="fileInput">
+        <svg viewBox="0 0 54 54" aria-hidden="true">
+          <rect x="5" y="30" width="10" height="19" rx="3" fill="url(#gO)" opacity=".55"/>
+          <rect x="22" y="18" width="10" height="31" rx="3" fill="url(#gO)" opacity=".8"/>
+          <rect x="39" y="6" width="10" height="43" rx="3" fill="url(#gO)"/>
+        </svg>
+        <strong data-i18n="dropTitle"></strong>
+        <small data-i18n="dropHint"></small>
+        <span class="btn ghost" style="margin-top:10px" data-i18n="choose"></span>
+      </label>
+      <input type="file" id="fileInput" accept=".csv,.xlsx">
+
+      <div class="chosen" id="chosen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+        <span class="name" id="fileName"></span>
+        <span class="size" id="fileSize"></span>
+      </div>
+      <div class="actions" id="actions">
+        <button class="btn" id="analyzeBtn" type="button" data-i18n="analyze"></button>
+        <button class="btn ghost" id="clearBtn" type="button" data-i18n="change"></button>
+      </div>
+      <div class="error" id="error" role="alert"></div>
+    </section>
+  </main>
+
+  <!-- ===== loading view ===== -->
+  <section class="loading glass" id="loadingView" aria-live="polite">
+    <svg class="logo-o" viewBox="0 0 100 100" data-mark data-live></svg>
+    <ul class="steps" id="steps"></ul>
+  </section>
+
+  <!-- ===== results view ===== -->
+  <section class="results" id="resultsView"></section>
+
+  <footer>
+    <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
+    <p>Discover What Data Hides.</p>
+    <p data-i18n="footer"></p>
+  </footer>
+</div>
+
+<script>
+/* ============================================================
+   إعدادات الربط بالـ backend
+   - اذا فتحت الصفحه من نفس السيرفر (http://127.0.0.1:8000/) خلي API_BASE فارغ
+   ============================================================ */
+const API_BASE = "https://toastprog-production.up.railway.app";
+const MAX_SIZE = 20 * 1024 * 1024;
+const ALLOWED = [".csv", ".xlsx"];
+
+const I18N = {
+  ar: {
+    heroPre: "حوّل بياناتك إلى",
+    heroTitle: "رؤى حقيقية",
+    heroSub: "ارفع ملف مبيعاتك أو بيانات مشروعك. DATOVA ينظّفها ويحلّلها ويقترح عليك خطوتك الجاية، بدون أي خبرة سابقة.",
+    dropTitle: "اسحب الملف هنا",
+    dropHint: "ملفات CSV أو XLSX بحجم أقصى 20 ميغابايت",
+    choose: "اختر ملف",
+    analyze: "حلّل بياناتي",
+    change: "تغيير الملف",
+    again: "حلّل ملف ثاني",
+    steps: ["قراءة الملف", "فهم نوع مشروعك", "تنظيف البيانات", "تخطيط التحليل", "رسم المخططات", "كتابة الاستنتاجات والنصائح"],
+    errType: "نوع الملف غير مدعوم. ارفع ملف CSV أو XLSX.",
+    errSize: "حجم الملف أكبر من 20 ميغابايت.",
+    errNet: "ما كدرنا نوصل للسيرفر. تأكد أن الـ backend شغّال وافتح الصفحة من عنوانه.",
+    errGeneric: "صار خطأ غير متوقع. جرب مرة ثانية.",
+    business: "نوع المشروع",
+    summary: "الخلاصة",
+    rowsAnalyzed: "صفوف تم تحليلها",
+    of: "من",
+    dups: "صفوف مكررة انحذفت",
+    missing: "صفوف انحذفت لنقص البيانات",
+    cols: "أعمدة",
+    charts: "المخططات",
+    insights: "ماذا تقول بياناتك",
+    recs: "نصائح لك",
+    filled: "تم ملء",
+    dropped: "تم حذف العمود",
+    mean: "المتوسط", median: "الوسيط", mode: "الأكثر تكراراً", zero: "صفر",
+    footer: "تحليل البيانات، رؤى، قرارات أفضل",
+    langBtn: "EN"
+  },
+  en: {
+    heroPre: "Turn your data into",
+    heroTitle: "Real Insights",
+    heroSub: "Upload your sales or business file. DATOVA cleans it, analyzes it, and tells you what to do next. No expertise needed.",
+    dropTitle: "Drag your file here",
+    dropHint: "CSV or XLSX files, up to 20 MB",
+    choose: "Choose file",
+    analyze: "Analyze my data",
+    change: "Change file",
+    again: "Analyze another file",
+    steps: ["Reading your file", "Understanding your business", "Cleaning the data", "Planning the analysis", "Drawing the charts", "Writing insights and advice"],
+    errType: "Unsupported file type. Upload a CSV or XLSX file.",
+    errSize: "The file is larger than 20 MB.",
+    errNet: "Couldn't reach the server. Make sure the backend is running and open this page from its address.",
+    errGeneric: "Something went wrong. Please try again.",
+    business: "Business type",
+    summary: "Summary",
+    rowsAnalyzed: "Rows analyzed",
+    of: "of",
+    dups: "Duplicate rows removed",
+    missing: "Rows removed for missing data",
+    cols: "columns",
+    charts: "Charts",
+    insights: "What your data says",
+    recs: "What to do next",
+    filled: "Filled",
+    dropped: "Dropped column",
+    mean: "mean", median: "median", mode: "most common", zero: "zero",
+    footer: "Data analysis, insights, better decisions",
+    langBtn: "عربي"
+  }
+};
+
+let lang = "ar";
+try { lang = localStorage.getItem("datova-lang") || "ar"; } catch (e) {}
+let chosenFile = null;
+let lastData = null;
+let stepTimer = null;
+
+const $ = (id) => document.getElementById(id);
+const t = (k) => I18N[lang][k];
+const fmt = (n) => Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+/* ---------- الشعار: الـ O مع المدار والنجمه ---------- */
+const MARK = `
+  <circle cx="50" cy="50" r="33" fill="rgba(201,184,255,.22)" stroke="url(#gO)" stroke-width="7"/>
+  <g class="orbit-g"><ellipse cx="50" cy="50" rx="47" ry="15" transform="rotate(-25 50 50)" fill="none" stroke="url(#gO)" stroke-width="2.6"/></g>
+  <g class="pulse"><path transform="translate(50 50) scale(1.25) translate(-12 -12)" d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z" fill="url(#gO)"/></g>`;
+document.querySelectorAll("[data-mark]").forEach((s) => {
+  s.innerHTML = MARK;
+  // الحركه بس بشاشه التحميل
+  if (!s.hasAttribute("data-live")) s.querySelectorAll(".orbit-g,.pulse").forEach((g) => (g.style.animation = "none"));
+});
+
+/* ---------- اللغه ---------- */
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  $("langBtn").textContent = t("langBtn");
+  buildSteps();
+  if (lastData) renderResults(lastData);
+}
+$("langBtn").addEventListener("click", () => {
+  lang = lang === "ar" ? "en" : "ar";
+  try { localStorage.setItem("datova-lang", lang); } catch (e) {}
+  applyLang();
+});
+
+/* ---------- اختيار الملف ---------- */
+const drop = $("drop");
+const input = $("fileInput");
+
+function showError(msg) {
+  const box = $("error");
+  box.textContent = msg || "";
+  box.classList.toggle("show", !!msg);
+}
+function humanSize(b) {
+  return b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+}
+function setFile(file) {
+  showError("");
+  if (!file) return;
+  const ext = "." + file.name.split(".").pop().toLowerCase();
+  if (!ALLOWED.includes(ext)) return showError(t("errType"));
+  if (file.size > MAX_SIZE) return showError(t("errSize"));
+  chosenFile = file;
+  $("fileName").textContent = file.name;
+  $("fileSize").textContent = humanSize(file.size);
+  $("chosen").classList.add("show");
+  $("actions").classList.add("show");
+}
+function clearFile() {
+  chosenFile = null;
+  input.value = "";
+  $("chosen").classList.remove("show");
+  $("actions").classList.remove("show");
+  showError("");
+}
+input.addEventListener("change", () => setFile(input.files[0]));
+$("clearBtn").addEventListener("click", clearFile);
+["dragenter", "dragover"].forEach((ev) =>
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) =>
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
+
+/* ---------- العرض ---------- */
+function show(view) {
+  $("uploadView").style.display = view === "upload" ? "" : "none";
+  $("loadingView").style.display = view === "loading" ? "block" : "none";
+  $("resultsView").style.display = view === "results" ? "block" : "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* مراحل التحميل شكلية (الـ backend يرد مره وحده بالنهايه) */
+function buildSteps(active = 0) {
+  const ul = $("steps");
+  ul.innerHTML = "";
+  t("steps").forEach((label, i) => {
+    const li = document.createElement("li");
+    li.textContent = label;
+    li.className = i < active ? "done" : i === active ? "active" : "";
+    ul.appendChild(li);
+  });
+}
+function startSteps() {
+  let i = 0;
+  buildSteps(0);
+  stepTimer = setInterval(() => {
+    i = Math.min(i + 1, t("steps").length - 1);
+    buildSteps(i);
+  }, 3500);
+}
+function stopSteps() { clearInterval(stepTimer); }
+
+/* ---------- الاتصال بالـ backend ---------- */
+async function analyze() {
+  if (!chosenFile) return;
+  showError("");
+  show("loading");
+  startSteps();
+
+  const body = new FormData();
+  body.append("file", chosenFile);
+
+  try {
+    const res = await fetch(API_BASE + "/upload", { method: "POST", body });
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      throw new Error(data && typeof data.detail === "string" ? data.detail : t("errGeneric"));
+    }
+    lastData = data;
+    renderResults(data);
+    show("results");
+  } catch (err) {
+    showError(err instanceof TypeError ? t("errNet") : err.message);
+    show("upload");
+  } finally {
+    stopSteps();
+  }
+}
+$("analyzeBtn").addEventListener("click", analyze);
+
+/* ---------- بناء النتائج (textContent فقط، حتى ما ينحقن اي شي من الـ AI) ---------- */
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function svgEl(tag, attrs) {
+  const n = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+
+function hBars(labels, values) {
+  const box = el("div");
+  const max = Math.max(...values.map((v) => Math.abs(v)), 1);
+  labels.forEach((l, i) => {
+    const row = el("div", "hbar");
+    const lab = el("span", "hb-label", l); lab.title = l;
+    const track = el("div", "hb-track");
+    const bar = el("i", values[i] < 0 ? "neg" : "");
+    track.appendChild(bar);
+    row.append(lab, track, el("b", "hb-val", fmt(values[i])));
+    box.appendChild(row);
+    requestAnimationFrame(() => requestAnimationFrame(() => (bar.style.width = (Math.abs(values[i]) / max) * 100 + "%")));
+  });
+  return box;
+}
+
+function vBars(labels, values) {
+  const box = el("div", "vbars");
+  const max = Math.max(...values.map((v) => Math.abs(v)), 1);
+  const step = labels.length > 12 ? 2 : 1;
+  labels.forEach((l, i) => {
+    const col = el("div", "vb");
+    const plot = el("div", "vb-plot");
+    const bar = el("i");
+    bar.title = l + ": " + fmt(values[i]);
+    plot.appendChild(bar);
+    const [y, m] = l.split("-");
+    col.append(plot, el("span", "", i % step === 0 ? m + "/" + y.slice(2) : ""));
+    box.appendChild(col);
+    requestAnimationFrame(() => requestAnimationFrame(() => (bar.style.height = (Math.abs(values[i]) / max) * 100 + "%")));
+  });
+  return box;
+}
+
+const PIE_COLORS = ["#9B87F5", "#F4A9C6", "#8FD3F4", "#C9B8FF", "#B8B9C6", "#E7C6F0"];
+function donut(labels, values) {
+  const wrap = el("div", "donut-wrap");
+  const total = values.reduce((a, b) => a + b, 0) || 1;
+  const svg = svgEl("svg", { viewBox: "0 0 42 42", role: "img" });
+  svg.appendChild(svgEl("circle", { cx: 21, cy: 21, r: 15.915, fill: "none", stroke: "#ECE6F7", "stroke-width": 6 }));
+  const legend = el("ul", "legend");
+  let offset = 25;
+  values.forEach((v, i) => {
+    const pct = (v / total) * 100;
+    const color = PIE_COLORS[i % PIE_COLORS.length];
+    const seg = svgEl("circle", {
+      cx: 21, cy: 21, r: 15.915, fill: "none", stroke: color, "stroke-width": 6,
+      "stroke-dasharray": `${Math.max(pct - 0.6, 0)} ${100 - Math.max(pct - 0.6, 0)}`,
+      "stroke-dashoffset": offset
+    });
+    svg.appendChild(seg);
+    offset -= pct;
+    const li = el("li");
+    const dot = el("i"); dot.style.background = color;
+    const l = el("span", "l", labels[i]); l.title = labels[i];
+    li.append(dot, l, el("span", "p", pct.toFixed(1) + "%"));
+    legend.appendChild(li);
+  });
+  wrap.append(svg, legend);
+  return wrap;
+}
+
+function chartCard(a) {
+  const card = el("article", "card glass");
+  card.appendChild(el("h3", "", a.title));
+  const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}$/.test(l));
+  if (a.chart === "pie") card.appendChild(donut(a.labels, a.values));
+  else card.appendChild(isTime ? vBars(a.labels, a.values) : hBars(a.labels, a.values));
+  return card;
+}
+
+function listCard(title, items, kind) {
+  const card = el("article", "card glass");
+  card.appendChild(el("h3", "", title));
+  const ul = el("ul", "list");
+  (items || []).forEach((txt) => {
+    const li = el("li");
+    const icon = svgEl("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" });
+    if (kind === "insight") {
+      const u = svgEl("use", { href: "#star" });
+      icon.setAttribute("fill", "#9B87F5"); icon.appendChild(u);
+    } else {
+      icon.setAttribute("fill", "none"); icon.setAttribute("stroke", "#7C5CFF");
+      icon.setAttribute("stroke-width", "2.4"); icon.setAttribute("stroke-linecap", "round"); icon.setAttribute("stroke-linejoin", "round");
+      icon.appendChild(svgEl("path", { d: "M5 12l4.5 4.5L19 7" }));
+    }
+    li.append(icon, el("span", "", txt));
+    ul.appendChild(li);
+  });
+  card.appendChild(ul);
+  return card;
+}
+
+function statCard(label, value, sub) {
+  const s = el("div", "stat");
+  s.append(el("small", "", label), el("b", "", value));
+  if (sub) s.appendChild(el("span", "", sub));
+  return s;
+}
+
+function renderResults(d) {
+  const root = $("resultsView");
+  root.innerHTML = "";
+  const rep = d.cleaning_report || {};
+
+  const head = el("div", "res-head");
+  const chip = el("span", "chip");
+  chip.append(el("small", "", t("business")), document.createTextNode(d.business_type || "-"));
+  const again = el("button", "btn ghost", t("again"));
+  again.type = "button";
+  again.addEventListener("click", () => { lastData = null; root.innerHTML = ""; clearFile(); show("upload"); });
+  head.append(chip, again);
+  root.appendChild(head);
+
+  if (d.summary) {
+    const sum = el("section", "summary glass");
+    sum.append(el("h2", "", t("summary")), el("p", "", d.summary));
+    root.appendChild(sum);
+  }
+
+  const stats = el("div", "stats");
+  stats.append(
+    statCard(t("rowsAnalyzed"), fmt(rep.rows_after ?? 0), `${t("of")} ${fmt(rep.rows_before ?? 0)}`),
+    statCard(t("dups"), fmt(rep.duplicates_removed ?? 0)),
+    statCard(t("missing"), fmt(rep.dropped_rows_missing ?? 0)),
+    statCard(t("cols"), fmt(rep.columns_after ?? 0), `${t("of")} ${fmt(rep.columns_before ?? 0)}`)
+  );
+  root.appendChild(stats);
+
+  const notes = el("div", "notes");
+  Object.entries(rep.filled_columns || {}).forEach(([col, how]) =>
+    notes.appendChild(el("span", "note", `${t("filled")}: ${col} (${t(how) || how})`)));
+  (rep.dropped_columns || []).forEach((col) =>
+    notes.appendChild(el("span", "note warn", `${t("dropped")}: ${col}`)));
+  root.appendChild(notes);
+
+  root.appendChild(el("h2", "sec-title", t("charts")));
+  const grid = el("div", "charts");
+  (d.analyses || []).forEach((a) => grid.appendChild(chartCard(a)));
+  root.appendChild(grid);
+
+  const two = el("div", "two");
+  two.style.marginTop = "18px";
+  two.append(listCard(t("insights"), d.insights, "insight"), listCard(t("recs"), d.recommendations, "rec"));
+  root.appendChild(two);
+}
+
+applyLang();
+show("upload");
+</script>
+</body>
+</html>
