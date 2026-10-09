@@ -133,6 +133,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 /* ---------- results ---------- */
 .results{display:none}
 .res-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.res-btns{display:flex;gap:10px;flex-wrap:wrap}
 .chip{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;
   background:rgba(255,255,255,.75);border:1px solid var(--glass-line);color:var(--ink);font-weight:600}
 .chip small{color:var(--gray);font-weight:500}
@@ -301,6 +302,9 @@ const I18N = {
     analyze: "حلّل بياناتي",
     change: "تغيير الملف",
     again: "حلّل ملف ثاني",
+    pdf: "تحميل النتائج PDF",
+    pdfBusy: "جاري التحضير...",
+    errPdf: "ما كدرنا نجهّز ملف الـ PDF. جرب مرة ثانية.",
     steps: ["قراءة الملف", "فهم نوع مشروعك", "تنظيف البيانات", "تخطيط التحليل", "رسم المخططات", "كتابة الاستنتاجات والنصائح"],
     errType: "نوع الملف غير مدعوم. ارفع ملف CSV أو XLSX.",
     errSize: "حجم الملف أكبر من 20 ميغابايت.",
@@ -332,6 +336,9 @@ const I18N = {
     analyze: "Analyze my data",
     change: "Change file",
     again: "Analyze another file",
+    pdf: "Download results (PDF)",
+    pdfBusy: "Preparing...",
+    errPdf: "Couldn't prepare the PDF. Please try again.",
     steps: ["Reading your file", "Understanding your business", "Cleaning the data", "Planning the analysis", "Drawing the charts", "Writing insights and advice"],
     errType: "Unsupported file type. Upload a CSV or XLSX file.",
     errSize: "The file is larger than 20 MB.",
@@ -486,6 +493,36 @@ async function analyze() {
     stopSteps();
   }
 }
+
+/* ---------- تحميل النتائج PDF ---------- */
+async function downloadPdf(btn) {
+  if (!lastData) return;
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t("pdfBusy");
+  try {
+    const res = await fetch(API_BASE + "/export-pdf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lastData),
+    });
+    if (!res.ok) throw new Error(t("errPdf"));
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "report.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (err) {
+    alert(err instanceof TypeError ? t("errNet") : err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
 $("analyzeBtn").addEventListener("click", analyze);
 
 /* ---------- بناء النتائج (textContent فقط، حتى ما ينحقن اي شي من الـ AI) ---------- */
@@ -612,7 +649,15 @@ function renderResults(d) {
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
   again.addEventListener("click", () => { lastData = null; root.innerHTML = ""; clearFile(); show("upload"); });
-  head.append(chip, again);
+
+  const pdfBtn = el("button", "btn", t("pdf"));
+  pdfBtn.type = "button";
+  pdfBtn.addEventListener("click", () => downloadPdf(pdfBtn));
+
+  const btns = el("div", "res-btns");
+  btns.append(pdfBtn, again);
+
+  head.append(chip, btns);
   root.appendChild(head);
 
   if (d.summary) {
