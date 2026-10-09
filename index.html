@@ -10,19 +10,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;500;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ivory:#F5F1EE;
-  --lavender:#E7DFF7;
-  --pink:#F7C8D8;
-  --lilac:#C9B8FF;
-  --blue:#A7E3FF;
-  --gray:#8B8F9B;
-  --ink:#2A2350;
-  --body:#5B5F73;
-  --purple:#7C5CFF;
-  --purple-2:#A78BFA;
+  --ivory:#F6F3EE;
+  --lavender:#C9C5D9;
+  --white:#FFFFFF;
+  --lilac:#CBC6EA;
+  --blue:#BFC4DA;
+  --gray:#777B91;
+  --ink:#272A43;
+  --body:#5A5D78;
+  --purple:#6E6AA8;
+  --purple-2:#A8A4D4;
   --glass:rgba(255,255,255,.58);
   --glass-line:rgba(255,255,255,.85);
-  --shadow:0 18px 50px -20px rgba(124,92,255,.35);
+  --shadow:0 18px 50px -20px rgba(39,42,67,.25);
   --radius:22px;
 }
 *{box-sizing:border-box}
@@ -40,10 +40,10 @@ button{font:inherit;cursor:pointer}
 /* ---------- background ---------- */
 .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;
   background:
-    radial-gradient(60% 50% at 12% 8%,rgba(201,184,255,.65),transparent 70%),
-    radial-gradient(50% 45% at 92% 18%,rgba(247,200,216,.6),transparent 70%),
-    radial-gradient(55% 50% at 80% 95%,rgba(167,227,255,.55),transparent 70%),
-    radial-gradient(45% 40% at 5% 90%,rgba(231,223,247,.9),transparent 70%),
+    radial-gradient(60% 50% at 12% 8%,rgba(217,203,187,0.45),transparent 45%),
+    radial-gradient(50% 45% at 92% 18%,rgba(237,227,213,0.8),transparent 45%),
+    radial-gradient(55% 50% at 80% 95%,rgba(217,203,187,0.35),transparent 45%),
+    
     var(--ivory);}
 .bubble{position:absolute;border-radius:50%;
   background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.95),rgba(201,184,255,.28) 42%,rgba(167,227,255,.22) 72%,rgba(247,200,216,.12));
@@ -53,7 +53,7 @@ button{font:inherit;cursor:pointer}
 .b1{width:190px;height:190px;top:-50px;inset-inline-end:-40px}
 .b2{width:120px;height:120px;bottom:12%;inset-inline-start:-30px}
 .b3{width:70px;height:70px;top:46%;inset-inline-end:6%}
-.spark{position:absolute;width:22px;height:22px;fill:#B9A6FF;opacity:.85}
+.spark{position:absolute;width:22px;height:22px;fill:#B3AEE3;opacity:.85}
 .s1{top:120px;inset-inline-start:9%}
 .s2{top:38%;inset-inline-end:14%;width:14px;height:14px}
 .s3{bottom:16%;inset-inline-end:30%;width:18px;height:18px}
@@ -67,7 +67,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;
   padding:12px 20px;border-radius:999px;margin-bottom:56px}
 .wordmark{direction:ltr;unicode-bidi:isolate;display:inline-flex;align-items:center;
   font-family:Montserrat,sans-serif;font-weight:300;letter-spacing:.09em;
-  background:linear-gradient(100deg,#8E7CF0 0%,#B9A6FF 45%,#F0A6C6 100%);
+  background:linear-gradient(100deg,#272A43 0%,#272A43 60%,#4A4D78 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;line-height:1}
 .wordmark.sm{font-size:24px}
 .wordmark.lg{font-size:54px}
@@ -80,7 +80,7 @@ header.top{display:flex;align-items:center;justify-content:space-between;
 .hero{max-width:720px;margin:0 auto 34px;text-align:center}
 .hero h1{margin:0 0 14px;font-family:Montserrat,Cairo,sans-serif;font-weight:500;
   font-size:clamp(30px,6vw,52px);line-height:1.2;color:var(--ink);letter-spacing:.01em}
-.hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,var(--purple),var(--purple-2) 60%,#E993B8);
+.hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,#272A43,#6E6AA8 55%,#A8A4D4);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p{margin:0 auto;max-width:560px;font-size:17px}
 
@@ -88,14 +88,14 @@ header.top{display:flex;align-items:center;justify-content:space-between;
 .upload{max-width:640px;margin:0 auto;padding:22px}
 .drop{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
   padding:38px 20px;border-radius:18px;border:1.5px dashed var(--lilac);
-  background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(231,223,247,.45));
+  background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(233,230,244,.55));
   transition:background .2s,border-color .2s}
-.drop.over{border-color:var(--purple);background:rgba(201,184,255,.35)}
+.drop.over{border-color:var(--purple);background:rgba(203,198,234,.4)}
 .drop svg{width:54px;height:54px;margin-bottom:6px}
 .drop strong{color:var(--ink);font-size:18px}
 .drop small{color:var(--gray);font-size:14px}
 .btn{border:0;border-radius:999px;padding:12px 28px;font-weight:600;font-size:16px;color:#fff;
-  background:linear-gradient(120deg,#8B6CF6,#A78BFA);box-shadow:0 10px 24px -10px rgba(124,92,255,.7);
+  background:linear-gradient(120deg,#272A43,#3F4370);box-shadow:0 10px 24px -10px rgba(39,42,67,.55);
   transition:transform .15s,box-shadow .15s}
 .btn:hover{transform:translateY(-1px);box-shadow:0 14px 28px -10px rgba(124,92,255,.8)}
 .btn.ghost{color:var(--purple);background:rgba(255,255,255,.75);box-shadow:none;border:1px solid var(--lilac)}
@@ -126,7 +126,7 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .steps li::before{content:"";flex:none;width:12px;height:12px;border-radius:50%;
   border:2px solid var(--lilac);background:transparent;transition:all .3s}
 .steps li.active{color:var(--ink);font-weight:600}
-.steps li.active::before{background:var(--purple);border-color:var(--purple);box-shadow:0 0 0 5px rgba(124,92,255,.18)}
+.steps li.active::before{background:var(--purple);border-color:var(--purple);box-shadow:0 0 0 5px rgba(110,106,168,.2)}
 .steps li.done{color:var(--body)}
 .steps li.done::before{background:var(--blue);border-color:var(--blue)}
 
@@ -198,6 +198,12 @@ footer p{margin:2px 0}
 @media (prefers-reduced-motion:reduce){
   .orbit-g,.pulse{animation:none}
   .hb-track i,.vb-plot i{transition:none}
+}
+.bubble,
+.b1,
+.b2,
+.b3{
+  display: none !important;
 }
 </style>
 </head>
