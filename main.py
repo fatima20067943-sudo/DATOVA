@@ -1,5 +1,7 @@
 import json
+import logging
 import os
+import traceback
 from dotenv import load_dotenv
 import re
 from pathlib import Path
@@ -32,6 +34,7 @@ except ImportError:
     def fix_text(text) -> str:
         return str(text)
 load_dotenv()
+logger = logging.getLogger("datova")
 app = FastAPI()
 
 
@@ -460,7 +463,7 @@ async def upload_file(file: UploadFile = File(...)):
 # ---------------------------------------------------------------------------
 # تحويل النتائج إلى PDF (يحتاج: pip install reportlab + خط عربي داخل fonts/)
 # ---------------------------------------------------------------------------
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent
 FONT_NAME = "ReportFont"
 
 # يجرّب الخطوط بالترتيب ويستخدم أول واحد موجود
@@ -484,13 +487,26 @@ def _register_font() -> None:
     global _font_ready
     if _font_ready:
         return
-    for path in FONT_CANDIDATES:
+    candidates = list(FONT_CANDIDATES)
+    # أي ملف .ttf داخل مجلد fonts/ (حتى لو اسمه مختلف عن اللي فوق)
+    fonts_dir = BASE_DIR / "fonts"
+    if fonts_dir.is_dir():
+        candidates[3:3] = sorted(fonts_dir.glob("*.ttf")) + sorted(fonts_dir.glob("*.TTF"))
+    # وإذا ما في مجلد fonts: أي ملف .ttf مباشرة جنب main.py
+    candidates[3:3] = sorted(BASE_DIR.glob("*.ttf")) + sorted(BASE_DIR.glob("*.TTF"))
+    for path in candidates:
         if path.exists():
-            pdfmetrics.registerFont(TTFont(FONT_NAME, str(path)))
+            try:
+                pdfmetrics.registerFont(TTFont(FONT_NAME, str(path)))
+            except Exception as error:
+                logger.warning("font %s could not be loaded: %s", path, error)
+                continue
             _font_ready = True
+            logger.info("PDF font loaded: %s", path)
             return
     raise RuntimeError(
-        "ما لقينا خط عربي. نزّل Amiri-Regular.ttf وحطه داخل مجلد fonts/"
+        "ما لقينا خط عربي. نزّل Amiri-Regular.ttf وحطه داخل مجلد fonts/ "
+        f"(المسار المتوقع: {fonts_dir})"
     )
 
 
@@ -675,10 +691,15 @@ def export_pdf(data: dict = Body(...)):
         pdf_bytes = build_pdf(data, CHARTS_DIR, fix_text)
     except RuntimeError as error:  # مثلًا: ما لقينا الخط العربي
         raise HTTPException(status_code=500, detail=str(error))
+    except Exception as error:  # أي خطأ ثاني: نطبعه باللوغ ونرجّع سببه للواجهة
+        logger.error("PDF export failed:\n%s", traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"PDF export failed: {type(error).__name__}: {error}",
+        )
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
         headers={"Content-Disposition": 'attachment; filename="report.pdf"'},
     )
-
 
