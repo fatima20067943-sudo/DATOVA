@@ -116,11 +116,11 @@ async def ask_json(system_prompt: str, payload: dict) -> dict:
                 response_format={"type": "json_object"},  # يجبره على إرجاع JSON
                 temperature=0,
             )
-        except Exception:
+        except Exception as e:
+            logger.exception("Groq API request failed")
             raise HTTPException(
-                status_code=503,
-                detail="AI service is not available. Check GROQ_API_KEY, the model "
-                f"name '{MODEL}', and that you have not hit the free rate limit.",
+            status_code=503,
+            detail=f"AI service error: {type(e).name}: {str(e)[:300]}"
             )
         text = (response.choices[0].message.content or "").strip()
         text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
