@@ -120,7 +120,7 @@ async def ask_json(system_prompt: str, payload: dict) -> dict:
             logger.exception("Groq API request failed")
             raise HTTPException(
             status_code=503,
-            detail=f"AI service error: {type(e).name}: {str(e)[:300]}"
+            detail=f"AI service error: {type(e).__name__}: {str(e)[:300]}"
             )
         text = (response.choices[0].message.content or "").strip()
         text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
