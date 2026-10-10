@@ -4,6 +4,8 @@ import os
 import traceback
 from dotenv import load_dotenv
 import re
+from database import SessionLocal
+from models import Upload
 from pathlib import Path
 from uuid import uuid4
 import matplotlib
@@ -433,6 +435,24 @@ async def upload_file(file: UploadFile = File(...)):
             ],
         },
     )
+    
+    db = SessionLocal()
+    try:
+        upload_record = Upload(
+            filename=file.filename,
+            status="uploaded",
+        )
+        db.add(upload_record)
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Analysis completed, but saving upload information failed.",
+        )
+    finally:
+        db.close()
+
     return {
         "message": "File analyzed successfully.",
         "original_filename": file.filename,
