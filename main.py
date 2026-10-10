@@ -689,7 +689,8 @@ def export_pdf(data: dict = Body(...)):
     """يستلم نفس JSON اللي رجّعه /upload ويرجع ملف PDF للتحميل."""
     try:
         pdf_bytes = build_pdf(data, CHARTS_DIR, fix_text)
-    except RuntimeError as error:  # مثلًا: ما لقينا الخط العربي
+    except RuntimeError as error:
+        logger.error("PDF RuntimeError:\n%s", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(error))
     except Exception as error:  # أي خطأ ثاني: نطبعه باللوغ ونرجّع سببه للواجهة
         logger.error("PDF export failed:\n%s", traceback.format_exc())
