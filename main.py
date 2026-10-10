@@ -436,6 +436,7 @@ async def upload_file(file: UploadFile = File(...)):
         },
     )
     
+
     db = SessionLocal()
     try:
         upload_record = Upload(
@@ -444,8 +445,9 @@ async def upload_file(file: UploadFile = File(...)):
         )
         db.add(upload_record)
         db.commit()
-    except Exception:
+    except Exception as error:
         db.rollback()
+        print("DATABASE SAVE ERROR:", repr(error))
         raise HTTPException(
             status_code=500,
             detail="Analysis completed, but saving upload information failed.",
