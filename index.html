@@ -190,6 +190,32 @@ footer{margin-top:64px;text-align:center;color:var(--gray);font-size:14px}
 footer .wordmark{margin-bottom:8px}
 footer p{margin:2px 0}
 
+/* ---------- الفلتر ---------- */
+.fpanel{padding:18px 22px;margin:0 0 18px}
+.fhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.fhead h3{margin:0;font-size:18px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600}
+.fbody{display:none;flex-direction:column;gap:16px;margin-top:16px}
+.fbody.open{display:flex}
+.frows{display:grid;gap:10px}
+.frow{display:grid;grid-template-columns:minmax(120px,1fr) minmax(110px,.7fr) 2fr auto;gap:10px;align-items:start;
+  padding:12px;border-radius:16px;background:rgba(255,255,255,.7);border:1px solid var(--glass-line)}
+.fsel,.finp{width:100%;padding:9px 12px;border-radius:12px;border:1px solid var(--lilac);background:#fff;color:var(--ink);font:inherit;font-size:15px}
+.fop{padding:9px 4px;color:var(--gray);font-size:15px}
+.fval{display:grid;gap:8px;min-width:0}
+.fvals{max-height:140px;overflow:auto;display:grid;gap:4px;padding:6px 4px}
+.fvals label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--ink)}
+.flab{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--gray)}
+.flab .finp{flex:1}
+.fx{border:0;background:transparent;color:var(--gray);font-size:24px;line-height:1;padding:4px 8px}
+.fx:hover{color:var(--ink)}
+.fgroup h4{margin:0 0 8px;font-size:15px;color:var(--ink)}
+.fgran,.fchips{display:flex;gap:8px;flex-wrap:wrap}
+.pill{border:1px solid var(--lilac);background:rgba(255,255,255,.75);color:var(--ink);padding:6px 14px;border-radius:999px;font-size:14px}
+.pill.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.fchips label{display:inline-flex;gap:6px;align-items:center;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.75);
+  border:1px solid var(--glass-line);font-size:14px;color:var(--ink)}
+.factions{display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:820px){.frow{grid-template-columns:1fr}}
 @media (max-width:820px){
   .stats{grid-template-columns:repeat(2,1fr)}
   .charts,.two{grid-template-columns:1fr}
@@ -322,7 +348,14 @@ const I18N = {
     recs: "نصائح لك",
     filled: "تم ملء",
     dropped: "تم حذف العمود",
-    mean: "المتوسط", median: "الوسيط", mode: "الأكثر تكراراً", zero: "صفر",
+    mean: "المتوسط", median: "الوسيط", mode: "الأكثر تكراراً", zero: "صفر", unknown: "غير محدد",
+    filterTitle: "فلترة البيانات", open: "فتح", close: "إغلاق", addFilter: "إضافة شرط", apply: "تطبيق الفلتر",
+    reset: "إعادة ضبط", applying: "جاري التطبيق...", showOnly: "إظهار فقط", hide: "إخفاء", between: "بين",
+    contains: "يحتوي", notContains: "لا يحتوي", from: "من", to: "إلى", min: "الأدنى", max: "الأعلى",
+    search: "بحث...", typeText: "اكتب النص", remove: "حذف الشرط", granTitle: "عرض الاتجاه عبر الزمن",
+    granNone: "بدون تغيير", day: "يومي", week: "أسبوعي", month: "شهري", hideCols: "إخفاء أعمدة من التحليل",
+    rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح تخص كل البيانات (تعذّر تحديثها)",
+    errFilter: "ما كدرنا نطبّق الفلتر. جرب مرة ثانية.",
     footer: "تحليل البيانات، رؤى، قرارات أفضل",
     langBtn: "EN"
   },
@@ -356,7 +389,14 @@ const I18N = {
     recs: "What to do next",
     filled: "Filled",
     dropped: "Dropped column",
-    mean: "mean", median: "median", mode: "most common", zero: "zero",
+    mean: "mean", median: "median", mode: "most common", zero: "zero", unknown: "unspecified",
+    filterTitle: "Filter your data", open: "Open", close: "Close", addFilter: "Add condition", apply: "Apply filter",
+    reset: "Reset", applying: "Applying...", showOnly: "Show only", hide: "Hide", between: "Between",
+    contains: "Contains", notContains: "Does not contain", from: "From", to: "To", min: "Min", max: "Max",
+    search: "Search...", typeText: "Type text", remove: "Remove condition", granTitle: "Trend over time",
+    granNone: "No change", day: "Daily", week: "Weekly", month: "Monthly", hideCols: "Hide columns from the analysis",
+    rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice cover all data (could not be refreshed)",
+    errFilter: "Couldn't apply the filter. Please try again.",
     footer: "Data analysis, insights, better decisions",
     langBtn: "عربي"
   }
@@ -484,6 +524,8 @@ async function analyze() {
       throw new Error(data && typeof data.detail === "string" ? data.detail : t("errGeneric"));
     }
     lastData = data;
+    baseData = data;
+    resetFilter();
     renderResults(data);
     show("results");
   } catch (err) {
@@ -504,7 +546,7 @@ async function downloadPdf(btn) {
     const res = await fetch(API_BASE + "/export-pdf", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...lastData, lang }),
+      body: JSON.stringify((({ filter_meta, ...rest }) => ({ ...rest, lang }))(lastData)),
     });
     if (!res.ok) {
       let d = null;
@@ -568,8 +610,9 @@ function vBars(labels, values) {
     const bar = el("i");
     bar.title = l + ": " + fmt(values[i]);
     plot.appendChild(bar);
-    const [y, m] = l.split("-");
-    col.append(plot, el("span", "", i % step === 0 ? m + "/" + y.slice(2) : ""));
+    const p = l.split("-");
+    const short = p.length === 3 ? p[2] + "/" + p[1] : p[1] + "/" + p[0].slice(2);
+    col.append(plot, el("span", "", i % step === 0 ? short : ""));
     box.appendChild(col);
     requestAnimationFrame(() => requestAnimationFrame(() => (bar.style.height = (Math.abs(values[i]) / max) * 100 + "%")));
   });
@@ -607,7 +650,7 @@ function donut(labels, values) {
 function chartCard(a) {
   const card = el("article", "card glass");
   card.appendChild(el("h3", "", a.title));
-  const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}$/.test(l));
+  const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
   if (a.chart === "pie") card.appendChild(donut(a.labels, a.values));
   else card.appendChild(isTime ? vBars(a.labels, a.values) : hBars(a.labels, a.values));
   return card;
@@ -642,6 +685,246 @@ function statCard(label, value, sub) {
   return s;
 }
 
+/* ---------- الفلتر ---------- */
+let baseData = null;
+let fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false };
+function resetFilter() { fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false }; }
+
+const F_OPS = {
+  category: [["in", "showOnly"], ["not_in", "hide"]],
+  text: [["contains", "contains"], ["not_contains", "notContains"]],
+  numeric: [["between", "between"]],
+  date: [["between", "between"]]
+};
+const colOf = (meta, name) => (meta.columns || []).find((c) => c.name === name);
+const blankRow = (c) => ({ column: c.name, op: F_OPS[c.kind][0][0], values: [], min: "", max: "", start: "", end: "", text: "" });
+
+function fSelect(options, value, onChange) {
+  const s = el("select", "fsel");
+  options.forEach(([v, label]) => {
+    const o = el("option", "", label);
+    o.value = v;
+    if (v === value) o.selected = true;
+    s.appendChild(o);
+  });
+  s.addEventListener("change", () => onChange(s.value));
+  return s;
+}
+function fInput(type, value, ph, onInput, attrs) {
+  const i = el("input", "finp");
+  i.type = type;
+  i.value = value;
+  if (ph) i.placeholder = ph;
+  Object.entries(attrs || {}).forEach(([k, v]) => i.setAttribute(k, v));
+  i.addEventListener("input", () => onInput(i.value));
+  return i;
+}
+function labeled(text, input) {
+  const l = el("label", "flab");
+  l.append(el("span", "", text), input);
+  return l;
+}
+
+function filterRow(meta, row, rebuild) {
+  const c = colOf(meta, row.column) || meta.columns[0];
+  const box = el("div", "frow");
+  box.appendChild(fSelect(meta.columns.map((x) => [x.name, x.name]), row.column, (v) => {
+    Object.assign(row, blankRow(colOf(meta, v)));
+    rebuild();
+  }));
+  const ops = F_OPS[c.kind];
+  box.appendChild(ops.length > 1
+    ? fSelect(ops.map(([v, k]) => [v, t(k)]), row.op, (v) => { row.op = v; })
+    : el("span", "fop", t(ops[0][1])));
+
+  const val = el("div", "fval");
+  if (c.kind === "category") {
+    const list = el("div", "fvals");
+    const search = fInput("search", "", t("search"), (q) => {
+      list.querySelectorAll("label").forEach((lb) => {
+        lb.style.display = lb.dataset.v.toLowerCase().includes(q.toLowerCase()) ? "" : "none";
+      });
+    });
+    c.values.forEach((v) => {
+      const lb = el("label");
+      lb.dataset.v = v;
+      const cb = el("input");
+      cb.type = "checkbox";
+      cb.checked = row.values.includes(v);
+      cb.addEventListener("change", () => {
+        row.values = cb.checked ? [...row.values, v] : row.values.filter((x) => x !== v);
+      });
+      lb.append(cb, el("span", "", v));
+      list.appendChild(lb);
+    });
+    val.append(search, list);
+  } else if (c.kind === "numeric") {
+    val.append(
+      labeled(t("min"), fInput("number", row.min, fmt(c.min), (v) => (row.min = v), { step: "any" })),
+      labeled(t("max"), fInput("number", row.max, fmt(c.max), (v) => (row.max = v), { step: "any" }))
+    );
+  } else if (c.kind === "date") {
+    val.append(
+      labeled(t("from"), fInput("date", row.start, "", (v) => (row.start = v), { min: c.min, max: c.max })),
+      labeled(t("to"), fInput("date", row.end, "", (v) => (row.end = v), { min: c.min, max: c.max }))
+    );
+  } else {
+    val.appendChild(fInput("text", row.text, t("typeText"), (v) => (row.text = v)));
+  }
+  box.appendChild(val);
+
+  const x = el("button", "fx", "×");
+  x.type = "button";
+  x.title = t("remove");
+  x.addEventListener("click", () => { fState.rows.splice(fState.rows.indexOf(row), 1); rebuild(); });
+  box.appendChild(x);
+  return box;
+}
+
+function buildFilterPanel(d) {
+  const meta = d.filter_meta;
+  const panel = el("section", "fpanel glass");
+  const head = el("div", "fhead");
+  const toggle = el("button", "btn ghost", fState.open ? t("close") : t("open"));
+  toggle.type = "button";
+  head.append(el("h3", "", t("filterTitle")), toggle);
+  const body = el("div", fState.open ? "fbody open" : "fbody");
+  toggle.addEventListener("click", () => {
+    fState.open = !fState.open;
+    body.classList.toggle("open", fState.open);
+    toggle.textContent = fState.open ? t("close") : t("open");
+  });
+
+  // شروط الفلتر (كل شرط: عمود + نوع الشرط + القيم)
+  const rowsBox = el("div", "frows");
+  const rebuild = () => {
+    rowsBox.innerHTML = "";
+    fState.rows.forEach((r) => rowsBox.appendChild(filterRow(meta, r, rebuild)));
+  };
+  rebuild();
+  const add = el("button", "btn ghost", "+ " + t("addFilter"));
+  add.type = "button";
+  add.style.alignSelf = "flex-start";
+  add.addEventListener("click", () => {
+    if (meta.columns.length) { fState.rows.push(blankRow(meta.columns[0])); rebuild(); }
+  });
+  body.append(rowsBox, add);
+
+  // التجميع الزمني: يومي / أسبوعي / شهري
+  if ((meta.date_columns || []).length) {
+    const g = el("div", "fgroup");
+    g.appendChild(el("h4", "", t("granTitle")));
+    const pills = el("div", "fgran");
+    [["", "granNone"], ["day", "day"], ["week", "week"], ["month", "month"]].forEach(([v, k]) => {
+      const b = el("button", "pill" + (fState.gran === v ? " on" : ""), t(k));
+      b.type = "button";
+      b.addEventListener("click", () => {
+        fState.gran = v;
+        pills.querySelectorAll(".pill").forEach((p) => p.classList.remove("on"));
+        b.classList.add("on");
+      });
+      pills.appendChild(b);
+    });
+    g.appendChild(pills);
+    if (meta.date_columns.length > 1) {
+      const sel = fSelect(meta.date_columns.map((c) => [c, c]), fState.dateCol || meta.date_columns[0], (v) => (fState.dateCol = v));
+      sel.style.marginTop = "8px";
+      g.appendChild(sel);
+    }
+    body.appendChild(g);
+  }
+
+  // إخفاء أعمدة من التحليل
+  const hg = el("div", "fgroup");
+  hg.appendChild(el("h4", "", t("hideCols")));
+  const chips = el("div", "fchips");
+  (meta.all_columns || []).forEach((name) => {
+    const lb = el("label");
+    const cb = el("input");
+    cb.type = "checkbox";
+    cb.checked = fState.hidden.includes(name);
+    cb.addEventListener("change", () => {
+      fState.hidden = cb.checked ? [...fState.hidden, name] : fState.hidden.filter((x) => x !== name);
+    });
+    lb.append(cb, el("span", "", name));
+    chips.appendChild(lb);
+  });
+  hg.appendChild(chips);
+  body.appendChild(hg);
+
+  const err = el("div", "error");
+  const apply = el("button", "btn", t("apply"));
+  apply.type = "button";
+  apply.addEventListener("click", () => applyFilter(d, apply, err));
+  const reset = el("button", "btn ghost", t("reset"));
+  reset.type = "button";
+  reset.addEventListener("click", () => {
+    resetFilter();
+    fState.open = true;
+    lastData = baseData;
+    renderResults(lastData);
+  });
+  const actions = el("div", "factions");
+  actions.append(apply, reset);
+  body.append(actions, err);
+
+  panel.append(head, body);
+  return panel;
+}
+
+async function applyFilter(d, btn, errBox) {
+  errBox.classList.remove("show");
+  const meta = d.filter_meta;
+  const filters = [];
+  fState.rows.forEach((r) => {
+    const c = colOf(meta, r.column);
+    if (!c) return;
+    if (c.kind === "category") {
+      if (r.values.length) filters.push({ column: r.column, op: r.op, values: r.values });
+    } else if (c.kind === "text") {
+      if (r.text.trim()) filters.push({ column: r.column, op: r.op, value: r.text.trim() });
+    } else if (c.kind === "numeric") {
+      const f = { column: r.column, op: "between" };
+      if (r.min !== "") f.min = Number(r.min);
+      if (r.max !== "") f.max = Number(r.max);
+      if (f.min !== undefined || f.max !== undefined) filters.push(f);
+    } else if (c.kind === "date") {
+      const f = { column: r.column, op: "between" };
+      if (r.start) f.start = r.start;
+      if (r.end) f.end = r.end;
+      if (f.start || f.end) filters.push(f);
+    }
+  });
+
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t("applying");
+  try {
+    const res = await fetch(API_BASE + "/filter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        upload_id: d.upload_id, filters, hidden_columns: fState.hidden,
+        granularity: fState.gran || null, date_column: fState.dateCol || null, lang
+      })
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) throw new Error(data && typeof data.detail === "string" ? data.detail : t("errFilter"));
+    lastData = { ...d, analyses: data.analyses, filter_info: data.filter_info, insights_stale: !!data.insights_error };
+    if (!data.insights_error) {
+      Object.assign(lastData, { summary: data.summary, insights: data.insights, recommendations: data.recommendations });
+    }
+    renderResults(lastData);
+  } catch (err) {
+    errBox.textContent = err instanceof TypeError ? t("errNet") : err.message;
+    errBox.classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
 function renderResults(d) {
   const root = $("resultsView");
   root.innerHTML = "";
@@ -652,7 +935,7 @@ function renderResults(d) {
   chip.append(el("small", "", t("business")), document.createTextNode(d.business_type || "-"));
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
-  again.addEventListener("click", () => { lastData = null; root.innerHTML = ""; clearFile(); show("upload"); });
+  again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); root.innerHTML = ""; clearFile(); show("upload"); });
 
   const pdfBtn = el("button", "btn", t("pdf"));
   pdfBtn.type = "button";
@@ -663,6 +946,16 @@ function renderResults(d) {
 
   head.append(chip, btns);
   root.appendChild(head);
+
+  if (d.filter_meta) root.appendChild(buildFilterPanel(d));
+  if (d.filter_info) {
+    const fi = d.filter_info;
+    const fn = el("div", "notes");
+    fn.appendChild(el("span", "note", `${t("rowsAfterFilter")}: ${fmt(fi.rows_after)} ${t("of")} ${fmt(fi.rows_before)}`));
+    (fi.descriptions || []).forEach((x) => fn.appendChild(el("span", "note", x)));
+    if (d.insights_stale) fn.appendChild(el("span", "note warn", t("staleInsights")));
+    root.appendChild(fn);
+  }
 
   if (d.summary) {
     const sum = el("section", "summary glass");

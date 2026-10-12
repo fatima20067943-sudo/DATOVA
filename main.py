@@ -4,8 +4,6 @@ import os
 import traceback
 from dotenv import load_dotenv
 import re
-from database import SessionLocal
-from models import Upload
 from pathlib import Path
 from uuid import uuid4
 import matplotlib
@@ -16,8 +14,18 @@ from fastapi import Body, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
+from pydantic import BaseModel
+from typing import Literal
+from database import SessionLocal
+from models import Upload
 from datetime import datetime
 from io import BytesIO
+import unicodedata
+import warnings
+import asyncio
+import time as _time
+from datetime import time as dt_time
+from difflib import SequenceMatcher
 import math
 from reportlab.lib.colors import HexColor, white
 from reportlab.lib.pagesizes import A4
@@ -160,80 +168,368 @@ def looks_too_messy(df: pd.DataFrame) -> bool:
 # ---------------------------------------------------------------------------
 # التنظيف بواسطة pandas
 # ---------------------------------------------------------------------------
+# === التنظيف (نسخة أقوى) ===================================================
+# كل الأرقام اللي تتحكم بسلوك التنظيف هنا، غيّرها من مكان واحد
+UNKNOWN_LABEL = "غير محدد"        # يُملأ فيه النص الناقص
+MAX_FILL_RATIO = 0.15             # رقم ناقص أكثر من 15%: ما نملاه (الملء بالوسيط يضخّم المجاميع)
+MAX_ROW_LOSS = 0.4                # ما نحذف صفوف إذا الحذف ياكل أكثر من 40% من الملف
+TYPE_THRESHOLD = 0.9              # نسبة نجاح التحويل المطلوبة حتى نغيّر نوع العمود
+HINT_THRESHOLD = 0.8              # إذا الذكاء الاصطناعي حدد النوع (رقم/تاريخ) نكتفي بنسبة أقل
+FUZZY_THRESHOLD = 0.85            # تشابه الكلمات لدمجها (0.85 = متحفظ، أقل = أجرأ)
+FUZZY_MIN_LEN = 4                 # الكلمات الأقصر من هذا ما تنقارن تقريبياً (A و B ما تندمج)
+MAX_FUZZY_UNIQUE = 1000           # أكثر من هذا العدد من القيم المختلفة: نوحّد الحروف بس بدون مقارنة تقريبية
+FUZZY_TIME_BUDGET = 1.5           # أقصى ثواني للمقارنة التقريبية لكل عمود (حماية من البطء)
+FUZZY_TOTAL_BUDGET = 4.0          # وأقصى ثواني لكل الملف
+MAX_STANDARD_LEN = 40             # أعمدة نصوصها طويلة (ملاحظات) ما نوحّد كلماتها
+DATE_DAYFIRST = True              # 05/03/2026 = 5 مارس
+DEDUP_MODE = "auto"               # "auto": نحذف المكرر إذا الجدول فيه معرّف/تاريخ/ساعة | "always" | "never"
+MISSING_TOKENS = {"", "nan", "null", "n/a", "#n/a", "-", "--", "غير متوفر"}
+
+_SPACES = re.compile(r"\s+")
+_ZERO_WIDTH = re.compile(r"[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
+_TIME_PAT = r"^\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AaPp][Mm]|ص|م)?$"
+_DATE_PAT = r"^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}"
+_OFFSET_PAT = r"(?<=\d:\d{2})\s*(?:Z|[+-]\d{2}:?\d{2})$"      # فرق التوقيت (+03:00 / Z) نشيله ونحافظ على الساعة المحلية
+_CURRENCY_PAT = r"(?i)(?:iqd|usd|eur|د\.ع|دينار|دولار|[$€£%])"
+_DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹٫٬", "01234567890123456789.,")
+_AR_MAP = str.maketrans({"ة": "ه", "ى": "ي", "ی": "ي", "ک": "ك", "ـ": ""})
+_PD2 = int(pd.__version__.split(".")[0]) >= 2
+
+
+def _clean_cell(v):
+    """يشيل المسافات الزايدة (بالأول والآخر ووسط الكلمات) والرموز المخفية، ويحوّل 'nan' و'-' وغيرها لقيمة ناقصة."""
+    if not isinstance(v, str):
+        return v
+    s = _SPACES.sub(" ", _ZERO_WIDTH.sub("", v)).strip()
+    return pd.NA if s.lower() in MISSING_TOKENS else s
+
+
+def _clean_columns(cols) -> list[str]:
+    """أسماء أعمدة نظيفة، غير فارغة، وغير مكررة."""
+    out, seen = [], {}
+    for i, c in enumerate(cols, 1):
+        name = _SPACES.sub(" ", _ZERO_WIDTH.sub("", str(c))).strip() or f"column_{i}"
+        seen[name] = seen.get(name, 0) + 1
+        out.append(name if seen[name] == 1 else f"{name}_{seen[name]}")
+    return out
+
+
+def _to_datetime(s: pd.Series) -> pd.Series:
+    """2026-01-05 (سنة أول) تنقرأ سنة-شهر-يوم، و05/01/2026 تنقرأ يوم/شهر/سنة (حسب DATE_DAYFIRST)."""
+    s = s.astype("string").str.replace(_OFFSET_PAT, "", regex=True)
+    year_first = s.str.match(r"^\s*\d{4}[-/.]").fillna(False)
+
+    def parse(part, dayfirst):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            try:
+                kwargs = {"errors": "coerce", "dayfirst": dayfirst}
+                if _PD2:
+                    kwargs["format"] = "mixed"
+                return pd.to_datetime(part, **kwargs)
+            except Exception:
+                return pd.Series(pd.NaT, index=part.index, dtype="datetime64[ns]")
+
+    return parse(s.where(year_first), False).fillna(parse(s.where(~year_first), DATE_DAYFIRST))
+
+
+def _norm_num(s: str):
+    """يفهم 1,234.56 و 1.234,56 و 12,5 و (500) و 500-  ويرجع نص رقم صالح أو None."""
+    neg = False
+    if s.startswith("(") and s.endswith(")"):
+        neg, s = True, s[1:-1]
+    if s.startswith("-"):
+        neg, s = True, s[1:]
+    elif s.startswith("+"):
+        s = s[1:]
+    if s.endswith("-"):
+        neg, s = True, s[:-1]
+    if "," in s and "." in s:                       # الفاصل الأخير هو العشري
+        dec = "," if s.rfind(",") > s.rfind(".") else "."
+        grp = "." if dec == "," else ","
+        s = s.replace(grp, "").replace(dec, ".")
+    elif "," in s:
+        if re.fullmatch(r"\d{1,3}(?:,\d{3})+", s):  # 1,234 أو 12,500 = آلاف
+            s = s.replace(",", "")
+        elif re.fullmatch(r"\d+,\d{1,2}", s):       # 12,5 أو 7,25 = عشري
+            s = s.replace(",", ".")
+        else:
+            return None
+    elif s.count(".") > 1:
+        if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", s):  # 1.234.567 = آلاف
+            s = s.replace(".", "")
+        else:
+            return None
+    return ("-" if neg else "") + s if re.fullmatch(r"\d+(?:\.\d+)?", s) else None
+
+
+def _detect(series: pd.Series, hint: str | None):
+    """يرجع (النوع, العمود المحوّل, mask بالقيم اللي فشل تحويلها). الأنواع: numeric/date/time/id/bool/text."""
+    if pd.api.types.is_bool_dtype(series):
+        return "bool", series, None
+    if hint == "id":
+        return "id", series, None
+    if pd.api.types.is_numeric_dtype(series):
+        return "numeric", series, None
+    if pd.api.types.is_datetime64_any_dtype(series):
+        return "date", series, None
+    nn = series.dropna()
+    if nn.empty:
+        return "text", series, None
+    if all(isinstance(v, dt_time) for v in nn):
+        return "time", series, None
+    txt = series.astype("string")
+    present = txt.notna()
+    n = int(present.sum())
+
+    # --- ساعة (14:30 / 2:15 PM / 9:00 ص)
+    is_time = txt.str.match(_TIME_PAT).fillna(False)
+    if is_time.sum() / n >= 0.8:
+        fixed = txt.str.replace(r"\s*ص$", " AM", regex=True).str.replace(r"\s*م$", " PM", regex=True)
+        parsed = _to_datetime(fixed.where(is_time))
+        if parsed.notna().sum() / n >= TYPE_THRESHOLD:
+            return "time", parsed.dt.time, present & parsed.isna()
+
+    # --- تاريخ
+    date_like = txt.str.match(_DATE_PAT).fillna(False)
+    if hint == "date" or date_like.sum() / n >= 0.8:
+        parsed = _to_datetime(txt)
+        if parsed.notna().sum() / n >= (HINT_THRESHOLD if hint == "date" else TYPE_THRESHOLD):
+            return "date", parsed, present & parsed.isna()
+
+    # --- رقم (أرقام عربية، آلاف/عشري، عملات، أقواس سالبة)
+    cleaned = (txt.str.translate(_DIGITS)
+                  .str.replace(_CURRENCY_PAT, "", regex=True)
+                  .str.replace(r"\s", "", regex=True))
+    normed = cleaned.map({u: _norm_num(u) for u in cleaned.dropna().unique()})
+    ok = normed.notna()
+    if ok.sum() / n >= (HINT_THRESHOLD if hint == "numeric" else TYPE_THRESHOLD):
+        if cleaned[ok].str.match(r"^0\d+$").mean() > 0.3:   # 0770... أرقام هواتف/معرّفات: تبقى نص
+            return "id", series, None
+        num = pd.to_numeric(normed.where(ok), errors="coerce").astype("float64")
+        if num.notna().all() and (num % 1 == 0).all():
+            num = num.astype("int64")
+        return "numeric", num, present & ~ok
+    return "text", series, None
+
+
+def _tokens(text: str) -> list[str]:
+    s = unicodedata.normalize("NFKD", text)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return re.findall(r"\w+", s.translate(_AR_MAP).casefold())
+
+
+def _key(text: str) -> str:
+    """مفتاح مقارنة. للنص: بدون حروف كبيرة/صغيرة، تشكيل، همزات، ة/ه، ى/ي، مسافات ورموز.
+    للقيم اللي فيها أرقام (أكواد، 1-2): نوحّد الحروف والمسافات فقط، وما نشيل الرموز."""
+    strict = _SPACES.sub(" ", text).strip().casefold()
+    if any(ch.isdigit() for ch in text):
+        return strict
+    loose = "".join(_tokens(text))
+    return loose if len(loose) >= 3 else strict        # C++ غير C#
+
+
+def _tokens_close(a: list[str], b: list[str], sm: SequenceMatcher) -> bool:
+    """نفس عدد الكلمات، وكل كلمة مختلفة لازم تكون طويلة ومتشابهة. (Category A و Category B ما يندمجون)"""
+    if len(a) != len(b):
+        return False
+    differs = False
+    for x, y in zip(a, b):
+        if x == y:
+            continue
+        if len(x) < FUZZY_MIN_LEN or len(y) < FUZZY_MIN_LEN or any(ch.isdigit() for ch in x + y):
+            return False
+        sm.set_seqs(x, y)
+        if sm.real_quick_ratio() < FUZZY_THRESHOLD or sm.quick_ratio() < FUZZY_THRESHOLD or sm.ratio() < FUZZY_THRESHOLD:
+            return False
+        differs = True
+    return differs
+
+
+def _standardize_column(s: pd.Series, deadline: float) -> tuple[pd.Series, dict]:
+    """يوحّد الكلمات المكتوبة بأكثر من طريقة (Fatima / fatma / FATIMA / فاطمة / فاطمه) على أكثر شكل مكرر."""
+    vals = s.dropna()
+    vals = vals[vals.map(lambda v: isinstance(v, str))]
+    if vals.empty or vals.map(len).mean() > MAX_STANDARD_LEN:
+        return s, {}
+    counts = vals.value_counts()
+
+    # 1) تجميع الأشكال المتطابقة بعد التطبيع
+    groups: dict[str, list] = {}
+    for original, c in counts.items():
+        groups.setdefault(_key(original) or original, []).append((original, int(c)))
+
+    # 2) دمج الكلمات المتقاربة (أخطاء إملائية) بحذر
+    order = sorted(groups, key=lambda k: -sum(c for _, c in groups[k]))
+    parent: dict[str, str] = {}
+    if len(order) <= MAX_FUZZY_UNIQUE:
+        sm = SequenceMatcher(autojunk=False)
+        toks: dict[str, list[str]] = {}
+        buckets: dict[str, list[str]] = {}               # نقارن فقط الكلمات اللي تبدأ بنفس الحرف (أسرع بكثير)
+        for k in order:
+            if _time.perf_counter() > deadline:
+                break
+            if len(k) < FUZZY_MIN_LEN or any(ch.isdigit() for ch in k):
+                continue
+            toks[k] = _tokens(groups[k][0][0])
+            target, best = None, 0.0
+            for c in buckets.get(k[0], []):
+                if abs(len(c) - len(k)) > 2 or not _tokens_close(toks[c], toks[k], sm):
+                    continue
+                r = SequenceMatcher(None, c, k).ratio()
+                if r > best:
+                    best, target = r, c
+            if target is None:
+                buckets.setdefault(k[0], []).append(k)
+            else:
+                parent[k] = target
+
+    members: dict[str, list] = {}
+    for k, items in groups.items():
+        members.setdefault(parent.get(k, k), []).extend(items)
+
+    # 3) الشكل النهائي = الأكثر تكراراً (وعند التعادل نفضّل الشكل Capitalized)
+    mapping = {}
+    for items in members.values():
+        if len(items) < 2:
+            continue
+        best_form = sorted(items, key=lambda x: (-x[1], not x[0].istitle(), x[0]))[0][0]
+        for original, _ in items:
+            if original != best_form:
+                mapping[original] = best_form
+    if not mapping:
+        return s, {}
+    return s.map(lambda v: mapping.get(v, v) if isinstance(v, str) else v), mapping
+
+
 def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dict]:
     report = {
         "rows_before": len(df),
         "columns_before": len(df.columns),
-        "filled_columns": {},
-        "dropped_columns": [],
+        "filled_columns": {},        # عمود: طريقة الملء (mean/median/zero/unknown)
+        "filled_cells": {},          # عمود: كم خلية انملت
+        "dropped_columns": [],       # أعمدة فاضية تماماً فقط
         "dropped_rows_missing": 0,
         "duplicates_removed": 0,
+        "duplicates_kept": 0,        # صفوف متطابقة تركناها لأن ما اكو معرّف/تاريخ يثبت إنها تكرار
+        "converted_columns": {},     # عمود: النوع اللي تحوّل إله (numeric/date/time)
+        "conversion_losses": {},     # عمود: كم قيمة ما قدرنا نحوّلها وصارت فاضية
+        "standardized_columns": {},  # عمود: {unique_before, unique_after, examples}
+        "sparse_columns": [],        # أعمدة أغلبها فاضي: انحفظت بدون ملء وبدون حذف صفوف
     }
-    # 1) ترتيب أسماء الأعمدة وحذف الصفوف والأعمدة الفارغة تمامًا
-    df.columns = [str(c).strip() for c in df.columns]
-    df = df.dropna(how="all").dropna(axis=1, how="all")
-    # 2) تنظيف النصوص (مسافات زائدة)
+    df = df.copy()
+    understanding = understanding if isinstance(understanding, dict) else {}
+
+    # 1) أسماء الأعمدة (ونربط تعليمات الذكاء الاصطناعي بالأسماء الجديدة)
+    old = [str(c) for c in df.columns]
+    df.columns = _clean_columns(df.columns)
+    rename = dict(zip(old, df.columns))
+
+    def remap(d):
+        return {rename.get(str(k), str(k)): v for k, v in d.items()} if isinstance(d, dict) else {}
+
+    types = remap(understanding.get("column_types"))
+    strategy = remap(understanding.get("fill_strategy"))
+
+    # 2) تنظيف الخلايا النصية: مسافات زايدة، رموز مخفية، 'nan' و'-' = ناقص
     for col in df.columns:
-        if df[col].dtype == object:
-            df[col] = df[col].map(lambda v: v.strip() if isinstance(v, str) else v)
-            df[col] = df[col].replace("", pd.NA)
-    # 3) تحويل الأنواع حسب ما فهمه الذكاء الاصطناعي
-    column_types = understanding.get("column_types", {})
-    for col, col_type in column_types.items():
-        if col not in df.columns:
+        s = df[col]
+        if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_bool_dtype(s):
             continue
-        if col_type == "numeric":
-            df[col] = pd.to_numeric(
-                df[col].astype(str).str.replace(",", "", regex=False),
-                errors="coerce",
-            )
-        elif col_type == "date":
-            df[col] = pd.to_datetime(df[col], errors="coerce")
-    # 4) حذف التكرار
-    before = len(df)
-    df = df.drop_duplicates()
-    report["duplicates_removed"] = before - len(df)
-    # 5) معالجة القيم الفارغة
-    fill_strategy = understanding.get("fill_strategy", {})
-    for col in list(df.columns):
-        missing = int(df[col].isnull().sum())
-        if missing == 0:
+        if isinstance(s.dtype, pd.CategoricalDtype):
+            s = s.astype(object)
+        df[col] = s.map(_clean_cell)
+
+    # 3) حذف الصفوف الفاضية تماماً + الأعمدة الفاضية تماماً (فقط)
+    df = df.dropna(how="all")
+    empty = [c for c in df.columns if df[c].isna().all()]
+    if empty:
+        df = df.drop(columns=empty)
+        report["dropped_columns"].extend(empty)
+
+    # 4) تحويل الأنواع: رقم = رقم، تاريخ = تاريخ، ساعة = ساعة، والنص يبقى نص
+    kinds = {}
+    protected = pd.Series(False, index=df.index)   # صفوف فيها قيمة فشل تحويلها: ما نعتبرها مكررة
+    for col in df.columns:
+        was_object = df[col].dtype == object or pd.api.types.is_string_dtype(df[col])
+        kind, converted, lost = _detect(df[col], types.get(col))
+        kinds[col] = kind
+        if kind in {"numeric", "date", "time"} and was_object:
+            df[col] = converted
+            report["converted_columns"][col] = kind
+            if lost is not None and int(lost.sum()) > 0:
+                report["conversion_losses"][col] = int(lost.sum())
+                protected |= lost.reindex(df.index, fill_value=False).astype(bool)
+
+    # 5) توحيد الكلمات المكتوبة بأكثر من طريقة (قبل حذف التكرار حتى تنكشف الصفوف المكررة)
+    total_deadline = _time.perf_counter() + FUZZY_TOTAL_BUDGET
+    for col in df.columns:
+        if kinds[col] != "text":
             continue
-        ratio = missing / max(len(df), 1)
-        is_numeric = pd.api.types.is_numeric_dtype(df[col])
-        is_date = pd.api.types.is_datetime64_any_dtype(df[col])
-        strategy = fill_strategy.get(col) or ("median" if is_numeric else "mode")
-        # عمود أغلبه فارغ: نحذفه
-        if strategy == "drop_column" or ratio > MAX_MISSING_RATIO_COLUMN:
-            df = df.drop(columns=[col])
-            report["dropped_columns"].append(col)
+        before = int(df[col].nunique())
+        new_col, mapping = _standardize_column(df[col], min(total_deadline, _time.perf_counter() + FUZZY_TIME_BUDGET))
+        if mapping:
+            df[col] = new_col
+            report["standardized_columns"][col] = {
+                "unique_before": before,
+                "unique_after": int(df[col].nunique()),
+                "examples": dict(list(mapping.items())[:8]),
+            }
+
+    # 6) المكرر: نحذفه فقط إذا اكو دليل إنه تكرار فعلاً (معرّف/تاريخ/ساعة)، وإلا نتركه ونبلّغ عنه
+    try:
+        dup = df.duplicated(keep="first") & ~protected
+    except TypeError:  # قيم غير قابلة للمقارنة
+        dup = pd.Series(False, index=df.index)
+    has_identity = any(k in {"id", "date", "time"} for k in kinds.values()) or any(
+        kinds[c] == "numeric" and pd.api.types.is_integer_dtype(df[c]) and len(df) > 0
+        and df[c].nunique() >= 0.95 * len(df)
+        for c in df.columns
+    )
+    if DEDUP_MODE == "always" or (DEDUP_MODE == "auto" and has_identity):
+        report["duplicates_removed"] = int(dup.sum())
+        df = df[~dup]
+    else:
+        report["duplicates_kept"] = int(dup.sum())
+
+    # 7) القيم الفارغة: نملأ إذا نكدر، وإذا ما نكدر نحذف الصف (بحدود تمنع خراب الملف)
+    n = max(len(df), 1)
+    drop_cols = []
+    for col in df.columns:
+        miss = int(df[col].isna().sum())
+        if miss == 0:
             continue
-        # التواريخ لا نملؤها؛ نحذف الصفوف الفارغة
-        if is_date or strategy == "drop_rows":
-            rows_before = len(df)
-            df = df.dropna(subset=[col])
-            report["dropped_rows_missing"] += rows_before - len(df)
-            continue
-        if is_numeric and strategy in {"mean", "median", "zero"}:
-            fill_value = {
-                "mean": df[col].mean(),
-                "median": df[col].median(),
-                "zero": 0,
-            }[strategy]
-            df[col] = df[col].fillna(fill_value)
-            report["filled_columns"][col] = strategy
-        elif strategy == "mode" and not df[col].mode().empty:
-            df[col] = df[col].fillna(df[col].mode().iloc[0])
-            report["filled_columns"][col] = "mode"
-        else:
-            # لم نتمكن من ملئها: نحذف الصفوف
-            rows_before = len(df)
-            df = df.dropna(subset=[col])
-            report["dropped_rows_missing"] += rows_before - len(df)
+        ratio, kind, how = miss / n, kinds[col], strategy.get(col)
+        if kind == "numeric":
+            if how == "drop_rows":
+                drop_cols.append(col)
+            elif ratio <= MAX_FILL_RATIO:
+                how = how if how in {"mean", "median", "zero"} else "median"
+                value = {"mean": df[col].mean(), "median": df[col].median(), "zero": 0}[how]
+                df[col] = df[col].fillna(0 if pd.isna(value) else value)
+                report["filled_columns"][col] = how
+                report["filled_cells"][col] = miss
+            else:
+                report["sparse_columns"].append(col)   # أغلبه فاضي: نبقيه كما هو، والتحليل يتجاهل الفاضي
+        elif kind == "text":
+            df[col] = df[col].fillna(UNKNOWN_LABEL)
+            report["filled_columns"][col] = "unknown"
+            report["filled_cells"][col] = miss
+        elif kind in {"date", "time", "id"}:
+            drop_cols.append(col)                      # ما نخترع تاريخ ولا ساعة ولا رقم هوية
+    if drop_cols:
+        mask = df[drop_cols].isna().any(axis=1)
+        if mask.mean() <= MAX_ROW_LOSS:
+            report["dropped_rows_missing"] = int(mask.sum())
+            df = df[~mask]
+        else:                                          # الحذف راح ياكل الملف: نتركه ونعلّمه
+            report["sparse_columns"].extend(drop_cols)
+
     df = df.reset_index(drop=True)
     report["rows_after"] = len(df)
     report["columns_after"] = len(df.columns)
     return df, report
+# === نهاية التنظيف =========================================================
 
 # ---------------------------------------------------------------------------
 # Agent 2: يخطط التحليل (لا ينفذ كودًا، بل يرجع خطة JSON)
@@ -260,7 +556,7 @@ Rules:
 - Use "pie" only for parts of a whole with few categories (max 6), never for negative values.
 - Use only column names that exist in the profile."""
 
-def run_analysis(df: pd.DataFrame, spec: dict) -> dict | None:
+def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M") -> dict | None:
     """ينفذ خطة التحليل باستخدام pandas؛ ويتجاهل أي شيء غير مسموح."""
     kind = spec.get("kind", "group_agg")
     group_by = spec.get("group_by")
@@ -275,10 +571,15 @@ def run_analysis(df: pd.DataFrame, spec: dict) -> dict | None:
         return None
     if value and value not in df.columns:
         return None
+    df = df.dropna(subset=[group_by])
+    if df.empty:
+        return None
     if kind == "monthly_trend":
         if not pd.api.types.is_datetime64_any_dtype(df[group_by]):
             return None
-        keys = df[group_by].dt.to_period("M").astype(str)
+        per = df[group_by].dt.to_period(period)
+        # أسبوعي: نعرض تاريخ بداية الأسبوع. يومي وشهري: الاسم الافتراضي للفترة
+        keys = per.dt.start_time.dt.strftime("%Y-%m-%d") if period == "W" else per.astype(str)
         chart = "bar"
     else:
         keys = df[group_by].astype(str)
@@ -289,7 +590,7 @@ def run_analysis(df: pd.DataFrame, spec: dict) -> dict | None:
             return None
         series = df.groupby(keys)[value].agg(agg)
     if kind == "monthly_trend":
-        series = series.sort_index().tail(24)
+        series = series.sort_index().tail(TREND_POINTS.get(period, 24))
     elif chart == "pie":
         top_n = min(top_n, 6)
         series = series.sort_values(ascending=False).head(top_n)
@@ -329,7 +630,7 @@ def make_chart(result: dict) -> str:
 # ---------------------------------------------------------------------------
 INSIGHTS_PROMPT = """You are a business advisor for small business owners with no data expertise.
 You receive the business type and the results of several analyses (labels and values).
-Write in simple Arabic. Base every point ONLY on the numbers you were given; do not invent data.
+Write in simple Arabic. Base every point ONLY on the numbers you were given; do not invent data. If a 'filter' field is present, the numbers cover only that filtered subset; mention this briefly in the summary.
 Return ONLY valid JSON, no extra text, in this exact shape:
 {
 "summary": "2-3 sentences summarizing the overall picture",
@@ -384,7 +685,7 @@ async def upload_file(file: UploadFile = File(...)):
             detail="Something went wrong while saving the file.",
         )
     try:
-        df = read_file(file_path, file_type)
+        df = await asyncio.to_thread(read_file, file_path, file_type)
     except ValueError as error:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=400, detail=str(error))
@@ -403,7 +704,7 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=422, detail=MESSY_MESSAGE)
     business_type = understanding.get("business_type", "غير معروف")
     # ---- التنظيف ----
-    df, cleaning_report = clean_data(df, understanding)
+    df, cleaning_report = await asyncio.to_thread(clean_data, df, understanding)
     if df.empty or len(df.columns) < 2:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=422, detail=MESSY_MESSAGE)
@@ -412,11 +713,10 @@ async def upload_file(file: UploadFile = File(...)):
         ANALYSIS_PROMPT,
         {"business_type": business_type, "profile": profile_data(df)},
     )
-    results = []
-    for spec in plan.get("analyses", [])[:MAX_ANALYSES]:
-        result = run_analysis(df, spec)
-        if result:
-            results.append(result)
+    specs = [s for s in plan.get("analyses", []) if isinstance(s, dict)][:MAX_ANALYSES]
+    pairs = await asyncio.to_thread(lambda: [(s, run_analysis(df, s)) for s in specs])
+    results = [r for _, r in pairs if r]
+    used_specs = [s for s, r in pairs if r]
     if not results:
         raise HTTPException(
             status_code=422,
@@ -435,7 +735,15 @@ async def upload_file(file: UploadFile = File(...)):
             ],
         },
     )
-    
+    # ---- حفظ البيانات النظيفة + الخطة حتى يكدر المستخدم يفلتر بدون إعادة رفع ----
+    upload_id = Path(safe_filename).stem
+    filter_meta = None
+    try:
+        cleanup_sessions()
+        await asyncio.to_thread(save_session, upload_id, df, used_specs, business_type)
+        filter_meta = await asyncio.to_thread(build_filter_meta, df)
+    except Exception:
+        logger.error("Could not save the filter session:\n%s", traceback.format_exc())
 
     db = SessionLocal()
     try:
@@ -466,7 +774,239 @@ async def upload_file(file: UploadFile = File(...)):
         "summary": insights.get("summary", ""),
         "insights": insights.get("insights", []),
         "recommendations": insights.get("recommendations", []),
+        "upload_id": upload_id,
+        "filter_meta": filter_meta,
     }
+
+# ---------------------------------------------------------------------------
+# الفلتر: نفس التحليل على بيانات المستخدم بعد فلتر يحدده بنفسه
+# (بدون إعادة رفع وبدون إعادة تنظيف، نستعمل البيانات النظيفة المحفوظة بعد الرفع)
+# ---------------------------------------------------------------------------
+SESSIONS_DIR = Path("sessions")
+SESSIONS_DIR.mkdir(exist_ok=True)
+SESSION_TTL_SECONDS = 24 * 3600   # الجلسات الأقدم من 24 ساعة تنحذف
+FILTER_MAX_VALUES = 200           # أقصى عدد قيم نعرضه لعمود تصنيفي بالواجهة
+FILTER_MAX_COLUMNS = 60
+MAX_FILTERS = 10
+MAX_FILTER_VALUES = 500
+PERIODS = {"day": "D", "week": "W", "month": "M"}
+TREND_POINTS = {"D": 31, "W": 26, "M": 24}
+SPEC_KEYS = ("kind", "group_by", "value", "agg", "top_n", "chart", "title")
+WORDS = {
+    "ar": {"only": "إظهار فقط", "hide": "إخفاء", "from": "من", "to": "إلى", "contains": "يحتوي",
+           "not_contains": "لا يحتوي", "hidden_cols": "أعمدة مخفية", "gran": "التجميع الزمني",
+           "day": "يومي", "week": "أسبوعي", "month": "شهري", "trend": "الاتجاه عبر الزمن",
+           "no_rows": "ما اكو بيانات تطابق الفلتر. غيّر الشروط وجرّب مرة ثانية.",
+           "no_analysis": "ما قدرنا نطلع تحليلاً بعد الفلتر. جرّب شروطاً أوسع أو لا تخفي أعمدة التحليل.",
+           "expired": "انتهت صلاحية هذا التحليل (الجلسات تُحذف بعد 24 ساعة). ارفع الملف مرة ثانية."},
+    "en": {"only": "only", "hide": "hide", "from": "from", "to": "to", "contains": "contains",
+           "not_contains": "does not contain", "hidden_cols": "Hidden columns", "gran": "Time grouping",
+           "day": "daily", "week": "weekly", "month": "monthly", "trend": "Trend over time",
+           "no_rows": "No rows match the filter. Change the conditions and try again.",
+           "no_analysis": "No analysis could be produced after filtering. Try wider conditions or unhide columns.",
+           "expired": "This analysis has expired (sessions are deleted after 24 hours). Please upload the file again."},
+}
+
+
+class FilterSpec(BaseModel):
+    column: str
+    op: Literal["in", "not_in", "between", "contains", "not_contains"]
+    values: list[str] = []
+    value: str | None = None
+    min: float | None = None
+    max: float | None = None
+    start: str | None = None
+    end: str | None = None
+
+
+class FilterRequest(BaseModel):
+    upload_id: str
+    filters: list[FilterSpec] = []
+    hidden_columns: list[str] = []
+    granularity: Literal["day", "week", "month"] | None = None
+    date_column: str | None = None
+    lang: str = "ar"
+
+
+def save_session(upload_id: str, df: pd.DataFrame, specs: list, business_type: str) -> None:
+    """نحفظ البيانات النظيفة + خطة التحليل حتى نكدر نفلترها بدون إعادة رفع (الاسم hex عشوائي نولّده نحن)."""
+    SESSIONS_DIR.mkdir(exist_ok=True)
+    df.to_pickle(SESSIONS_DIR / f"{upload_id}.pkl")
+    meta = {"business_type": business_type, "specs": [{k: s.get(k) for k in SPEC_KEYS} for s in specs]}
+    (SESSIONS_DIR / f"{upload_id}.json").write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
+
+
+def load_session(upload_id: str, lang: str = "ar"):
+    pkl, meta = SESSIONS_DIR / f"{upload_id}.pkl", SESSIONS_DIR / f"{upload_id}.json"
+    if not pkl.exists() or not meta.exists():
+        raise HTTPException(status_code=404, detail=WORDS["en" if lang == "en" else "ar"]["expired"])
+    return pd.read_pickle(pkl), json.loads(meta.read_text(encoding="utf-8"))
+
+
+def cleanup_sessions() -> None:
+    cutoff = _time.time() - SESSION_TTL_SECONDS
+    for p in SESSIONS_DIR.glob("*"):
+        try:
+            if p.stat().st_mtime < cutoff:
+                p.unlink()
+        except OSError:
+            pass
+
+
+def build_filter_meta(df: pd.DataFrame) -> dict:
+    """يوصف الأعمدة للواجهة حتى تبني خيارات الفلتر (تاريخ / رقم / تصنيف / نص)."""
+    cols = []
+    for c in list(df.columns)[:FILTER_MAX_COLUMNS]:
+        s = df[c]
+        if pd.api.types.is_datetime64_any_dtype(s):
+            d = s.dropna()
+            if not d.empty:
+                cols.append({"name": str(c), "kind": "date",
+                             "min": d.min().strftime("%Y-%m-%d"), "max": d.max().strftime("%Y-%m-%d")})
+        elif pd.api.types.is_numeric_dtype(s) and not pd.api.types.is_bool_dtype(s):
+            d = s.dropna()
+            if not d.empty and math.isfinite(float(d.min())) and math.isfinite(float(d.max())):
+                cols.append({"name": str(c), "kind": "numeric", "min": float(d.min()), "max": float(d.max())})
+        else:
+            counts = s.astype(str).value_counts()
+            if len(counts) <= FILTER_MAX_VALUES:
+                cols.append({"name": str(c), "kind": "category", "values": [str(v) for v in counts.index]})
+            else:
+                cols.append({"name": str(c), "kind": "text"})
+    return {
+        "columns": cols,
+        "date_columns": [c["name"] for c in cols if c["kind"] == "date"],
+        "all_columns": [str(c) for c in df.columns],
+    }
+
+
+def _num_text(x) -> str:
+    return f"{x:,.2f}".rstrip("0").rstrip(".")
+
+
+def apply_filters(df: pd.DataFrame, filters: list, lang: str):
+    """يطبق شروط المستخدم بـ pandas فقط (بدون eval). يرجع (البيانات بعد الفلتر, وصف الشروط)."""
+    w = WORDS[lang]
+    mask = pd.Series(True, index=df.index)
+    descs = []
+    for f in filters:
+        if f.column not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Unknown column: {f.column[:60]}")
+        s = df[f.column]
+        if f.op in ("in", "not_in"):
+            vals = [str(v)[:200] for v in f.values[:MAX_FILTER_VALUES]]
+            if not vals:
+                continue
+            m = s.astype(str).isin(set(vals))
+            mask &= m if f.op == "in" else ~m
+            shown = "، ".join(vals[:5]) + (" …" if len(vals) > 5 else "")
+            descs.append(f"{f.column}: {w['only'] if f.op == 'in' else w['hide']} {shown}")
+        elif f.op == "between":
+            if pd.api.types.is_datetime64_any_dtype(s):
+                start = pd.to_datetime(f.start, errors="coerce") if f.start else None
+                end = pd.to_datetime(f.end, errors="coerce") if f.end else None
+                if (f.start and pd.isna(start)) or (f.end and pd.isna(end)):
+                    raise HTTPException(status_code=400, detail="Invalid date in filter.")
+                if start is None and end is None:
+                    continue
+                tz = getattr(s.dt, "tz", None)
+                if tz is not None:
+                    start = start.tz_localize(tz) if start is not None else None
+                    end = end.tz_localize(tz) if end is not None else None
+                if start is not None:
+                    mask &= s >= start
+                if end is not None:
+                    mask &= s < end + pd.Timedelta(days=1)       # يوم النهاية يدخل بالفلتر
+                parts = [f"{w['from']} {f.start}" if f.start else "", f"{w['to']} {f.end}" if f.end else ""]
+                descs.append(f"{f.column}: " + " ".join(p for p in parts if p))
+            elif pd.api.types.is_numeric_dtype(s):
+                if f.min is None and f.max is None:
+                    continue
+                if f.min is not None:
+                    mask &= s >= f.min
+                if f.max is not None:
+                    mask &= s <= f.max
+                parts = [f"{w['from']} {_num_text(f.min)}" if f.min is not None else "",
+                         f"{w['to']} {_num_text(f.max)}" if f.max is not None else ""]
+                descs.append(f"{f.column}: " + " ".join(p for p in parts if p))
+            else:
+                raise HTTPException(status_code=400, detail="'between' works only on numeric or date columns.")
+        else:  # contains / not_contains
+            text = (f.value or "").strip()[:200]
+            if not text:
+                continue
+            m = s.astype(str).str.contains(text, case=False, regex=False, na=False)
+            mask &= m if f.op == "contains" else ~m
+            descs.append(f"{f.column} {w[f.op]} «{text}»")
+    return df[mask], descs
+
+
+def run_filtered_analysis(df: pd.DataFrame, saved: dict, req: "FilterRequest") -> dict:
+    lang = "en" if req.lang == "en" else "ar"
+    w = WORDS[lang]
+    filtered, descs = apply_filters(df, req.filters, lang)
+    if filtered.empty:
+        raise HTTPException(status_code=422, detail=w["no_rows"])
+
+    hidden = {h for h in req.hidden_columns if h in df.columns}
+    specs = [dict(s) for s in saved.get("specs", [])]
+    period = PERIODS.get(req.granularity or "")
+    date_cols = [c for c in df.columns if pd.api.types.is_datetime64_any_dtype(df[c])]
+    if req.date_column and req.date_column not in date_cols:
+        raise HTTPException(status_code=400, detail="date_column is not a date column.")
+
+    trend = [s for s in specs if s.get("kind") == "monthly_trend"]
+    if req.date_column:
+        for s in trend:
+            s["group_by"] = req.date_column
+    if period:
+        label = w[req.granularity]
+        for s in trend:
+            s["title"] = f"{s.get('title') or w['trend']} ({label})"
+        if not trend and date_cols:       # ما اكو مخطط زمني بالخطة الأصلية: نضيف واحد
+            value = next((s["value"] for s in specs if s.get("value")), None)
+            specs.append({"kind": "monthly_trend", "group_by": req.date_column or date_cols[0],
+                          "value": value, "agg": "sum" if value else "count", "chart": "bar",
+                          "title": f"{w['trend']} ({label})"})
+        descs.append(f"{w['gran']}: {label}")
+    if hidden:
+        specs = [s for s in specs if s.get("group_by") not in hidden and s.get("value") not in hidden]
+        descs.append(f"{w['hidden_cols']}: " + "، ".join(sorted(hidden)))
+
+    results = [r for r in (run_analysis(filtered, s, period=period or "M") for s in specs) if r]
+    if not results:
+        raise HTTPException(status_code=422, detail=w["no_analysis"])
+    return {
+        "analyses": results,
+        "filter_info": {"rows_before": len(df), "rows_after": len(filtered), "descriptions": descs},
+    }
+
+
+@app.post("/filter")
+async def filter_analysis(req: FilterRequest):
+    """يعيد نفس التحليلات على البيانات بعد الفلتر. الحسابات pandas، والذكاء الاصطناعي فقط يكتب الخلاصة الجديدة."""
+    if not re.fullmatch(r"[0-9a-f]{32}", req.upload_id):
+        raise HTTPException(status_code=400, detail="invalid upload id")
+    if len(req.filters) > MAX_FILTERS or len(req.hidden_columns) > 100:
+        raise HTTPException(status_code=400, detail="too many filters")
+    df, saved = await asyncio.to_thread(load_session, req.upload_id, req.lang)
+    out = await asyncio.to_thread(run_filtered_analysis, df, saved, req)
+    try:
+        ins = await ask_json(INSIGHTS_PROMPT, {
+            "business_type": saved.get("business_type", ""),
+            "filter": out["filter_info"]["descriptions"],
+            "analyses": [{k: r[k] for k in ("title", "labels", "values")} for r in out["analyses"]],
+        })
+    except HTTPException:      # الذكاء الاصطناعي ما رد: نرجّع التحليل بدون خلاصة جديدة
+        ins = None
+    out.update({
+        "summary": (ins or {}).get("summary", ""),
+        "insights": (ins or {}).get("insights", []),
+        "recommendations": (ins or {}).get("recommendations", []),
+        "insights_error": ins is None,
+    })
+    return out
+
 
 # ---------------------------------------------------------------------------
 # بناء تقرير الـ PDF: نفس نتائج الشاشة بدون أي تحليل جديد
@@ -503,7 +1043,7 @@ LABELS = {
         "dups": "صفوف مكررة انحذفت", "missing": "صفوف انحذفت لنقص البيانات", "cols": "أعمدة",
         "charts": "المخططات", "insights": "ماذا تقول بياناتك", "recs": "نصائح لك",
         "filled": "تم ملء", "dropped": "تم حذف العمود",
-        "mean": "المتوسط", "median": "الوسيط", "mode": "الأكثر تكراراً", "zero": "صفر",
+        "mean": "المتوسط", "median": "الوسيط", "mode": "الأكثر تكراراً", "zero": "صفر", "unknown": "غير محدد", "filtered_rows": "الصفوف بعد الفلتر",
     },
     "en": {
         "title": "Data Analysis Report", "file": "File", "date": "Date",
@@ -512,7 +1052,7 @@ LABELS = {
         "dups": "Duplicate rows removed", "missing": "Rows removed for missing data", "cols": "columns",
         "charts": "Charts", "insights": "What your data says", "recs": "What to do next",
         "filled": "Filled", "dropped": "Dropped column",
-        "mean": "mean", "median": "median", "mode": "most common", "zero": "zero",
+        "mean": "mean", "median": "median", "mode": "most common", "zero": "zero", "unknown": "unspecified", "filtered_rows": "Rows after filter",
     },
 }
 
@@ -783,14 +1323,14 @@ class _Report:
 
     # ---- المخططات
     def chart(self, a):
-        labels = [_clean(x, 80) for x in (a.get("labels") or [])][:24]
-        vals = _nums(a.get("values"))[:24]
+        labels = [_clean(x, 80) for x in (a.get("labels") or [])][:31]
+        vals = _nums(a.get("values"))[:31]
         n = min(len(labels), len(vals))
         labels, vals = labels[:n], vals[:n]
         if not n:
             return
         is_pie = a.get("chart") == "pie"
-        is_time = n > 1 and all(re.fullmatch(r"\d{4}-\d{2}", l) for l in labels)
+        is_time = n > 1 and all(re.fullmatch(r"\d{4}-\d{2}(?:-\d{2})?", l) for l in labels)
         title = _clean(a.get("title") or "-", 150)
 
         pad = 16
@@ -853,8 +1393,9 @@ class _Report:
             self.c.setFillColor(PINK if v < 0 else PURPLE2)
             self.c.roundRect(bx, base_y, bw, bh, min(3, bw / 2), stroke=0, fill=1)
             if i % step == 0:
-                y_, m_ = lab.split("-")
-                self.put(f"{m_}/{y_[2:]}", bx + bw / 2, base_y - 12, 7, GRAY, "c")
+                p_ = lab.split("-")
+                short = f"{p_[2]}/{p_[1]}" if len(p_) == 3 else f"{p_[1]}/{p_[0][2:]}"
+                self.put(short, bx + bw / 2, base_y - 12, 7, GRAY, "c")
             txt = fmt(v)
             if n <= 8 and self.w(txt, 7) <= bw + gap:
                 self.put(txt, bx + bw / 2, base_y + bh + 3, 7, BODY, "c")
@@ -916,6 +1457,12 @@ def build_report_pdf(data: dict, fix_text) -> bytes:
 
     r.stats(rep)
 
+    fi = data.get("filter_info")
+    if isinstance(fi, dict):
+        items = [(f"{t['filtered_rows']}: {fmt(fi.get('rows_after'))} {t['of']} {fmt(fi.get('rows_before'))}", False)]
+        items += [(_clean(d, 120), False) for d in (fi.get("descriptions") or [])[:12]]
+        r.chips(items)
+
     notes = [(f"{t['filled']}: {_clean(c, 60)} ({t.get(h, h)})", False)
              for c, h in (rep.get("filled_columns") or {}).items()]
     notes += [(f"{t['dropped']}: {_clean(c, 60)}", True) for c in (rep.get("dropped_columns") or [])]
@@ -949,7 +1496,7 @@ def export_pdf(data: dict = Body(...)):
         pdf_bytes = build_report_pdf(data, fix_text)
     except RuntimeError as error:  # مثلًا: ما لقينا الخط العربي
         raise HTTPException(status_code=500, detail=str(error))
-    except Exception as error:  # أي خطأ ثاني: نطبعه باللوغ ونرجّع سببه للواجهة
+    except Exception as error:  # أي خطأ ثاني: نطبعه باللوغ ونرجّع سببه للواجهة@
         logger.error("PDF export failed:\n%s", traceback.format_exc())
         raise HTTPException(
             status_code=500,
