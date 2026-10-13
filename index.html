@@ -191,6 +191,31 @@ footer .wordmark{margin-bottom:8px}
 footer p{margin:2px 0}
 
 /* ---------- الفلتر ---------- */
+/* ---------- لوحة المعلومات المخصصة ---------- */
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ctools{display:flex;gap:2px;flex:none}
+.dbar{display:grid;gap:12px;margin:0 0 16px}
+.dbtns,.dask{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dask .finp{flex:1;min-width:200px}
+.dform{padding:16px 18px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-bottom:12px}
+.dgrid .flab{flex-direction:column;align-items:stretch;gap:4px}
+.okmsg{display:none;padding:12px 16px;border-radius:16px;background:rgba(231,223,247,.7);border:1px solid var(--glass-line);color:var(--ink)}
+.okmsg.show{display:block}
+.lhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lhead h3{margin:0}
+.btn.sm{padding:7px 16px;font-size:14px}
+.list .fx{margin-inline-start:auto}
+.plist{display:grid;gap:12px}
+.prob{padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.7);border:1px solid var(--glass-line)}
+.prob p{margin:6px 0 0;color:var(--ink)}
+.prob .pfix{color:var(--body)}
+.ptop{display:flex;align-items:center;gap:10px}
+.ptop b{flex:1;color:var(--ink)}
+.sev{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;flex:none}
+.sev.high{background:rgba(247,200,216,.85);color:#7A2148}
+.sev.medium{background:rgba(255,226,170,.8);color:#7A4B00}
+.sev.low{background:rgba(231,223,247,.95);color:var(--ink)}
 .fpanel{padding:18px 22px;margin:0 0 18px}
 .fhead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .fhead h3{margin:0;font-size:18px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600}
@@ -356,6 +381,15 @@ const I18N = {
     granNone: "بدون تغيير", day: "يومي", week: "أسبوعي", month: "شهري", hideCols: "إخفاء أعمدة من التحليل",
     rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح تخص كل البيانات (تعذّر تحديثها)",
     errFilter: "ما كدرنا نطبّق الفلتر. جرب مرة ثانية.",
+    addChart: "مخطط جديد", restoreCharts: "استعادة المخططات الأصلية", askPlaceholder: "اطلب تحليلاً بكلامك، مثلاً: مبيعات كل مدينة", askBtn: "حلّل لي",
+    editChart: "تعديل المخطط", removeChart: "حذف المخطط", formAdd: "إضافة المخطط", formSave: "حفظ التعديل", cancel: "إلغاء",
+    kindGroup: "تجميع حسب عمود", kindTrend: "اتجاه زمني", fieldKind: "نوع التحليل", fieldGroup: "حسب العمود", fieldDate: "عمود التاريخ",
+    fieldValue: "القيمة", fieldAgg: "الدالة", fieldChart: "شكل المخطط", fieldTop: "عدد العناصر", fieldTitle: "العنوان (اختياري)",
+    countRows: "عدد الصفوف", aggSum: "المجموع", aggMean: "المتوسط", aggMax: "الأعلى", aggMin: "الأدنى", chartBar: "أعمدة", chartPie: "دائري",
+    findProblems: "اكتشف المشاكل", betterAdvice: "اقتراحات أنسب", goalPlaceholder: "شنو هدفك؟ (اختياري) مثلاً: زيادة المبيعات", suggest: "اقترح",
+    problemsTitle: "المشاكل المكتشفة", fix: "الحل", sevHigh: "عالية", sevMed: "متوسطة", sevLow: "منخفضة", srcAi: "بالذكاء الاصطناعي + فحوصات الكود",
+    srcRules: "بفحوصات الكود", noProblems: "ما لقينا مشاكل واضحة بالبيانات الحالية.", working: "جاري العمل...", skippedCharts: "تعذّر رسم",
+    removeItem: "حذف", trendTitle: "الاتجاه عبر الزمن",
     footer: "تحليل البيانات، رؤى، قرارات أفضل",
     langBtn: "EN"
   },
@@ -397,6 +431,15 @@ const I18N = {
     granNone: "No change", day: "Daily", week: "Weekly", month: "Monthly", hideCols: "Hide columns from the analysis",
     rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice cover all data (could not be refreshed)",
     errFilter: "Couldn't apply the filter. Please try again.",
+    addChart: "New chart", restoreCharts: "Restore original charts", askPlaceholder: "Ask for an analysis in your own words, e.g. sales per city", askBtn: "Analyze",
+    editChart: "Edit chart", removeChart: "Remove chart", formAdd: "Add chart", formSave: "Save changes", cancel: "Cancel",
+    kindGroup: "Group by a column", kindTrend: "Trend over time", fieldKind: "Analysis type", fieldGroup: "By column", fieldDate: "Date column",
+    fieldValue: "Value", fieldAgg: "Function", fieldChart: "Chart style", fieldTop: "Items to show", fieldTitle: "Title (optional)",
+    countRows: "Row count", aggSum: "Sum", aggMean: "Average", aggMax: "Max", aggMin: "Min", chartBar: "Bars", chartPie: "Pie",
+    findProblems: "Find problems", betterAdvice: "Better advice", goalPlaceholder: "What is your goal? (optional) e.g. grow sales", suggest: "Suggest",
+    problemsTitle: "Detected problems", fix: "Fix", sevHigh: "High", sevMed: "Medium", sevLow: "Low", srcAi: "AI + code checks",
+    srcRules: "Code checks", noProblems: "No clear problems found in the current data.", working: "Working...", skippedCharts: "Could not draw",
+    removeItem: "Remove", trendTitle: "Trend over time",
     footer: "Data analysis, insights, better decisions",
     langBtn: "عربي"
   }
@@ -524,7 +567,7 @@ async function analyze() {
       throw new Error(data && typeof data.detail === "string" ? data.detail : t("errGeneric"));
     }
     lastData = data;
-    baseData = data;
+    baseData = JSON.parse(JSON.stringify(data));
     resetFilter();
     renderResults(data);
     show("results");
@@ -647,20 +690,46 @@ function donut(labels, values) {
   return wrap;
 }
 
-function chartCard(a) {
+function chartCard(a, i, editable) {
   const card = el("article", "card glass");
-  card.appendChild(el("h3", "", a.title));
+  const head = el("div", "chead");
+  head.appendChild(el("h3", "", a.title));
+  if (editable && a.spec) {
+    const tools = el("div", "ctools");
+    const ed = el("button", "fx", "✎");
+    ed.type = "button";
+    ed.title = t("editChart");
+    ed.addEventListener("click", () => {
+      dState.form = { mode: "edit", index: i, spec: { ...a.spec, value: a.spec.value || "", title: a.spec.title || a.title } };
+      renderResults(lastData);
+      scrollToForm();
+    });
+    const rm = el("button", "fx", "×");
+    rm.type = "button";
+    rm.title = t("removeChart");
+    rm.addEventListener("click", () => {
+      dState.form = null;
+      lastData = { ...lastData, analyses: lastData.analyses.filter((_, j) => j !== i) };
+      renderResults(lastData);
+    });
+    tools.append(ed, rm);
+    head.appendChild(tools);
+  }
+  card.appendChild(head);
   const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
   if (a.chart === "pie") card.appendChild(donut(a.labels, a.values));
   else card.appendChild(isTime ? vBars(a.labels, a.values) : hBars(a.labels, a.values));
   return card;
 }
-
-function listCard(title, items, kind) {
+function listCard(title, items, kind, opts = {}) {
   const card = el("article", "card glass");
-  card.appendChild(el("h3", "", title));
+  const hd = el("div", "lhead");
+  hd.appendChild(el("h3", "", title));
+  (opts.actions || []).forEach((x) => hd.appendChild(x));
+  card.appendChild(hd);
+  if (opts.extra) card.appendChild(opts.extra);
   const ul = el("ul", "list");
-  (items || []).forEach((txt) => {
+  (items || []).forEach((txt, idx) => {
     const li = el("li");
     const icon = svgEl("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" });
     if (kind === "insight") {
@@ -672,6 +741,13 @@ function listCard(title, items, kind) {
       icon.appendChild(svgEl("path", { d: "M5 12l4.5 4.5L19 7" }));
     }
     li.append(icon, el("span", "", txt));
+    if (opts.onRemove) {
+      const x = el("button", "fx", "×");
+      x.type = "button";
+      x.title = t("removeItem");
+      x.addEventListener("click", () => opts.onRemove(idx));
+      li.appendChild(x);
+    }
     ul.appendChild(li);
   });
   card.appendChild(ul);
@@ -688,7 +764,10 @@ function statCard(label, value, sub) {
 /* ---------- الفلتر ---------- */
 let baseData = null;
 let fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false };
-function resetFilter() { fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false }; }
+function resetFilter() {
+  fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false };
+  dState = { form: null, askText: "", advice: false, goal: "" };
+}
 
 const F_OPS = {
   category: [["in", "showOnly"], ["not_in", "hide"]],
@@ -872,9 +951,11 @@ function buildFilterPanel(d) {
   return panel;
 }
 
-async function applyFilter(d, btn, errBox) {
-  errBox.classList.remove("show");
-  const meta = d.filter_meta;
+/* ---------- لوحة المعلومات المخصصة ---------- */
+let dState = { form: null, askText: "", advice: false, goal: "" };
+let curMsg = null;
+
+function filterPayload(meta) {
   const filters = [];
   fState.rows.forEach((r) => {
     const c = colOf(meta, r.column);
@@ -895,27 +976,58 @@ async function applyFilter(d, btn, errBox) {
       if (f.start || f.end) filters.push(f);
     }
   });
+  return { filters, hidden_columns: fState.hidden, granularity: fState.gran || null, date_column: fState.dateCol || null };
+}
+const currentSpecs = (d) => (d.analyses || []).map((a) => a.spec).filter(Boolean);
+const keepInfo = (fi) => (fi && (fi.descriptions || []).length ? fi : undefined);
 
+async function api(path, body) {
+  const res = await fetch(API_BASE + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  let data = null;
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error(data && typeof data.detail === "string" ? data.detail : t("errGeneric"));
+  return data;
+}
+function showMsg(text, isError, box) {
+  const b = box || curMsg;
+  if (!b) return;
+  b.className = (isError ? "error" : "okmsg") + " show";
+  b.textContent = text;
+}
+async function guarded(btn, work, box) {
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = t("working");
+  try { await work(); }
+  catch (err) { showMsg(err instanceof TypeError ? t("errNet") : err.message, true, box); }
+  finally { btn.disabled = false; btn.textContent = label; }
+}
+const scrollToForm = () => { const f = document.querySelector(".dform"); if (f) f.scrollIntoView({ behavior: "smooth", block: "center" }); };
+
+/* إذا المستخدم اختار يومي/أسبوعي/شهري وما اكو مخطط زمني، نضيف واحد */
+function ensureTrend(specs, d) {
+  const meta = d.filter_meta;
+  if (!fState.gran || !(meta.date_columns || []).length || specs.some((s) => s.kind === "monthly_trend")) return specs;
+  const v = (specs.find((s) => s.value) || {}).value || null;
+  return [...specs, { kind: "monthly_trend", group_by: fState.dateCol || meta.date_columns[0], value: v, agg: v ? "sum" : "count", top_n: 10, chart: "bar", title: t("trendTitle") }];
+}
+
+async function applyFilter(d, btn, errBox) {
+  errBox.classList.remove("show");
   const label = btn.textContent;
   btn.disabled = true;
   btn.textContent = t("applying");
   try {
-    const res = await fetch(API_BASE + "/filter", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        upload_id: d.upload_id, filters, hidden_columns: fState.hidden,
-        granularity: fState.gran || null, date_column: fState.dateCol || null, lang
-      })
+    const data = await api("/filter", {
+      upload_id: d.upload_id, ...filterPayload(d.filter_meta),
+      specs: ensureTrend(currentSpecs(d), d), refresh_insights: true, lang
     });
-    let data = null;
-    try { data = await res.json(); } catch (e) {}
-    if (!res.ok) throw new Error(data && typeof data.detail === "string" ? data.detail : t("errFilter"));
-    lastData = { ...d, analyses: data.analyses, filter_info: data.filter_info, insights_stale: !!data.insights_error };
+    lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info), problems: undefined, insights_stale: !!data.insights_error };
     if (!data.insights_error) {
-      Object.assign(lastData, { summary: data.summary, insights: data.insights, recommendations: data.recommendations });
+      Object.assign(lastData, { summary: data.summary, insights: data.insights, recommendations: data.recommendations, dismissed: [] });
     }
     renderResults(lastData);
+    if ((data.skipped || []).length) showMsg(`${t("skippedCharts")}: ${data.skipped.join("، ")}`, true);
   } catch (err) {
     errBox.textContent = err instanceof TypeError ? t("errNet") : err.message;
     errBox.classList.add("show");
@@ -923,6 +1035,137 @@ async function applyFilter(d, btn, errBox) {
     btn.disabled = false;
     btn.textContent = label;
   }
+}
+
+/* يعيد رسم المخططات حسب القائمة الجديدة (بدون ذكاء اصطناعي) */
+async function refreshDashboard(d, specs) {
+  const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs, refresh_insights: false, lang });
+  lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info) };
+  renderResults(lastData);
+  if ((data.skipped || []).length) showMsg(`${t("skippedCharts")}: ${data.skipped.join("، ")}`, true);
+}
+
+/* ---- نموذج إضافة/تعديل مخطط ---- */
+const visibleCols = (meta, kinds) => meta.columns.filter((c) => kinds.includes(c.kind) && !fState.hidden.includes(c.name));
+const labeledSel = (text, options, value, onChange) => labeled(text, fSelect(options, value, onChange));
+function blankSpec(meta) {
+  const g = visibleCols(meta, ["category", "numeric"])[0];
+  return { kind: "group_agg", group_by: g ? g.name : "", value: "", agg: "count", top_n: 10, chart: "bar", title: "" };
+}
+function normalizeSpec(s) {
+  return {
+    kind: s.kind, group_by: s.group_by, value: s.value || null, agg: s.value ? s.agg : "count",
+    top_n: Math.max(1, Math.min(15, Number(s.top_n) || 10)), chart: s.kind === "monthly_trend" ? "bar" : s.chart, title: (s.title || "").trim()
+  };
+}
+function chartForm(d) {
+  const meta = d.filter_meta, f = dState.form, s = f.spec;
+  const box = el("div", "dform glass");
+  const rebuild = () => box.replaceWith(chartForm(d));
+  const dates = visibleCols(meta, ["date"]);
+  const isTrend = s.kind === "monthly_trend";
+  const grid = el("div", "dgrid");
+  const kinds = [["group_agg", t("kindGroup")]];
+  if (dates.length) kinds.push(["monthly_trend", t("kindTrend")]);
+  grid.appendChild(labeledSel(t("fieldKind"), kinds, s.kind, (v) => {
+    s.kind = v;
+    s.group_by = ((v === "monthly_trend" ? dates : visibleCols(meta, ["category", "numeric"]))[0] || {}).name || "";
+    rebuild();
+  }));
+  const gOpts = (isTrend ? dates : visibleCols(meta, ["category", "numeric"])).map((c) => [c.name, c.name]);
+  grid.appendChild(labeledSel(isTrend ? t("fieldDate") : t("fieldGroup"), gOpts, s.group_by, (v) => (s.group_by = v)));
+  grid.appendChild(labeledSel(t("fieldValue"), [["", t("countRows")], ...visibleCols(meta, ["numeric"]).map((c) => [c.name, c.name])], s.value || "", (v) => {
+    s.value = v;
+    s.agg = v ? (s.agg === "count" ? "sum" : s.agg) : "count";
+    rebuild();
+  }));
+  if (s.value) {
+    grid.appendChild(labeledSel(t("fieldAgg"), [["sum", t("aggSum")], ["mean", t("aggMean")], ["max", t("aggMax")], ["min", t("aggMin")]], s.agg, (v) => (s.agg = v)));
+  }
+  if (!isTrend) {
+    grid.appendChild(labeledSel(t("fieldChart"), [["bar", t("chartBar")], ["pie", t("chartPie")]], s.chart, (v) => (s.chart = v)));
+    grid.appendChild(labeled(t("fieldTop"), fInput("number", String(s.top_n), "", (v) => (s.top_n = v), { min: "1", max: "15" })));
+  }
+  grid.appendChild(labeled(t("fieldTitle"), fInput("text", s.title || "", "", (v) => (s.title = v))));
+  const ok = el("button", "btn", f.mode === "edit" ? t("formSave") : t("formAdd"));
+  ok.type = "button";
+  ok.addEventListener("click", () => guarded(ok, async () => {
+    if (!s.group_by) throw new Error(t("errGeneric"));
+    const specs = (d.analyses || []).map((a) => a.spec);
+    if (f.mode === "edit") specs[f.index] = normalizeSpec(s); else specs.push(normalizeSpec(s));
+    dState.form = null;
+    await refreshDashboard(d, specs.filter(Boolean));
+  }));
+  const cancel = el("button", "btn ghost", t("cancel"));
+  cancel.type = "button";
+  cancel.addEventListener("click", () => { dState.form = null; renderResults(d); });
+  const acts = el("div", "factions");
+  acts.append(ok, cancel);
+  box.append(grid, acts);
+  return box;
+}
+
+/* ---- شريط المخططات: مخطط جديد / طلب بالكتابة / استعادة ---- */
+function buildDashBar(d) {
+  const wrap = el("div", "dbar");
+  const row = el("div", "dbtns");
+  const add = el("button", "btn ghost sm", "+ " + t("addChart"));
+  add.type = "button";
+  add.addEventListener("click", () => { dState.form = { mode: "add", index: -1, spec: blankSpec(d.filter_meta) }; renderResults(d); scrollToForm(); });
+  const restore = el("button", "btn ghost sm", t("restoreCharts"));
+  restore.type = "button";
+  restore.addEventListener("click", () => guarded(restore, async () => {
+    dState.form = null;
+    await refreshDashboard(d, baseData.analyses.map((a) => a.spec).filter(Boolean));
+  }));
+  row.append(add, restore);
+
+  const ask = el("div", "dask");
+  const inp = fInput("text", dState.askText, t("askPlaceholder"), (v) => (dState.askText = v));
+  const go = el("button", "btn sm", t("askBtn"));
+  go.type = "button";
+  inp.addEventListener("keydown", (e) => { if (e.key === "Enter") go.click(); });
+  go.addEventListener("click", () => guarded(go, async () => {
+    const text = dState.askText.trim();
+    if (!text) return;
+    const data = await api("/ask-analysis", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), request: text, lang });
+    dState.askText = "";
+    lastData = { ...d, analyses: [...d.analyses, data.analysis] };
+    renderResults(lastData);
+    if (data.note) showMsg(data.note, false);
+  }));
+  ask.append(inp, go);
+
+  curMsg = el("div", "okmsg");
+  wrap.append(row, ask);
+  if (dState.form) wrap.appendChild(chartForm(d));
+  wrap.appendChild(curMsg);
+  return wrap;
+}
+
+function problemsCard(d) {
+  const sevLabel = { high: t("sevHigh"), medium: t("sevMed"), low: t("sevLow") };
+  const card = el("article", "card glass");
+  const hd = el("div", "lhead");
+  hd.append(el("h3", "", t("problemsTitle")), el("span", "note", d.problems_source === "ai" ? t("srcAi") : t("srcRules")));
+  card.appendChild(hd);
+  const list = el("div", "plist");
+  (d.problems || []).forEach((p, i) => {
+    const row = el("div", "prob");
+    const top = el("div", "ptop");
+    top.append(el("span", "sev " + p.severity, sevLabel[p.severity] || ""), el("b", "", p.title));
+    const x = el("button", "fx", "×");
+    x.type = "button";
+    x.title = t("removeItem");
+    x.addEventListener("click", () => { lastData = { ...d, problems: d.problems.filter((_, j) => j !== i) }; renderResults(lastData); });
+    top.appendChild(x);
+    row.append(top, el("p", "", p.detail));
+    if (p.fix) row.appendChild(el("p", "pfix", `${t("fix")}: ${p.fix}`));
+    list.appendChild(row);
+  });
+  if (!(d.problems || []).length) list.appendChild(el("p", "", t("noProblems")));
+  card.appendChild(list);
+  return card;
 }
 
 function renderResults(d) {
@@ -980,14 +1223,56 @@ function renderResults(d) {
   root.appendChild(notes);
 
   root.appendChild(el("h2", "sec-title", t("charts")));
+  if (d.filter_meta) root.appendChild(buildDashBar(d));
   const grid = el("div", "charts");
-  (d.analyses || []).forEach((a) => grid.appendChild(chartCard(a)));
+  (d.analyses || []).forEach((a, i) => grid.appendChild(chartCard(a, i, !!d.filter_meta)));
   root.appendChild(grid);
 
   const two = el("div", "two");
   two.style.marginTop = "18px";
-  two.append(listCard(t("insights"), d.insights, "insight"), listCard(t("recs"), d.recommendations, "rec"));
+  const editable = !!d.filter_meta;
+  const bMsg = el("div", "okmsg");
+  const insOpts = {}, recOpts = {};
+  if (editable) {
+    insOpts.onRemove = (i) => { lastData = { ...d, insights: d.insights.filter((_, j) => j !== i) }; renderResults(lastData); };
+    recOpts.onRemove = (i) => {
+      lastData = { ...d, recommendations: d.recommendations.filter((_, j) => j !== i), dismissed: [...(d.dismissed || []), d.recommendations[i]] };
+      renderResults(lastData);
+    };
+    const pb = el("button", "btn ghost sm", t("findProblems"));
+    pb.type = "button";
+    pb.addEventListener("click", () => guarded(pb, async () => {
+      const data = await api("/find-problems", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs: currentSpecs(d), lang });
+      lastData = { ...d, problems: data.problems, problems_source: data.source };
+      renderResults(lastData);
+    }, bMsg));
+    insOpts.actions = [pb];
+    const ab = el("button", "btn ghost sm", t("betterAdvice"));
+    ab.type = "button";
+    ab.addEventListener("click", () => { dState.advice = !dState.advice; renderResults(d); });
+    recOpts.actions = [ab];
+    if (dState.advice) {
+      const arow = el("div", "dask");
+      arow.style.marginBottom = "12px";
+      const gi = fInput("text", dState.goal, t("goalPlaceholder"), (v) => (dState.goal = v));
+      const gb = el("button", "btn sm", t("suggest"));
+      gb.type = "button";
+      gb.addEventListener("click", () => guarded(gb, async () => {
+        const data = await api("/advice", {
+          upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs: currentSpecs(d),
+          goal: dState.goal.trim() || null, exclude: d.dismissed || [], lang
+        });
+        lastData = { ...d, recommendations: data.recommendations };
+        renderResults(lastData);
+      }, bMsg));
+      arow.append(gi, gb);
+      recOpts.extra = arow;
+    }
+  }
+  two.append(listCard(t("insights"), d.insights, "insight", insOpts), listCard(t("recs"), d.recommendations, "rec", recOpts));
   root.appendChild(two);
+  if (editable) root.appendChild(bMsg);
+  if (d.problems) { const pc = problemsCard(d); pc.style.marginTop = "18px"; root.appendChild(pc); }
 }
 
 applyLang();
