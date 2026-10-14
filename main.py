@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from typing import Literal
-from database import SessionLocal
+from database import SessionLocal,engine,Base
 from models import Upload
 from datetime import datetime
 from io import BytesIO
@@ -34,6 +34,9 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
+
+
+Base.metada.create_all(bind=engine)
 # لدعم العربي داخل الرسومات (pip install arabic-reshaper python-bidi)
 try:
     import arabic_reshaper
