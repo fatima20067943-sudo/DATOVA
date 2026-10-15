@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14162A">
 <title>DATOVA — Discover What Data Hides.</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%23E7DFF7'/%3E%3Ccircle cx='50' cy='50' r='26' fill='none' stroke='%239B87F5' stroke-width='7'/%3E%3Cpath transform='translate(50 50) scale(1.3) translate(-12 -12)' d='M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z' fill='%237C5CFF'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -192,6 +193,18 @@ footer p{margin:2px 0}
 
 /* ---------- الفلتر ---------- */
 /* ---------- لوحة المعلومات المخصصة ---------- */
+/* ---------- تحليلاتي ---------- */
+.hbtns{display:flex;gap:8px}
+.hist{margin-top:8px}
+.hlist{display:grid;gap:12px;margin-top:14px}
+.hitem{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 20px}
+.hinfo{min-width:0;flex:1}
+.hinfo b{display:block;color:var(--ink);font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hinfo span{color:var(--gray);font-size:14px}
+.hbtns2{display:flex;gap:8px}
+.trow{display:flex;align-items:center;gap:12px;margin:0 0 14px;flex-wrap:wrap}
+.trow .flab{flex:1;min-width:220px}
+.savestate{font-size:13px;color:var(--gray);min-height:1em}
 .chead{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .ctools{display:flex;gap:2px;flex:none}
 .dbar{display:grid;gap:12px;margin:0 0 16px}
@@ -257,6 +270,64 @@ footer p{margin:2px 0}
 .b3{
   display: none !important;
 }
+
+/* =====================================================================
+   الثيم الغامق: خلفية كحلية عميقة مع لمسات فاتحة (لافندر، أزرق جليدي، وردي)
+   كل الألوان من هذي المتغيرات، غيّرها من مكان واحد
+   ===================================================================== */
+:root{
+  --ivory:#14162A;            /* الخلفية */
+  --lavender:#3A3E66;
+  --white:#FFFFFF;
+  --lilac:#565A92;            /* حدود الحقول والأزرار */
+  --blue:#8EC5F2;             /* لمسة فاتحة: أزرق جليدي */
+  --pink:#E9A6C8;             /* لمسة فاتحة: وردي */
+  --gray:#A1A4C1;             /* نص ثانوي */
+  --ink:#EFEEFB;              /* النص الرئيسي (فاتح) */
+  --body:#B9BBD4;
+  --purple:#A39AEA;           /* اللون الأساسي (لافندر فاتح) */
+  --purple-2:#CBC5F6;
+  --glass:rgba(255,255,255,.055);
+  --glass-line:rgba(255,255,255,.13);
+  --shadow:0 18px 50px -22px rgba(0,0,0,.7);
+}
+html{color-scheme:dark}
+*{scrollbar-color:#4A4E80 transparent}
+.bg{background:
+    radial-gradient(60% 50% at 12% 8%,rgba(112,104,210,.30),transparent 46%),
+    radial-gradient(50% 45% at 92% 18%,rgba(70,100,190,.22),transparent 46%),
+    radial-gradient(55% 50% at 80% 95%,rgba(130,90,200,.22),transparent 46%),
+    var(--ivory)}
+.spark{fill:#CBC5F6;opacity:.7}
+.wordmark{background:linear-gradient(100deg,#FFFFFF 0%,#DAD6F8 55%,#A9A2EA 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lang{background:rgba(255,255,255,.08);color:var(--ink)}
+.lang:hover{background:rgba(255,255,255,.17)}
+.hero h1 em{background:linear-gradient(100deg,#F1EFFF,#BDB5F7 55%,#8EC5F2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.drop{background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(118,108,210,.14))}
+.drop.over{border-color:var(--purple);background:rgba(163,154,234,.22)}
+.btn{background:linear-gradient(120deg,#5A50BA,#6B5FD6);box-shadow:0 10px 24px -10px rgba(120,108,235,.75)}
+.btn:hover{box-shadow:0 14px 30px -10px rgba(140,128,250,.85)}
+.btn.ghost{background:rgba(255,255,255,.06);color:var(--purple-2);border:1px solid rgba(190,184,245,.38);box-shadow:none}
+.btn.ghost:hover{background:rgba(255,255,255,.13)}
+.chosen{background:rgba(255,255,255,.06)}
+.error{background:rgba(233,120,165,.15);border:1px solid rgba(233,140,178,.5);color:#F8BBD4}
+.steps li.active::before{box-shadow:0 0 0 5px rgba(163,154,234,.28)}
+.chip,.stat,.prob,.frow{background:rgba(255,255,255,.06)}
+.note{background:rgba(163,154,234,.2);color:var(--ink)}
+.note.warn{background:rgba(233,166,200,.22)}
+.hb-track{background:rgba(255,255,255,.1)}
+.hb-track i.neg{background:linear-gradient(90deg,var(--pink),#F2C4DB)}
+.okmsg{background:rgba(163,154,234,.16);border:1px solid var(--glass-line);color:var(--ink)}
+.sev.high{background:rgba(233,120,165,.24);color:#FAC0D8}
+.sev.medium{background:rgba(255,200,110,.2);color:#FFD890}
+.sev.low{background:rgba(163,154,234,.25);color:var(--ink)}
+.fsel,.finp{background:rgba(255,255,255,.07);color:var(--ink);border:1px solid rgba(190,184,245,.32)}
+.fsel option{background:#1D2040;color:#EFEEFB}
+.fsel:focus,.finp:focus{border-color:var(--purple)}
+.finp::placeholder{color:var(--gray);opacity:.9}
+.pill{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(190,184,245,.34)}
+.pill.on{background:#5A50BA;border-color:#8E84EE;color:#fff}
+.fchips label{background:rgba(255,255,255,.06);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -281,7 +352,7 @@ footer p{margin:2px 0}
 <div class="wrap">
   <header class="top glass">
     <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
-    <button class="lang" id="langBtn" type="button">EN</button>
+    <span class="hbtns"><button class="lang" id="histBtn" type="button" data-i18n="myAnalyses"></button><button class="lang" id="langBtn" type="button">EN</button></span>
   </header>
 
   <!-- ===== upload view ===== -->
@@ -325,6 +396,7 @@ footer p{margin:2px 0}
 
   <!-- ===== results view ===== -->
   <section class="results" id="resultsView"></section>
+  <section class="hist" id="historyView" style="display:none"></section>
 
   <footer>
     <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
@@ -390,6 +462,11 @@ const I18N = {
     problemsTitle: "المشاكل المكتشفة", fix: "الحل", sevHigh: "عالية", sevMed: "متوسطة", sevLow: "منخفضة", srcAi: "بالذكاء الاصطناعي + فحوصات الكود",
     srcRules: "بفحوصات الكود", noProblems: "ما لقينا مشاكل واضحة بالبيانات الحالية.", working: "جاري العمل...", skippedCharts: "تعذّر رسم",
     removeItem: "حذف", trendTitle: "الاتجاه عبر الزمن",
+    myAnalyses: "تحليلاتي", newAnalysis: "+ تحليل جديد", openAnalysis: "فتح", deleteAnalysis: "حذف", confirmDelete: "تحذف هذا التحليل نهائياً؟",
+    saved: "تم الحفظ ✓", saving: "جاري الحفظ...", saveFailed: "تعذّر الحفظ", analysisName: "اسم التحليل",
+    noSaved: "ما اكو تحليلات محفوظة بعد. ارفع ملفاً وراح يتحفظ تلقائياً.", lastEdit: "آخر تعديل",
+    histHint: "تحليلاتك محفوظة على هذا المتصفح، وتكدر ترجعلها وتعدّل بكيفك.", loadingHist: "جاري التحميل...",
+    errOpen: "ما كدرنا نفتح هذا التحليل. يمكن انحذف، أو مو محفوظ على هذا المتصفح.",
     footer: "تحليل البيانات، رؤى، قرارات أفضل",
     langBtn: "EN"
   },
@@ -440,6 +517,11 @@ const I18N = {
     problemsTitle: "Detected problems", fix: "Fix", sevHigh: "High", sevMed: "Medium", sevLow: "Low", srcAi: "AI + code checks",
     srcRules: "Code checks", noProblems: "No clear problems found in the current data.", working: "Working...", skippedCharts: "Could not draw",
     removeItem: "Remove", trendTitle: "Trend over time",
+    myAnalyses: "My analyses", newAnalysis: "+ New analysis", openAnalysis: "Open", deleteAnalysis: "Delete", confirmDelete: "Delete this analysis permanently?",
+    saved: "Saved ✓", saving: "Saving...", saveFailed: "Could not save", analysisName: "Analysis name",
+    noSaved: "No saved analyses yet. Upload a file and it is saved automatically.", lastEdit: "Last edited",
+    histHint: "Your analyses are saved on this browser. Come back any time and keep editing.", loadingHist: "Loading...",
+    errOpen: "We could not open this analysis. It may have been deleted, or it is not saved on this browser.",
     footer: "Data analysis, insights, better decisions",
     langBtn: "عربي"
   }
@@ -474,6 +556,7 @@ function applyLang() {
   $("langBtn").textContent = t("langBtn");
   buildSteps();
   if (lastData) renderResults(lastData);
+  if (curView === "history" && histItems) renderHistory();
 }
 $("langBtn").addEventListener("click", () => {
   lang = lang === "ar" ? "en" : "ar";
@@ -521,7 +604,10 @@ $("clearBtn").addEventListener("click", clearFile);
 drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
 
 /* ---------- العرض ---------- */
+let curView = "upload";
 function show(view) {
+  curView = view;
+  $("historyView").style.display = view === "history" ? "block" : "none";
   $("uploadView").style.display = view === "upload" ? "" : "none";
   $("loadingView").style.display = view === "loading" ? "block" : "none";
   $("resultsView").style.display = view === "results" ? "block" : "none";
@@ -560,7 +646,7 @@ async function analyze() {
   body.append("file", chosenFile);
 
   try {
-    const res = await fetch(API_BASE + "/upload", { method: "POST", body });
+    const res = await fetch(API_BASE + "/upload", { method: "POST", body, headers: { "X-Owner": getOwner() } });
     let data = null;
     try { data = await res.json(); } catch (e) {}
     if (!res.ok) {
@@ -569,6 +655,8 @@ async function analyze() {
     lastData = data;
     baseData = JSON.parse(JSON.stringify(data));
     resetFilter();
+    lastSaved = savePayload(data);
+    setHash(data.saved ? data.upload_id : null);
     renderResults(data);
     show("results");
   } catch (err) {
@@ -667,7 +755,7 @@ function donut(labels, values) {
   const wrap = el("div", "donut-wrap");
   const total = values.reduce((a, b) => a + b, 0) || 1;
   const svg = svgEl("svg", { viewBox: "0 0 42 42", role: "img" });
-  svg.appendChild(svgEl("circle", { cx: 21, cy: 21, r: 15.915, fill: "none", stroke: "#ECE6F7", "stroke-width": 6 }));
+  svg.appendChild(svgEl("circle", { cx: 21, cy: 21, r: 15.915, fill: "none", stroke: "#2B2E4C", "stroke-width": 6 }));
   const legend = el("ul", "legend");
   let offset = 25;
   values.forEach((v, i) => {
@@ -981,8 +1069,23 @@ function filterPayload(meta) {
 const currentSpecs = (d) => (d.analyses || []).map((a) => a.spec).filter(Boolean);
 const keepInfo = (fi) => (fi && (fi.descriptions || []).length ? fi : undefined);
 
-async function api(path, body) {
-  const res = await fetch(API_BASE + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+let memOwner = "";
+function getOwner() {
+  const hex = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "")
+    : Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join(""));
+  try {
+    let o = localStorage.getItem("datova-owner");
+    if (!/^[0-9a-f]{32}$/.test(o || "")) { o = hex(); localStorage.setItem("datova-owner", o); }
+    return o;
+  } catch (e) {
+    if (!memOwner) memOwner = hex();      // المتصفح ما يسمح بالتخزين: الحفظ يشتغل لين تسكّر الصفحة
+    return memOwner;
+  }
+}
+async function api(path, body, method = "POST") {
+  const opts = { method, headers: { "X-Owner": getOwner() } };
+  if (body !== undefined) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(body); }
+  const res = await fetch(API_BASE + path, opts);
   let data = null;
   try { data = await res.json(); } catch (e) {}
   if (!res.ok) throw new Error(data && typeof data.detail === "string" ? data.detail : t("errGeneric"));
@@ -1178,7 +1281,7 @@ function renderResults(d) {
   chip.append(el("small", "", t("business")), document.createTextNode(d.business_type || "-"));
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
-  again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); root.innerHTML = ""; clearFile(); show("upload"); });
+  again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); setHash(null); root.innerHTML = ""; clearFile(); show("upload"); });
 
   const pdfBtn = el("button", "btn", t("pdf"));
   pdfBtn.type = "button";
@@ -1189,6 +1292,7 @@ function renderResults(d) {
 
   head.append(chip, btns);
   root.appendChild(head);
+  if (d.saved) root.appendChild(buildTitleRow(d));
 
   if (d.filter_meta) root.appendChild(buildFilterPanel(d));
   if (d.filter_info) {
@@ -1273,10 +1377,146 @@ function renderResults(d) {
   root.appendChild(two);
   if (editable) root.appendChild(bMsg);
   if (d.problems) { const pc = problemsCard(d); pc.style.marginTop = "18px"; root.appendChild(pc); }
+  scheduleSave();
 }
 
+/* ---------- حفظ التحليلات (تحليلاتي) ---------- */
+let saveTimer = null, lastSaved = "", saveBox = null, histItems = null;
+
+function setHash(id) {
+  try { history.replaceState(null, "", id ? "#a=" + id : location.pathname + location.search); } catch (e) {}
+}
+function stateForSave(d) {
+  const skip = ["filter_meta", "upload_id", "saved", "title", "message", "stored_filename", "file_size", "business_type", "original_filename", "cleaning_report"];
+  const s = {};
+  Object.keys(d).forEach((k) => { if (!skip.includes(k) && d[k] !== undefined) s[k] = d[k]; });
+  s.ui = { rows: fState.rows, hidden: fState.hidden, gran: fState.gran, dateCol: fState.dateCol };
+  return s;
+}
+const savePayload = (d) => JSON.stringify({ title: d.title || "", state: stateForSave(d) });
+const setSaveText = (txt) => { if (saveBox && saveBox.isConnected) saveBox.textContent = txt; };
+
+function scheduleSave() {
+  if (!lastData || !lastData.saved || !lastData.upload_id) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveNow, 700);
+}
+async function saveNow() {
+  const d = lastData;
+  if (!d || !d.saved) return;
+  const payload = savePayload(d);
+  if (payload === lastSaved) return;
+  setSaveText(t("saving"));
+  try {
+    const res = await fetch(API_BASE + "/analysis/" + d.upload_id, {
+      method: "PUT", headers: { "Content-Type": "application/json", "X-Owner": getOwner() }, body: payload
+    });
+    if (!res.ok) throw new Error("save");
+    lastSaved = payload;
+    setSaveText(t("saved"));
+  } catch (e) {
+    setSaveText(t("saveFailed"));
+  }
+}
+function buildTitleRow(d) {
+  const row = el("div", "trow");
+  const inp = fInput("text", d.title || "", t("analysisName"), (v) => { lastData.title = v; scheduleSave(); });
+  saveBox = el("span", "savestate", lastSaved === savePayload(d) ? t("saved") : "");
+  row.append(labeled(t("analysisName"), inp), saveBox);
+  return row;
+}
+
+function fmtDate(s) {
+  if (!s) return "";
+  const raw = String(s).replace(" ", "T");
+  const dt = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(raw) ? raw : raw + "Z");
+  return isNaN(dt) ? String(s) : dt.toLocaleString(lang === "ar" ? "ar-IQ" : "en-US", { dateStyle: "medium", timeStyle: "short" });
+}
+async function openHistory() {
+  show("history");
+  const box = $("historyView");
+  box.innerHTML = "";
+  box.appendChild(el("p", "", t("loadingHist")));
+  try {
+    histItems = (await api("/my-analyses", undefined, "GET")).items || [];
+  } catch (err) {
+    histItems = null;
+    box.innerHTML = "";
+    box.appendChild(el("div", "error show", err instanceof TypeError ? t("errNet") : err.message));
+    return;
+  }
+  renderHistory();
+}
+function renderHistory() {
+  const box = $("historyView");
+  box.innerHTML = "";
+  const head = el("div", "res-head");
+  const nb = el("button", "btn", t("newAnalysis"));
+  nb.type = "button";
+  nb.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); setHash(null); clearFile(); show("upload"); });
+  head.append(el("h2", "sec-title", t("myAnalyses")), nb);
+  box.append(head, el("p", "", t("histHint")));
+  const list = el("div", "hlist");
+  (histItems || []).forEach((it) => {
+    const card = el("div", "hitem glass");
+    const info = el("div", "hinfo");
+    info.append(el("b", "", it.title), el("span", "", [it.business_type, `${t("lastEdit")}: ${fmtDate(it.updated_at)}`].filter(Boolean).join(" · ")));
+    const acts = el("div", "hbtns2");
+    const op = el("button", "btn sm", t("openAnalysis"));
+    op.type = "button";
+    op.addEventListener("click", () => openAnalysis(it.id));
+    const del = el("button", "btn ghost sm", t("deleteAnalysis"));
+    del.type = "button";
+    del.addEventListener("click", async () => {
+      if (!confirm(t("confirmDelete"))) return;
+      try {
+        await api("/analysis/" + it.id, undefined, "DELETE");
+        histItems = histItems.filter((x) => x.id !== it.id);
+        if (lastData && lastData.upload_id === it.id) { lastData = null; baseData = null; setHash(null); }
+        renderHistory();
+      } catch (err) {
+        box.appendChild(el("div", "error show", err instanceof TypeError ? t("errNet") : err.message));
+      }
+    });
+    acts.append(op, del);
+    card.append(info, acts);
+    list.appendChild(card);
+  });
+  if (!(histItems || []).length) list.appendChild(el("p", "", t("noSaved")));
+  box.appendChild(list);
+}
+async function openAnalysis(id) {
+  show("loading");
+  try {
+    const data = await api("/analysis/" + id, undefined, "GET");
+    const common = { filter_meta: data.filter_meta, upload_id: id, title: data.title, saved: true };
+    lastData = { ...data.state, ...common };
+    baseData = JSON.parse(JSON.stringify({ ...data.base, ...common }));
+    resetFilter();
+    const ui = data.state.ui;
+    if (ui) fState = { rows: ui.rows || [], hidden: ui.hidden || [], gran: ui.gran || "", dateCol: ui.dateCol || "", open: false };
+    lastSaved = savePayload(lastData);
+    setHash(id);
+    renderResults(lastData);
+    show("results");
+  } catch (err) {
+    setHash(null);
+    show("upload");
+    showError(err instanceof TypeError ? t("errNet") : t("errOpen"));
+  }
+}
+$("histBtn").addEventListener("click", openHistory);
+
 applyLang();
-show("upload");
+{
+  const m = location.hash.match(/^#a=([0-9a-f]{32})$/);
+  if (m) openAnalysis(m[1]); else show("upload");
+}
+/* تغيير الرابط يدوياً أو زر الرجوع: نفتح التحليل المطلوب (setHash يستعمل replaceState فما يسبب تكرار) */
+window.addEventListener("hashchange", () => {
+  const m = location.hash.match(/^#a=([0-9a-f]{32})$/);
+  if (m && !(lastData && lastData.upload_id === m[1] && curView === "results")) openAnalysis(m[1]);
+});
 </script>
 </body>
 </html>

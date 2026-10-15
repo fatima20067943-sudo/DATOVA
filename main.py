@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.use("Agg")  # بدون شاشة، حتى يشتغل على السيرفر
 import matplotlib.pyplot as plt
 import pandas as pd
-from fastapi import Body, FastAPI, File, HTTPException, UploadFile
+from fastapi import Body, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
@@ -23,6 +23,8 @@ from io import BytesIO
 import unicodedata
 import warnings
 import asyncio
+import gzip
+import pickle
 import time as _time
 from datetime import time as dt_time
 from difflib import SequenceMatcher
@@ -653,7 +655,7 @@ app.add_middleware(
 )
 
 @app.post("/upload")
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header(default=None)):
     if not file.filename:
         raise HTTPException(status_code=400, detail="no file was uploaded")
     file_type = Path(file.filename).suffix.lower()
@@ -766,7 +768,8 @@ async def upload_file(file: UploadFile = File(...)):
     finally:
         db.close()
 
-    return {
+    title = Path(file.filename).stem[:200] or "تحليل"
+    response = {
         "message": "File analyzed successfully.",
         "original_filename": file.filename,
         "stored_filename": safe_filename,
@@ -779,7 +782,17 @@ async def upload_file(file: UploadFile = File(...)):
         "recommendations": insights.get("recommendations", []),
         "upload_id": upload_id,
         "filter_meta": filter_meta,
+        "title": title,
     }
+
+    # ---- حفظ التحليل بقاعدة البيانات حتى يرجعله العميل من "تحليلاتي" ----
+    if x_owner and re.fullmatch(r"[0-9a-f]{32}", x_owner):
+        try:
+            await asyncio.to_thread(persist_new, upload_id, x_owner, df, used_specs, business_type, cleaning_report, response, title)
+            response["saved"] = True
+        except Exception:
+            logger.error("Could not save the analysis:\n%s", traceback.format_exc())
+    return response
 
 # ---------------------------------------------------------------------------
 # الفلتر: نفس التحليل على بيانات المستخدم بعد فلتر يحدده بنفسه
@@ -865,9 +878,17 @@ def save_session(upload_id: str, df: pd.DataFrame, specs: list, business_type: s
 
 def load_session(upload_id: str, lang: str = "ar"):
     pkl, meta = SESSIONS_DIR / f"{upload_id}.pkl", SESSIONS_DIR / f"{upload_id}.json"
-    if not pkl.exists() or not meta.exists():
-        raise HTTPException(status_code=404, detail=WORDS["en" if lang == "en" else "ar"]["expired"])
-    return pd.read_pickle(pkl), json.loads(meta.read_text(encoding="utf-8"))
+    if pkl.exists() and meta.exists():
+        return pd.read_pickle(pkl), json.loads(meta.read_text(encoding="utf-8"))
+    got = load_dataset_db(upload_id)          # الكاش انمسح (مثلاً بعد Deploy): نرجع للنسخة المحفوظة بقاعدة البيانات
+    if got:
+        df, saved = got
+        try:
+            save_session(upload_id, df, saved.get("specs", []), saved.get("business_type", ""), saved.get("cleaning_report"))
+        except Exception:
+            pass
+        return df, saved
+    raise HTTPException(status_code=404, detail=WORDS["en" if lang == "en" else "ar"]["expired"])
 
 
 def cleanup_sessions() -> None:
@@ -1324,6 +1345,233 @@ async def find_problems(req: FilterRequest):
         pass
     problems = sorted(problems, key=lambda p: SEVERITY.get(p["severity"], 1))
     return {"problems": problems, "source": source}
+
+
+# ---------------------------------------------------------------------------
+# حفظ التحليلات بقاعدة البيانات: كل تحليل يتحفظ، والعميل يرجعله من "تحليلاتي" ويعدّل بكيفه
+# العميل يتحدد برمز عشوائي يحفظه المتصفح ويرسله بالهيدر X-Owner (هذا مو حساب ولا تسجيل دخول).
+# نستعمل اتصال قاعدة البيانات من SessionLocal مالتك، وجداول datova_* تنعمل تلقائياً.
+# ---------------------------------------------------------------------------
+MAX_BLOB_BYTES = 50 * 1024 * 1024     # أكبر حجم (مضغوط) نخزنه للبيانات النظيفة
+MAX_STATE_BYTES = 1_500_000
+STATE_KEYS = ("analyses", "summary", "insights", "recommendations", "problems", "problems_source",
+              "dismissed", "filter_info", "insights_stale", "skipped", "ui")
+_DB = {"ready": False, "engine": None}
+
+
+def _engine():
+    if _DB["engine"] is None:
+        s = SessionLocal()
+        try:
+            _DB["engine"] = s.get_bind()
+        finally:
+            s.close()
+    return _DB["engine"]
+
+
+def _ph(sql: str) -> str:
+    """علامات المتغيرات: %s لـ MySQL/PostgreSQL، و ? لـ SQLite."""
+    return sql.replace("%s", "?") if _engine().dialect.name == "sqlite" else sql
+
+
+def _ensure_tables(conn) -> None:
+    if _DB["ready"]:
+        return
+    d = _engine().dialect.name
+    txt = "LONGTEXT" if d == "mysql" else "TEXT"
+    blob = "LONGBLOB" if d == "mysql" else ("BYTEA" if d == "postgresql" else "BLOB")
+    ts = "TIMESTAMP" if d == "postgresql" else "DATETIME"
+    cur = conn.cursor()
+    cur.execute(f"CREATE TABLE IF NOT EXISTS datova_analyses (id CHAR(32) PRIMARY KEY, owner CHAR(32) NOT NULL, "
+                f"title VARCHAR(255) NOT NULL, filename VARCHAR(255), business_type VARCHAR(255), "
+                f"state {txt} NOT NULL, base_state {txt} NOT NULL, "
+                f"created_at {ts} DEFAULT CURRENT_TIMESTAMP, updated_at {ts} DEFAULT CURRENT_TIMESTAMP)")
+    cur.execute(f"CREATE TABLE IF NOT EXISTS datova_datasets (id CHAR(32) PRIMARY KEY, data {blob} NOT NULL, meta {txt} NOT NULL)")
+    conn.commit()
+    try:
+        cur.execute("CREATE INDEX datova_analyses_owner ON datova_analyses (owner)")
+        conn.commit()
+    except Exception:          # الفهرس موجود من قبل
+        conn.rollback()
+    _DB["ready"] = True
+
+
+def _with_db(fn):
+    conn = _engine().raw_connection()
+    try:
+        _ensure_tables(conn)
+        out = fn(conn.cursor())
+        conn.commit()
+        return out
+    except Exception:
+        try:
+            conn.rollback()
+        except Exception:
+            pass
+        raise
+    finally:
+        conn.close()
+
+
+async def _db(fn):
+    try:
+        return await asyncio.to_thread(_with_db, fn)
+    except Exception:
+        logger.error("Database error:\n%s", traceback.format_exc())
+        raise HTTPException(status_code=503, detail="Database is not available.")
+
+
+def _strip_state(resp: dict) -> dict:
+    """الحالة اللي نحفظها: كل شي ما عدا الأشياء الكبيرة أو المؤقتة."""
+    out = {k: v for k, v in resp.items()
+           if k not in ("filter_meta", "saved", "upload_id", "title", "stored_filename", "message")}
+    out["analyses"] = [{k: v for k, v in a.items() if k != "chart_url"} for a in out.get("analyses", [])]
+    return out
+
+
+def persist_new(aid: str, owner: str, df: pd.DataFrame, specs: list, business_type: str,
+                cleaning_report: dict, response: dict, title: str) -> bool:
+    """يحفظ تحليل جديد (النتائج + البيانات النظيفة). يرجع True إذا انحفظت البيانات أيضاً (وإلا يبقى للعرض فقط)."""
+    base = json.dumps(_strip_state(response), ensure_ascii=False, default=str)
+    blob = gzip.compress(pickle.dumps(df, protocol=4))
+    meta = json.dumps({"business_type": business_type, "cleaning_report": cleaning_report or {},
+                       "specs": [{k: s.get(k) for k in SPEC_KEYS} for s in specs]}, ensure_ascii=False, default=str)
+    data_ok = len(blob) <= MAX_BLOB_BYTES
+
+    def run(cur):
+        cur.execute(_ph("INSERT INTO datova_analyses (id, owner, title, filename, business_type, state, base_state) "
+                        "VALUES (%s, %s, %s, %s, %s, %s, %s)"),
+                    (aid, owner, title[:255], str(response.get("original_filename") or "")[:255], str(business_type)[:255], base, base))
+        if data_ok:
+            cur.execute(_ph("INSERT INTO datova_datasets (id, data, meta) VALUES (%s, %s, %s)"), (aid, blob, meta))
+
+    _with_db(run)
+    return data_ok
+
+
+def load_dataset_db(aid: str):
+    """البيانات النظيفة من قاعدة البيانات (بعد ما يختفي الكاش المؤقت مثلاً بعد Deploy). الـ blob نحن اللي كتبناه، فما نخاف من pickle."""
+    try:
+        def run(cur):
+            cur.execute(_ph("SELECT data, meta FROM datova_datasets WHERE id = %s"), (aid,))
+            return cur.fetchone()
+        row = _with_db(run)
+        if not row:
+            return None
+        return pickle.loads(gzip.decompress(bytes(row[0]))), json.loads(row[1])
+    except Exception:
+        logger.error("Could not load the saved dataset:\n%s", traceback.format_exc())
+        return None
+
+
+def _owner(x_owner) -> str:
+    if not x_owner or not re.fullmatch(r"[0-9a-f]{32}", x_owner):
+        raise HTTPException(status_code=401, detail="missing or invalid owner id")
+    return x_owner
+
+
+def _check_id(aid: str) -> None:
+    if not re.fullmatch(r"[0-9a-f]{32}", aid):
+        raise HTTPException(status_code=400, detail="invalid analysis id")
+
+
+def _iso(v):
+    return v.isoformat() if hasattr(v, "isoformat") else (None if v is None else str(v))
+
+
+class SaveBody(BaseModel):
+    title: str | None = None
+    state: dict
+
+
+@app.get("/my-analyses")
+async def my_analyses(x_owner: str | None = Header(default=None)):
+    owner = _owner(x_owner)
+
+    def run(cur):
+        cur.execute(_ph("SELECT id, title, business_type, filename, created_at, updated_at FROM datova_analyses "
+                        "WHERE owner = %s ORDER BY updated_at DESC LIMIT 100"), (owner,))
+        return cur.fetchall()
+
+    rows = await _db(run)
+    return {"items": [{"id": r[0], "title": r[1], "business_type": r[2], "filename": r[3],
+                       "created_at": _iso(r[4]), "updated_at": _iso(r[5])} for r in rows]}
+
+
+@app.get("/analysis/{aid}")
+async def get_analysis(aid: str, x_owner: str | None = Header(default=None)):
+    owner = _owner(x_owner)
+    _check_id(aid)
+
+    def run(cur):
+        cur.execute(_ph("SELECT title, state, base_state FROM datova_analyses WHERE id = %s AND owner = %s"), (aid, owner))
+        return cur.fetchone()
+
+    row = await _db(run)
+    if not row:
+        raise HTTPException(status_code=404, detail="analysis not found")
+    base, state = json.loads(row[2]), json.loads(row[1])
+    filter_meta = None
+    try:                                    # بيانات الفلتر تنبني من البيانات المحفوظة
+        df, _ = await asyncio.to_thread(load_session, aid)
+        filter_meta = await asyncio.to_thread(build_filter_meta, df)
+    except HTTPException:                   # البيانات الأصلية غير متوفرة: نعرض النتائج بدون أدوات الفلتر
+        pass
+    return {"title": row[0], "state": {**base, **state}, "base": base, "filter_meta": filter_meta}
+
+
+@app.put("/analysis/{aid}")
+async def save_analysis(aid: str, body: SaveBody, x_owner: str | None = Header(default=None)):
+    """حفظ تلقائي لحالة التحليل (المخططات، النصائح، الفلتر...) كل ما المستخدم يغيّر شي."""
+    owner = _owner(x_owner)
+    _check_id(aid)
+    clean = {k: body.state[k] for k in STATE_KEYS if k in body.state}
+    if isinstance(clean.get("analyses"), list):
+        clean["analyses"] = [{k: v for k, v in a.items() if k != "chart_url"}
+                             for a in clean["analyses"][:MAX_DASH_CHARTS] if isinstance(a, dict)]
+    raw = json.dumps(clean, ensure_ascii=False, default=str)
+    if len(raw.encode("utf-8")) > MAX_STATE_BYTES:
+        raise HTTPException(status_code=413, detail="state too large")
+    title = (body.title or "").strip()[:255]
+
+    def run(cur):
+        cur.execute(_ph("SELECT 1 FROM datova_analyses WHERE id = %s AND owner = %s"), (aid, owner))
+        if not cur.fetchone():
+            return False
+        if title:
+            cur.execute(_ph("UPDATE datova_analyses SET state = %s, title = %s, updated_at = CURRENT_TIMESTAMP "
+                            "WHERE id = %s AND owner = %s"), (raw, title, aid, owner))
+        else:
+            cur.execute(_ph("UPDATE datova_analyses SET state = %s, updated_at = CURRENT_TIMESTAMP "
+                            "WHERE id = %s AND owner = %s"), (raw, aid, owner))
+        return True
+
+    if not await _db(run):
+        raise HTTPException(status_code=404, detail="analysis not found")
+    return {"ok": True}
+
+
+@app.delete("/analysis/{aid}")
+async def delete_analysis(aid: str, x_owner: str | None = Header(default=None)):
+    owner = _owner(x_owner)
+    _check_id(aid)
+
+    def run(cur):
+        cur.execute(_ph("SELECT 1 FROM datova_analyses WHERE id = %s AND owner = %s"), (aid, owner))
+        if not cur.fetchone():
+            return False
+        cur.execute(_ph("DELETE FROM datova_datasets WHERE id = %s"), (aid,))
+        cur.execute(_ph("DELETE FROM datova_analyses WHERE id = %s AND owner = %s"), (aid, owner))
+        return True
+
+    if not await _db(run):
+        raise HTTPException(status_code=404, detail="analysis not found")
+    for p in (SESSIONS_DIR / f"{aid}.pkl", SESSIONS_DIR / f"{aid}.json"):
+        try:
+            p.unlink(missing_ok=True)
+        except OSError:
+            pass
+    return {"ok": True}
 
 
 # ---------------------------------------------------------------------------
