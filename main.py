@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 from pydantic import BaseModel
 from typing import Literal
-from database import SessionLocal
+from database import Base, SessionLocal
 from models import Upload
 from datetime import datetime
 from io import BytesIO
@@ -752,19 +752,12 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
 
     db = SessionLocal()
     try:
-        upload_record = Upload(
-            filename=file.filename,
-            status="uploaded",
-        )
-        db.add(upload_record)
+        db.add(Upload(filename=file.filename, status="uploaded"))
         db.commit()
-    except Exception as error:
+    except Exception:
         db.rollback()
-        print("DATABASE SAVE ERROR:", repr(error))
-        raise HTTPException(
-            status_code=500,
-            detail="Analysis completed, but saving upload information failed.",
-        )
+        # قبل كان هنا يرجع خطأ 500 ويضيع التحليل كله؛ هسه نسجل الخطأ ونكمل
+        logger.error("Could not save the upload record:\n%s", traceback.format_exc())
     finally:
         db.close()
 
@@ -786,12 +779,18 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
     }
 
     # ---- حفظ التحليل بقاعدة البيانات حتى يرجعله العميل من "تحليلاتي" ----
-    if x_owner and re.fullmatch(r"[0-9a-f]{32}", x_owner):
+    response["saved"] = False
+    if not (x_owner and re.fullmatch(r"[0-9a-f]{32}", x_owner)):
+        # قبل كان يتخطى الحفظ بصمت، هسه نكتب السبب باللوگ ونرجعه بالرد
+        logger.warning("Analysis NOT saved: the request has no valid X-Owner header (32 hex characters). Check the frontend.")
+        response["save_error"] = "missing_owner"
+    else:
         try:
             await asyncio.to_thread(persist_new, upload_id, x_owner, df, used_specs, business_type, cleaning_report, response, title)
             response["saved"] = True
         except Exception:
             logger.error("Could not save the analysis:\n%s", traceback.format_exc())
+            response["save_error"] = "database_error"
     return response
 
 # ---------------------------------------------------------------------------
@@ -2079,4 +2078,29 @@ def export_pdf(data: dict = Body(...)):
         media_type="application/pdf",
         headers={"Content-Disposition": 'attachment; filename="report.pdf"'},
     )
+
+
+@app.on_event("startup")
+async def check_database_on_startup():
+    """عند التشغيل: يتأكد أن قاعدة البيانات شغالة ويكتب النتيجة باللوگ."""
+    try:
+        await asyncio.to_thread(Base.metadata.create_all, _engine())  # ينشئ جدول uploads (من models.py) لو مو موجود
+        await asyncio.to_thread(_with_db, lambda cur: None)           # وينشئ جداول datova_*
+        logger.warning("Database connected (%s).", _engine().dialect.name)
+    except Exception:
+        logger.error("Database is NOT available. Analyses will not be saved:\n%s", traceback.format_exc())
+
+
+@app.get("/db-check")
+async def db_check():
+    """للتجربة: يتأكد من اتصال قاعدة البيانات ويعرض عدد التحليلات المحفوظة. احذفه بعد الاختبار."""
+    try:
+        def run(cur):
+            cur.execute("SELECT COUNT(*) FROM datova_analyses")
+            return cur.fetchone()[0]
+        count = await asyncio.to_thread(_with_db, run)
+        return {"connected": True, "database": _engine().dialect.name, "analyses_saved": count}
+    except Exception as error:
+        logger.error("db-check failed:\n%s", traceback.format_exc())
+        return {"connected": False, "error_type": type(error).__name__}
 
