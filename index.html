@@ -193,6 +193,42 @@ footer p{margin:2px 0}
 
 /* ---------- الفلتر ---------- */
 /* ---------- لوحة المعلومات المخصصة ---------- */
+/* ---------- واجهة الترحيب ---------- */
+.welcome{display:none;max-width:980px;margin:0 auto}
+.top .wordmark{cursor:pointer}
+.w-hero{text-align:center;padding:6px 0 30px}
+.w-mark{width:104px;height:104px;margin:0 auto 14px;display:block}
+.w-hero h1{margin:0 0 14px;font-family:Montserrat,Cairo,sans-serif;font-weight:500;font-size:clamp(32px,6.5vw,58px);line-height:1.2;color:var(--ink)}
+.w-hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,#F1EFFF,#BDB5F7 55%,#8EC5F2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.w-sub{max-width:660px;margin:0 auto 26px;font-size:18px;color:var(--body)}
+.w-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn.big{padding:15px 38px;font-size:18px}
+.w-badges{list-style:none;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:26px 0 0;padding:0}
+.w-badges li{padding:6px 14px;border-radius:999px;font-size:14px;background:rgba(255,255,255,.06);border:1px solid var(--glass-line);color:var(--body)}
+.w-continue{display:none;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 22px;margin:0 auto 24px;max-width:600px;text-align:start}
+.w-continue small{display:block;color:var(--gray);font-size:13px}
+.w-continue b{color:var(--ink);font-size:17px}
+.w-h{margin:46px 0 18px;text-align:center;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600;font-size:clamp(22px,4vw,30px)}
+.w-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.w-card{padding:24px}
+.w-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#fff;background:linear-gradient(120deg,#5A50BA,#6B5FD6);margin-bottom:14px}
+.w-card h3,.w-feat h3{margin:0 0 6px;font-size:19px;color:var(--ink)}
+.w-card p,.w-feat p{margin:0;color:var(--body);font-size:15.5px}
+.w-feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.w-feat{padding:22px}
+.w-ico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:rgba(163,154,234,.16);color:var(--purple-2)}
+.w-ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.w-prep{padding:26px;margin-top:42px}
+.w-prep h3{margin:0 0 12px;color:var(--ink);font-size:20px}
+.w-prep ul{margin:0 0 16px;padding-inline-start:22px;color:var(--body);display:grid;gap:6px}
+.w-privacy{margin:0;padding-top:14px;border-top:1px solid var(--glass-line);font-size:14.5px;color:var(--gray)}
+.w-final{text-align:center;margin:38px 0 6px}
+@keyframes wrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.welcome>*{animation:wrise .6s ease both}
+.welcome>*:nth-child(2){animation-delay:.08s}
+.welcome>*:nth-child(3){animation-delay:.14s}
+.welcome>*:nth-child(4){animation-delay:.2s}
+@media (prefers-reduced-motion:reduce){.welcome>*{animation:none}}
 /* ---------- تحليلاتي ---------- */
 .hbtns{display:flex;gap:8px}
 .hist{margin-top:8px}
@@ -356,6 +392,34 @@ html{color-scheme:dark}
   </header>
 
   <!-- ===== upload view ===== -->
+  <section class="welcome" id="welcomeView">
+    <div class="w-hero">
+      <svg class="logo-o w-mark" viewBox="0 0 100 100" data-mark data-live aria-hidden="true"></svg>
+      <h1><span data-i18n="wTitlePre"></span> <em data-i18n="wTitleEm"></em></h1>
+      <p class="w-sub" data-i18n="wSub"></p>
+      <div class="w-continue glass" id="wContinue"></div>
+      <div class="w-cta">
+        <button class="btn big" id="startBtn" type="button" data-i18n="wStart"></button>
+        <button class="btn ghost big" id="wHistBtn" type="button" data-i18n="myAnalyses"></button>
+      </div>
+      <ul class="w-badges"><li data-i18n="wB1"></li><li data-i18n="wB2"></li><li data-i18n="wB3"></li><li data-i18n="wB4"></li></ul>
+    </div>
+
+    <h2 class="w-h" data-i18n="wHow"></h2>
+    <div class="w-steps"><article class="w-card glass"><span class="w-num">1</span><h3 data-i18n="wS1T"></h3><p data-i18n="wS1P"></p></article><article class="w-card glass"><span class="w-num">2</span><h3 data-i18n="wS2T"></h3><p data-i18n="wS2P"></p></article><article class="w-card glass"><span class="w-num">3</span><h3 data-i18n="wS3T"></h3><p data-i18n="wS3P"></p></article></div>
+
+    <h2 class="w-h" data-i18n="wFeat"></h2>
+    <div class="w-feats"><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><h3 data-i18n="wF1T"></h3><p data-i18n="wF1P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M2 20h20"/></svg></span><h3 data-i18n="wF2T"></h3><p data-i18n="wF2P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg></span><h3 data-i18n="wF3T"></h3><p data-i18n="wF3P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><h3 data-i18n="wF4T"></h3><p data-i18n="wF4P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span><h3 data-i18n="wF5T"></h3><p data-i18n="wF5P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3 data-i18n="wF6T"></h3><p data-i18n="wF6P"></p></article></div>
+
+    <section class="w-prep glass">
+      <h3 data-i18n="wPrepT"></h3>
+      <ul><li data-i18n="wP1"></li><li data-i18n="wP2"></li><li data-i18n="wP3"></li><li data-i18n="wP4"></li></ul>
+      <p class="w-privacy" data-i18n="wPrivacy"></p>
+    </section>
+
+    <div class="w-final"><button class="btn big" id="startBtn2" type="button" data-i18n="wStart"></button></div>
+  </section>
+
   <main id="uploadView">
     <section class="hero">
       <h1><span data-i18n="heroPre"></span> <em data-i18n="heroTitle"></em></h1>
@@ -467,6 +531,26 @@ const I18N = {
     noSaved: "ما اكو تحليلات محفوظة بعد. ارفع ملفاً وراح يتحفظ تلقائياً.", lastEdit: "آخر تعديل",
     histHint: "تحليلاتك محفوظة على هذا المتصفح، وتكدر ترجعلها وتعدّل بكيفك.", loadingHist: "جاري التحميل...",
     errOpen: "ما كدرنا نفتح هذا التحليل. يمكن انحذف، أو مو محفوظ على هذا المتصفح.",
+    wTitlePre: "اكتشف ما تخفيه", wTitleEm: "بياناتك",
+    wSub: "ارفع ملف مبيعاتك أو بيانات مشروعك، و DATOVA ينظّفها ويحلّلها ويرسم لك النتائج ويقترح عليك خطوتك الجاية. بدون أي خبرة سابقة.",
+    wStart: "ابدأ التحليل", wB1: "ملفات CSV و Excel", wB2: "بدون خبرة", wB3: "عربي وإنجليزي", wB4: "تقرير PDF جاهز",
+    wContinue: "كمّل من وين وقفت", wHow: "كيف يشتغل؟",
+    wS1T: "ارفع ملفك", wS1P: "اسحب ملف CSV أو Excel لين 20 ميغابايت.",
+    wS2T: "نفهمه وننظّفه", wS2P: "نتعرف على نوع نشاطك، ونحذف المكرر، ونوحّد الأرقام والتواريخ والأسماء، ونعالج القيم الناقصة.",
+    wS3T: "خذ قرارك", wS3P: "مخططات واضحة وخلاصة ونصائح بلغة بسيطة، تعدّلها بكيفك وتحمّلها PDF.",
+    wFeat: "شنو تكدر تسوي؟",
+    wF1T: "تنظيف ذكي للبيانات", wF1P: "أرقام وتواريخ وساعات بشكلها الصحيح، وتوحيد الكلمات المكتوبة بأكثر من طريقة.",
+    wF2T: "مخططات تصممها بنفسك", wF2P: "أضف أو عدّل أو احذف أي مخطط، أو اطلب تحليلاً بكلامك.",
+    wF3T: "فلتر ويومي وأسبوعي وشهري", wF3P: "اعرض فترة معينة، أو أخفِ قيماً وأعمدة ما تريدها.",
+    wF4T: "نصائح ومشاكل بالذكاء الاصطناعي", wF4P: "اقتراحات حسب هدفك، واكتشاف المشاكل مع الحل المناسب.",
+    wF5T: "تقرير PDF", wF5P: "حمّل التحليل بنفس ما تشوفه، واطبعه أو شاركه.",
+    wF6T: "تحليلاتك محفوظة", wF6P: "ارجع لأي تحليل وقت ما تريد، وكمّل التعديل من زر «تحليلاتي».",
+    wPrepT: "قبل لا ترفع ملفك",
+    wP1: "الصف الأول يكون عناوين الأعمدة (مثل: التاريخ، المنتج، المبلغ).",
+    wP2: "كل عمود يحتوي نوعاً واحداً من البيانات.",
+    wP3: "بيانات Excel تكون بالورقة الأولى من الملف، بدون خلايا مدمجة.",
+    wP4: "ملفات CSV تكون بصيغة UTF-8 حتى تظهر الحروف العربية سليمة.",
+    wPrivacy: "خصوصيتك: نرسل لخدمة الذكاء الاصطناعي ملخصاً صغيراً فقط (أسماء الأعمدة وعينة قيم ونتائج التحليل) لفهم الملف وكتابة النصائح. وتحليلاتك تنحفظ بقاعدة بيانات الموقع وتنفتح من هذا المتصفح فقط.",
     footer: "تحليل البيانات، رؤى، قرارات أفضل",
     langBtn: "EN"
   },
@@ -522,6 +606,26 @@ const I18N = {
     noSaved: "No saved analyses yet. Upload a file and it is saved automatically.", lastEdit: "Last edited",
     histHint: "Your analyses are saved on this browser. Come back any time and keep editing.", loadingHist: "Loading...",
     errOpen: "We could not open this analysis. It may have been deleted, or it is not saved on this browser.",
+    wTitlePre: "Discover what", wTitleEm: "your data hides",
+    wSub: "Upload your sales or business file. DATOVA cleans it, analyzes it, draws the results and suggests your next step. No expertise needed.",
+    wStart: "Start analyzing", wB1: "CSV & Excel files", wB2: "No expertise needed", wB3: "Arabic & English", wB4: "Ready PDF report",
+    wContinue: "Continue where you left off", wHow: "How it works",
+    wS1T: "Upload your file", wS1P: "Drag a CSV or Excel file up to 20 MB.",
+    wS2T: "We understand and clean it", wS2P: "We detect your business type, remove duplicates, unify numbers, dates and names, and handle missing values.",
+    wS3T: "Make your decision", wS3P: "Clear charts, a summary and advice in plain language. Edit them your way and download a PDF.",
+    wFeat: "What you can do",
+    wF1T: "Smart data cleaning", wF1P: "Numbers, dates and times in the right form, and words written several ways unified.",
+    wF2T: "Charts you design", wF2P: "Add, edit or remove any chart, or ask for an analysis in your own words.",
+    wF3T: "Filters and daily, weekly, monthly views", wF3P: "Look at a specific period, or hide values and columns you do not want.",
+    wF4T: "AI advice and problem detection", wF4P: "Suggestions tailored to your goal, and problems found with a fix for each.",
+    wF5T: "PDF report", wF5P: "Download the analysis as you see it, print it or share it.",
+    wF6T: "Your analyses are saved", wF6P: "Come back to any analysis any time and keep editing from “My analyses”.",
+    wPrepT: "Before you upload",
+    wP1: "The first row should be the column headers (e.g. date, product, amount).",
+    wP2: "Each column should hold one kind of data.",
+    wP3: "Excel data should be on the first sheet, without merged cells.",
+    wP4: "CSV files should be UTF-8 so Arabic text shows correctly.",
+    wPrivacy: "Your privacy: we send the AI service only a small summary (column names, sample values and analysis results) to understand the file and write advice. Your analyses are stored in the site database and open from this browser only.",
     footer: "Data analysis, insights, better decisions",
     langBtn: "عربي"
   }
@@ -557,6 +661,7 @@ function applyLang() {
   buildSteps();
   if (lastData) renderResults(lastData);
   if (curView === "history" && histItems) renderHistory();
+  renderContinue();
 }
 $("langBtn").addEventListener("click", () => {
   lang = lang === "ar" ? "en" : "ar";
@@ -608,6 +713,7 @@ let curView = "upload";
 function show(view) {
   curView = view;
   $("historyView").style.display = view === "history" ? "block" : "none";
+  $("welcomeView").style.display = view === "welcome" ? "block" : "none";
   $("uploadView").style.display = view === "upload" ? "" : "none";
   $("loadingView").style.display = view === "loading" ? "block" : "none";
   $("resultsView").style.display = view === "results" ? "block" : "none";
@@ -1507,10 +1613,37 @@ async function openAnalysis(id) {
 }
 $("histBtn").addEventListener("click", openHistory);
 
+/* ---------- واجهة الترحيب ---------- */
+function renderContinue() {
+  const box = $("wContinue");
+  const it = histItems && histItems[0];
+  if (!it) { box.style.display = "none"; return; }
+  box.innerHTML = "";
+  const info = el("div", "w-cinfo");
+  info.append(el("small", "", t("wContinue")), el("b", "", it.title));
+  const b = el("button", "btn sm", t("openAnalysis"));
+  b.type = "button";
+  b.addEventListener("click", () => openAnalysis(it.id));
+  box.append(info, b);
+  box.style.display = "flex";
+}
+function loadContinue() {
+  api("/my-analyses", undefined, "GET").then((r) => { histItems = r.items || []; renderContinue(); }).catch(() => {});
+}
+function goWelcome() { setHash(null); show("welcome"); loadContinue(); }
+$("startBtn").addEventListener("click", () => show("upload"));
+$("startBtn2").addEventListener("click", () => show("upload"));
+$("wHistBtn").addEventListener("click", openHistory);
+const brand = document.querySelector("header.top .wordmark");
+brand.setAttribute("role", "link");
+brand.setAttribute("tabindex", "0");
+brand.addEventListener("click", goWelcome);
+brand.addEventListener("keydown", (e) => { if (e.key === "Enter") goWelcome(); });
+
 applyLang();
 {
   const m = location.hash.match(/^#a=([0-9a-f]{32})$/);
-  if (m) openAnalysis(m[1]); else show("upload");
+  if (m) openAnalysis(m[1]); else { show("welcome"); loadContinue(); }
 }
 /* تغيير الرابط يدوياً أو زر الرجوع: نفتح التحليل المطلوب (setHash يستعمل replaceState فما يسبب تكرار) */
 window.addEventListener("hashchange", () => {
