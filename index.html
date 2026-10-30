@@ -193,42 +193,6 @@ footer p{margin:2px 0}
 
 /* ---------- الفلتر ---------- */
 /* ---------- لوحة المعلومات المخصصة ---------- */
-/* ---------- واجهة الترحيب ---------- */
-.welcome{display:none;max-width:980px;margin:0 auto}
-.top .wordmark{cursor:pointer}
-.w-hero{text-align:center;padding:6px 0 30px}
-.w-mark{width:104px;height:104px;margin:0 auto 14px;display:block}
-.w-hero h1{margin:0 0 14px;font-family:Montserrat,Cairo,sans-serif;font-weight:500;font-size:clamp(32px,6.5vw,58px);line-height:1.2;color:var(--ink)}
-.w-hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,#F1EFFF,#BDB5F7 55%,#8EC5F2);-webkit-background-clip:text;background-clip:text;color:transparent}
-.w-sub{max-width:660px;margin:0 auto 26px;font-size:18px;color:var(--body)}
-.w-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn.big{padding:15px 38px;font-size:18px}
-.w-badges{list-style:none;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:26px 0 0;padding:0}
-.w-badges li{padding:6px 14px;border-radius:999px;font-size:14px;background:rgba(255,255,255,.06);border:1px solid var(--glass-line);color:var(--body)}
-.w-continue{display:none;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px 22px;margin:0 auto 24px;max-width:600px;text-align:start}
-.w-continue small{display:block;color:var(--gray);font-size:13px}
-.w-continue b{color:var(--ink);font-size:17px}
-.w-h{margin:46px 0 18px;text-align:center;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600;font-size:clamp(22px,4vw,30px)}
-.w-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
-.w-card{padding:24px}
-.w-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:#fff;background:linear-gradient(120deg,#5A50BA,#6B5FD6);margin-bottom:14px}
-.w-card h3,.w-feat h3{margin:0 0 6px;font-size:19px;color:var(--ink)}
-.w-card p,.w-feat p{margin:0;color:var(--body);font-size:15.5px}
-.w-feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
-.w-feat{padding:22px}
-.w-ico{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;background:rgba(163,154,234,.16);color:var(--purple-2)}
-.w-ico svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.w-prep{padding:26px;margin-top:42px}
-.w-prep h3{margin:0 0 12px;color:var(--ink);font-size:20px}
-.w-prep ul{margin:0 0 16px;padding-inline-start:22px;color:var(--body);display:grid;gap:6px}
-.w-privacy{margin:0;padding-top:14px;border-top:1px solid var(--glass-line);font-size:14.5px;color:var(--gray)}
-.w-final{text-align:center;margin:38px 0 6px}
-@keyframes wrise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-.welcome>*{animation:wrise .6s ease both}
-.welcome>*:nth-child(2){animation-delay:.08s}
-.welcome>*:nth-child(3){animation-delay:.14s}
-.welcome>*:nth-child(4){animation-delay:.2s}
-@media (prefers-reduced-motion:reduce){.welcome>*{animation:none}}
 /* ---------- تحليلاتي ---------- */
 .hbtns{display:flex;gap:8px}
 .hist{margin-top:8px}
@@ -364,6 +328,8 @@ html{color-scheme:dark}
 .pill{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(190,184,245,.34)}
 .pill.on{background:#5A50BA;border-color:#8E84EE;color:#fff}
 .fchips label{background:rgba(255,255,255,.06);color:var(--ink)}
+.sum-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.cstats{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px;color:var(--gray)}
 </style>
 </head>
 <body>
@@ -392,34 +358,6 @@ html{color-scheme:dark}
   </header>
 
   <!-- ===== upload view ===== -->
-  <section class="welcome" id="welcomeView">
-    <div class="w-hero">
-      <svg class="logo-o w-mark" viewBox="0 0 100 100" data-mark data-live aria-hidden="true"></svg>
-      <h1><span data-i18n="wTitlePre"></span> <em data-i18n="wTitleEm"></em></h1>
-      <p class="w-sub" data-i18n="wSub"></p>
-      <div class="w-continue glass" id="wContinue"></div>
-      <div class="w-cta">
-        <button class="btn big" id="startBtn" type="button" data-i18n="wStart"></button>
-        <button class="btn ghost big" id="wHistBtn" type="button" data-i18n="myAnalyses"></button>
-      </div>
-      <ul class="w-badges"><li data-i18n="wB1"></li><li data-i18n="wB2"></li><li data-i18n="wB3"></li><li data-i18n="wB4"></li></ul>
-    </div>
-
-    <h2 class="w-h" data-i18n="wHow"></h2>
-    <div class="w-steps"><article class="w-card glass"><span class="w-num">1</span><h3 data-i18n="wS1T"></h3><p data-i18n="wS1P"></p></article><article class="w-card glass"><span class="w-num">2</span><h3 data-i18n="wS2T"></h3><p data-i18n="wS2P"></p></article><article class="w-card glass"><span class="w-num">3</span><h3 data-i18n="wS3T"></h3><p data-i18n="wS3P"></p></article></div>
-
-    <h2 class="w-h" data-i18n="wFeat"></h2>
-    <div class="w-feats"><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><h3 data-i18n="wF1T"></h3><p data-i18n="wF1P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M2 20h20"/></svg></span><h3 data-i18n="wF2T"></h3><p data-i18n="wF2P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg></span><h3 data-i18n="wF3T"></h3><p data-i18n="wF3P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><h3 data-i18n="wF4T"></h3><p data-i18n="wF4P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span><h3 data-i18n="wF5T"></h3><p data-i18n="wF5P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3 data-i18n="wF6T"></h3><p data-i18n="wF6P"></p></article></div>
-
-    <section class="w-prep glass">
-      <h3 data-i18n="wPrepT"></h3>
-      <ul><li data-i18n="wP1"></li><li data-i18n="wP2"></li><li data-i18n="wP3"></li><li data-i18n="wP4"></li></ul>
-      <p class="w-privacy" data-i18n="wPrivacy"></p>
-    </section>
-
-    <div class="w-final"><button class="btn big" id="startBtn2" type="button" data-i18n="wStart"></button></div>
-  </section>
-
   <main id="uploadView">
     <section class="hero">
       <h1><span data-i18n="heroPre"></span> <em data-i18n="heroTitle"></em></h1>
@@ -515,42 +453,24 @@ const I18N = {
     contains: "يحتوي", notContains: "لا يحتوي", from: "من", to: "إلى", min: "الأدنى", max: "الأعلى",
     search: "بحث...", typeText: "اكتب النص", remove: "حذف الشرط", granTitle: "عرض الاتجاه عبر الزمن",
     granNone: "بدون تغيير", day: "يومي", week: "أسبوعي", month: "شهري", hideCols: "إخفاء أعمدة من التحليل",
-    rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح تخص كل البيانات (تعذّر تحديثها)",
+    rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح لم تتحدّث بعد حسب آخر تعديل على المخططات",
     errFilter: "ما كدرنا نطبّق الفلتر. جرب مرة ثانية.",
     addChart: "مخطط جديد", restoreCharts: "استعادة المخططات الأصلية", askPlaceholder: "اطلب تحليلاً بكلامك، مثلاً: مبيعات كل مدينة", askBtn: "حلّل لي",
     editChart: "تعديل المخطط", removeChart: "حذف المخطط", formAdd: "إضافة المخطط", formSave: "حفظ التعديل", cancel: "إلغاء",
     kindGroup: "تجميع حسب عمود", kindTrend: "اتجاه زمني", fieldKind: "نوع التحليل", fieldGroup: "حسب العمود", fieldDate: "عمود التاريخ",
     fieldValue: "القيمة", fieldAgg: "الدالة", fieldChart: "شكل المخطط", fieldTop: "عدد العناصر", fieldTitle: "العنوان (اختياري)",
-    countRows: "عدد الصفوف", aggSum: "المجموع", aggMean: "المتوسط", aggMax: "الأعلى", aggMin: "الأدنى", chartBar: "أعمدة", chartPie: "دائري",
+    countRows: "عدد الصفوف", aggSum: "المجموع", aggMean: "المتوسط", aggMax: "الأعلى", aggMin: "الأدنى", aggMedian: "الوسيط", statGroups: "عدد المجموعات", statTotal: "المجموع", statTop: "الأعلى", statLow: "الأدنى",
+    statPeak: "الذروة", statChange: "التغيّر عن الفترة السابقة", refreshInsights: "تحديث التحليل", refreshingInsights: "جاري تحديث التحليل…", chartBar: "أعمدة", chartPie: "دائري",
     findProblems: "اكتشف المشاكل", betterAdvice: "اقتراحات أنسب", goalPlaceholder: "شنو هدفك؟ (اختياري) مثلاً: زيادة المبيعات", suggest: "اقترح",
     problemsTitle: "المشاكل المكتشفة", fix: "الحل", sevHigh: "عالية", sevMed: "متوسطة", sevLow: "منخفضة", srcAi: "بالذكاء الاصطناعي + فحوصات الكود",
     srcRules: "بفحوصات الكود", noProblems: "ما لقينا مشاكل واضحة بالبيانات الحالية.", working: "جاري العمل...", skippedCharts: "تعذّر رسم",
     removeItem: "حذف", trendTitle: "الاتجاه عبر الزمن",
     myAnalyses: "تحليلاتي", newAnalysis: "+ تحليل جديد", openAnalysis: "فتح", deleteAnalysis: "حذف", confirmDelete: "تحذف هذا التحليل نهائياً؟",
-    saved: "تم الحفظ ✓", saving: "جاري الحفظ...", saveFailed: "تعذّر الحفظ", analysisName: "اسم التحليل",
+    saved: "تم الحفظ ✓", saving: "جاري الحفظ...", saveFailed: "تعذّر الحفظ",
+    notSaved: "هذا التحليل ما انحفظ بحسابك (للعرض فقط).", notSavedOwner: "ما انحفظ: السيرفر ما استلم معرّف المستخدم.", notSavedDb: "ما انحفظ: قاعدة البيانات غير متاحة حالياً.", analysisName: "اسم التحليل",
     noSaved: "ما اكو تحليلات محفوظة بعد. ارفع ملفاً وراح يتحفظ تلقائياً.", lastEdit: "آخر تعديل",
     histHint: "تحليلاتك محفوظة على هذا المتصفح، وتكدر ترجعلها وتعدّل بكيفك.", loadingHist: "جاري التحميل...",
     errOpen: "ما كدرنا نفتح هذا التحليل. يمكن انحذف، أو مو محفوظ على هذا المتصفح.",
-    wTitlePre: "اكتشف ما تخفيه", wTitleEm: "بياناتك",
-    wSub: "ارفع ملف مبيعاتك أو بيانات مشروعك، و DATOVA ينظّفها ويحلّلها ويرسم لك النتائج ويقترح عليك خطوتك الجاية. بدون أي خبرة سابقة.",
-    wStart: "ابدأ التحليل", wB1: "ملفات CSV و Excel", wB2: "بدون خبرة", wB3: "عربي وإنجليزي", wB4: "تقرير PDF جاهز",
-    wContinue: "كمّل من وين وقفت", wHow: "كيف يشتغل؟",
-    wS1T: "ارفع ملفك", wS1P: "اسحب ملف CSV أو Excel لين 20 ميغابايت.",
-    wS2T: "نفهمه وننظّفه", wS2P: "نتعرف على نوع نشاطك، ونحذف المكرر، ونوحّد الأرقام والتواريخ والأسماء، ونعالج القيم الناقصة.",
-    wS3T: "خذ قرارك", wS3P: "مخططات واضحة وخلاصة ونصائح بلغة بسيطة، تعدّلها بكيفك وتحمّلها PDF.",
-    wFeat: "شنو تكدر تسوي؟",
-    wF1T: "تنظيف ذكي للبيانات", wF1P: "أرقام وتواريخ وساعات بشكلها الصحيح، وتوحيد الكلمات المكتوبة بأكثر من طريقة.",
-    wF2T: "مخططات تصممها بنفسك", wF2P: "أضف أو عدّل أو احذف أي مخطط، أو اطلب تحليلاً بكلامك.",
-    wF3T: "فلتر ويومي وأسبوعي وشهري", wF3P: "اعرض فترة معينة، أو أخفِ قيماً وأعمدة ما تريدها.",
-    wF4T: "نصائح ومشاكل بالذكاء الاصطناعي", wF4P: "اقتراحات حسب هدفك، واكتشاف المشاكل مع الحل المناسب.",
-    wF5T: "تقرير PDF", wF5P: "حمّل التحليل بنفس ما تشوفه، واطبعه أو شاركه.",
-    wF6T: "تحليلاتك محفوظة", wF6P: "ارجع لأي تحليل وقت ما تريد، وكمّل التعديل من زر «تحليلاتي».",
-    wPrepT: "قبل لا ترفع ملفك",
-    wP1: "الصف الأول يكون عناوين الأعمدة (مثل: التاريخ، المنتج، المبلغ).",
-    wP2: "كل عمود يحتوي نوعاً واحداً من البيانات.",
-    wP3: "بيانات Excel تكون بالورقة الأولى من الملف، بدون خلايا مدمجة.",
-    wP4: "ملفات CSV تكون بصيغة UTF-8 حتى تظهر الحروف العربية سليمة.",
-    wPrivacy: "خصوصيتك: نرسل لخدمة الذكاء الاصطناعي ملخصاً صغيراً فقط (أسماء الأعمدة وعينة قيم ونتائج التحليل) لفهم الملف وكتابة النصائح. وتحليلاتك تنحفظ بقاعدة بيانات الموقع وتنفتح من هذا المتصفح فقط.",
     footer: "تحليل البيانات، رؤى، قرارات أفضل",
     langBtn: "EN"
   },
@@ -590,42 +510,24 @@ const I18N = {
     contains: "Contains", notContains: "Does not contain", from: "From", to: "To", min: "Min", max: "Max",
     search: "Search...", typeText: "Type text", remove: "Remove condition", granTitle: "Trend over time",
     granNone: "No change", day: "Daily", week: "Weekly", month: "Monthly", hideCols: "Hide columns from the analysis",
-    rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice cover all data (could not be refreshed)",
+    rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice have not been updated for the latest chart changes yet",
     errFilter: "Couldn't apply the filter. Please try again.",
     addChart: "New chart", restoreCharts: "Restore original charts", askPlaceholder: "Ask for an analysis in your own words, e.g. sales per city", askBtn: "Analyze",
     editChart: "Edit chart", removeChart: "Remove chart", formAdd: "Add chart", formSave: "Save changes", cancel: "Cancel",
     kindGroup: "Group by a column", kindTrend: "Trend over time", fieldKind: "Analysis type", fieldGroup: "By column", fieldDate: "Date column",
     fieldValue: "Value", fieldAgg: "Function", fieldChart: "Chart style", fieldTop: "Items to show", fieldTitle: "Title (optional)",
-    countRows: "Row count", aggSum: "Sum", aggMean: "Average", aggMax: "Max", aggMin: "Min", chartBar: "Bars", chartPie: "Pie",
+    countRows: "Row count", aggSum: "Sum", aggMean: "Average", aggMax: "Max", aggMin: "Min", aggMedian: "Median", statGroups: "Groups", statTotal: "Total", statTop: "Top", statLow: "Lowest",
+    statPeak: "Peak", statChange: "Change vs previous period", refreshInsights: "Refresh analysis", refreshingInsights: "Refreshing analysis…", chartBar: "Bars", chartPie: "Pie",
     findProblems: "Find problems", betterAdvice: "Better advice", goalPlaceholder: "What is your goal? (optional) e.g. grow sales", suggest: "Suggest",
     problemsTitle: "Detected problems", fix: "Fix", sevHigh: "High", sevMed: "Medium", sevLow: "Low", srcAi: "AI + code checks",
     srcRules: "Code checks", noProblems: "No clear problems found in the current data.", working: "Working...", skippedCharts: "Could not draw",
     removeItem: "Remove", trendTitle: "Trend over time",
     myAnalyses: "My analyses", newAnalysis: "+ New analysis", openAnalysis: "Open", deleteAnalysis: "Delete", confirmDelete: "Delete this analysis permanently?",
-    saved: "Saved ✓", saving: "Saving...", saveFailed: "Could not save", analysisName: "Analysis name",
+    saved: "Saved ✓", saving: "Saving...", saveFailed: "Could not save",
+    notSaved: "This analysis was not saved to your account (view only).", notSavedOwner: "Not saved: the server did not receive a user ID.", notSavedDb: "Not saved: the database is unavailable right now.", analysisName: "Analysis name",
     noSaved: "No saved analyses yet. Upload a file and it is saved automatically.", lastEdit: "Last edited",
     histHint: "Your analyses are saved on this browser. Come back any time and keep editing.", loadingHist: "Loading...",
     errOpen: "We could not open this analysis. It may have been deleted, or it is not saved on this browser.",
-    wTitlePre: "Discover what", wTitleEm: "your data hides",
-    wSub: "Upload your sales or business file. DATOVA cleans it, analyzes it, draws the results and suggests your next step. No expertise needed.",
-    wStart: "Start analyzing", wB1: "CSV & Excel files", wB2: "No expertise needed", wB3: "Arabic & English", wB4: "Ready PDF report",
-    wContinue: "Continue where you left off", wHow: "How it works",
-    wS1T: "Upload your file", wS1P: "Drag a CSV or Excel file up to 20 MB.",
-    wS2T: "We understand and clean it", wS2P: "We detect your business type, remove duplicates, unify numbers, dates and names, and handle missing values.",
-    wS3T: "Make your decision", wS3P: "Clear charts, a summary and advice in plain language. Edit them your way and download a PDF.",
-    wFeat: "What you can do",
-    wF1T: "Smart data cleaning", wF1P: "Numbers, dates and times in the right form, and words written several ways unified.",
-    wF2T: "Charts you design", wF2P: "Add, edit or remove any chart, or ask for an analysis in your own words.",
-    wF3T: "Filters and daily, weekly, monthly views", wF3P: "Look at a specific period, or hide values and columns you do not want.",
-    wF4T: "AI advice and problem detection", wF4P: "Suggestions tailored to your goal, and problems found with a fix for each.",
-    wF5T: "PDF report", wF5P: "Download the analysis as you see it, print it or share it.",
-    wF6T: "Your analyses are saved", wF6P: "Come back to any analysis any time and keep editing from “My analyses”.",
-    wPrepT: "Before you upload",
-    wP1: "The first row should be the column headers (e.g. date, product, amount).",
-    wP2: "Each column should hold one kind of data.",
-    wP3: "Excel data should be on the first sheet, without merged cells.",
-    wP4: "CSV files should be UTF-8 so Arabic text shows correctly.",
-    wPrivacy: "Your privacy: we send the AI service only a small summary (column names, sample values and analysis results) to understand the file and write advice. Your analyses are stored in the site database and open from this browser only.",
     footer: "Data analysis, insights, better decisions",
     langBtn: "عربي"
   }
@@ -661,7 +563,6 @@ function applyLang() {
   buildSteps();
   if (lastData) renderResults(lastData);
   if (curView === "history" && histItems) renderHistory();
-  renderContinue();
 }
 $("langBtn").addEventListener("click", () => {
   lang = lang === "ar" ? "en" : "ar";
@@ -713,7 +614,6 @@ let curView = "upload";
 function show(view) {
   curView = view;
   $("historyView").style.display = view === "history" ? "block" : "none";
-  $("welcomeView").style.display = view === "welcome" ? "block" : "none";
   $("uploadView").style.display = view === "upload" ? "" : "none";
   $("loadingView").style.display = view === "loading" ? "block" : "none";
   $("resultsView").style.display = view === "results" ? "block" : "none";
@@ -903,8 +803,9 @@ function chartCard(a, i, editable) {
     rm.title = t("removeChart");
     rm.addEventListener("click", () => {
       dState.form = null;
-      lastData = { ...lastData, analyses: lastData.analyses.filter((_, j) => j !== i) };
+      lastData = { ...lastData, analyses: lastData.analyses.filter((_, j) => j !== i), insights_stale: true, problems: undefined };
       renderResults(lastData);
+      scheduleInsightsRefresh();
     });
     tools.append(ed, rm);
     head.appendChild(tools);
@@ -913,6 +814,18 @@ function chartCard(a, i, editable) {
   const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
   if (a.chart === "pie") card.appendChild(donut(a.labels, a.values));
   else card.appendChild(isTime ? vBars(a.labels, a.values) : hBars(a.labels, a.values));
+  const st = a.stats;
+  if (st) {                                   // أرقام إضافية تحت المخطط (من كل البيانات مو بس المعروض)
+    const cs = el("div", "cstats");
+    const add = (txt) => cs.appendChild(el("span", "", txt));
+    if (st.groups > 1) add(`${t("statGroups")}: ${fmt(st.groups)}`);
+    if (st.total !== undefined) add(`${t("statTotal")}: ${fmt(st.total)}`);
+    if (st.top_label !== undefined) add(`${t("statTop")}: ${st.top_label} (${fmt(st.top_value)}${st.top_share !== undefined ? " · " + st.top_share + "%" : ""})`);
+    if (st.low_label !== undefined) add(`${t("statLow")}: ${st.low_label} (${fmt(st.low_value)})`);
+    if (st.peak_label !== undefined) add(`${t("statPeak")}: ${st.peak_label} (${fmt(st.peak_value)})`);
+    if (st.change_pct !== undefined) add(`${t("statChange")}: ${st.change_pct > 0 ? "+" : ""}${st.change_pct}%`);
+    if (cs.childNodes.length) card.appendChild(cs);
+  }
   return card;
 }
 function listCard(title, items, kind, opts = {}) {
@@ -1246,12 +1159,47 @@ async function applyFilter(d, btn, errBox) {
   }
 }
 
-/* يعيد رسم المخططات حسب القائمة الجديدة (بدون ذكاء اصطناعي) */
+/* يعيد رسم المخططات حسب القائمة الجديدة، ويحدّث الخلاصة والاستنتاجات حتى ما تبقى قديمة */
 async function refreshDashboard(d, specs) {
-  const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs, refresh_insights: false, lang });
-  lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info) };
+  const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs, refresh_insights: true, lang });
+  lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info), problems: undefined, insights_stale: !!data.insights_error };
+  if (!data.insights_error) {
+    Object.assign(lastData, { summary: data.summary, insights: data.insights, recommendations: data.recommendations, dismissed: [] });
+  }
   renderResults(lastData);
   if ((data.skipped || []).length) showMsg(`${t("skippedCharts")}: ${data.skipped.join("، ")}`, true);
+}
+
+/* تحديث الخلاصة والاستنتاجات والنصائح حسب المخططات الحالية (تلقائي بعد أي تعديل، أو من زر "تحديث التحليل") */
+let insTimer = null, insBusy = false;
+function scheduleInsightsRefresh(tries = 0) {
+  clearTimeout(insTimer);
+  insTimer = setTimeout(() => {
+    const a = document.activeElement;
+    const typing = dState.form || (a && ["INPUT", "SELECT", "TEXTAREA"].includes(a.tagName));
+    if (typing && tries < 6) return scheduleInsightsRefresh(tries + 1);      // المستخدم يكتب: نأجّل شوية
+    refreshInsights();
+  }, 1200);
+}
+async function refreshInsights(btn) {
+  const d = lastData;
+  if (!d || !d.upload_id || !d.filter_meta || insBusy) return;
+  insBusy = true;
+  if (btn) { btn.disabled = true; btn.textContent = t("refreshingInsights"); }
+  const sig = JSON.stringify(currentSpecs(d));
+  let again = false;
+  try {
+    const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs: currentSpecs(d), refresh_insights: true, lang });
+    if (data.insights_error) throw new Error("ai");
+    again = JSON.stringify(currentSpecs(lastData)) !== sig;                  // المستخدم عدّل المخططات أثناء التحديث
+    lastData = { ...lastData, summary: data.summary, insights: data.insights, recommendations: data.recommendations, dismissed: [], problems: undefined, insights_stale: again };
+  } catch (e) {
+    lastData = { ...lastData, insights_stale: true };
+  } finally {
+    insBusy = false;
+  }
+  renderResults(lastData);
+  if (again) scheduleInsightsRefresh();
 }
 
 /* ---- نموذج إضافة/تعديل مخطط ---- */
@@ -1264,7 +1212,7 @@ function blankSpec(meta) {
 function normalizeSpec(s) {
   return {
     kind: s.kind, group_by: s.group_by, value: s.value || null, agg: s.value ? s.agg : "count",
-    top_n: Math.max(1, Math.min(15, Number(s.top_n) || 10)), chart: s.kind === "monthly_trend" ? "bar" : s.chart, title: (s.title || "").trim()
+    top_n: Math.max(1, Math.min(30, Number(s.top_n) || 10)), chart: s.kind === "monthly_trend" ? "bar" : s.chart, title: (s.title || "").trim()
   };
 }
 function chartForm(d) {
@@ -1289,11 +1237,11 @@ function chartForm(d) {
     rebuild();
   }));
   if (s.value) {
-    grid.appendChild(labeledSel(t("fieldAgg"), [["sum", t("aggSum")], ["mean", t("aggMean")], ["max", t("aggMax")], ["min", t("aggMin")]], s.agg, (v) => (s.agg = v)));
+    grid.appendChild(labeledSel(t("fieldAgg"), [["sum", t("aggSum")], ["mean", t("aggMean")], ["median", t("aggMedian")], ["max", t("aggMax")], ["min", t("aggMin")]], s.agg, (v) => (s.agg = v)));
   }
   if (!isTrend) {
     grid.appendChild(labeledSel(t("fieldChart"), [["bar", t("chartBar")], ["pie", t("chartPie")]], s.chart, (v) => (s.chart = v)));
-    grid.appendChild(labeled(t("fieldTop"), fInput("number", String(s.top_n), "", (v) => (s.top_n = v), { min: "1", max: "15" })));
+    grid.appendChild(labeled(t("fieldTop"), fInput("number", String(s.top_n), "", (v) => (s.top_n = v), { min: "1", max: "30" })));
   }
   grid.appendChild(labeled(t("fieldTitle"), fInput("text", s.title || "", "", (v) => (s.title = v))));
   const ok = el("button", "btn", f.mode === "edit" ? t("formSave") : t("formAdd"));
@@ -1339,9 +1287,10 @@ function buildDashBar(d) {
     if (!text) return;
     const data = await api("/ask-analysis", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), request: text, lang });
     dState.askText = "";
-    lastData = { ...d, analyses: [...d.analyses, data.analysis] };
+    lastData = { ...d, analyses: [...d.analyses, data.analysis], insights_stale: true, problems: undefined };
     renderResults(lastData);
     if (data.note) showMsg(data.note, false);
+    scheduleInsightsRefresh();
   }));
   ask.append(inp, go);
 
@@ -1399,6 +1348,12 @@ function renderResults(d) {
   head.append(chip, btns);
   root.appendChild(head);
   if (d.saved) root.appendChild(buildTitleRow(d));
+  else if (d.upload_id) {      // التحليل ما انحفظ: نبين السبب بدل ما نسكت
+    const ns = el("div", "notes");
+    const key = d.save_error === "missing_owner" ? "notSavedOwner" : d.save_error === "database_error" ? "notSavedDb" : "notSaved";
+    ns.appendChild(el("span", "note warn", t(key)));
+    root.appendChild(ns);
+  }
 
   if (d.filter_meta) root.appendChild(buildFilterPanel(d));
   if (d.filter_info) {
@@ -1406,13 +1361,21 @@ function renderResults(d) {
     const fn = el("div", "notes");
     fn.appendChild(el("span", "note", `${t("rowsAfterFilter")}: ${fmt(fi.rows_after)} ${t("of")} ${fmt(fi.rows_before)}`));
     (fi.descriptions || []).forEach((x) => fn.appendChild(el("span", "note", x)));
-    if (d.insights_stale) fn.appendChild(el("span", "note warn", t("staleInsights")));
     root.appendChild(fn);
   }
 
-  if (d.summary) {
+  if (d.summary || d.insights_stale) {
     const sum = el("section", "summary glass");
-    sum.append(el("h2", "", t("summary")), el("p", "", d.summary));
+    const sh = el("div", "sum-head");
+    sh.appendChild(el("h2", "", t("summary")));
+    if (d.insights_stale && d.filter_meta) {
+      const rb = el("button", "btn ghost sm", t("refreshInsights"));
+      rb.type = "button";
+      rb.addEventListener("click", () => refreshInsights(rb));
+      sh.appendChild(rb);
+    }
+    sum.append(sh, el("p", "", d.summary || ""));
+    if (d.insights_stale) sum.appendChild(el("span", "note warn", t("staleInsights")));
     root.appendChild(sum);
   }
 
@@ -1613,37 +1576,10 @@ async function openAnalysis(id) {
 }
 $("histBtn").addEventListener("click", openHistory);
 
-/* ---------- واجهة الترحيب ---------- */
-function renderContinue() {
-  const box = $("wContinue");
-  const it = histItems && histItems[0];
-  if (!it) { box.style.display = "none"; return; }
-  box.innerHTML = "";
-  const info = el("div", "w-cinfo");
-  info.append(el("small", "", t("wContinue")), el("b", "", it.title));
-  const b = el("button", "btn sm", t("openAnalysis"));
-  b.type = "button";
-  b.addEventListener("click", () => openAnalysis(it.id));
-  box.append(info, b);
-  box.style.display = "flex";
-}
-function loadContinue() {
-  api("/my-analyses", undefined, "GET").then((r) => { histItems = r.items || []; renderContinue(); }).catch(() => {});
-}
-function goWelcome() { setHash(null); show("welcome"); loadContinue(); }
-$("startBtn").addEventListener("click", () => show("upload"));
-$("startBtn2").addEventListener("click", () => show("upload"));
-$("wHistBtn").addEventListener("click", openHistory);
-const brand = document.querySelector("header.top .wordmark");
-brand.setAttribute("role", "link");
-brand.setAttribute("tabindex", "0");
-brand.addEventListener("click", goWelcome);
-brand.addEventListener("keydown", (e) => { if (e.key === "Enter") goWelcome(); });
-
 applyLang();
 {
   const m = location.hash.match(/^#a=([0-9a-f]{32})$/);
-  if (m) openAnalysis(m[1]); else { show("welcome"); loadContinue(); }
+  if (m) openAnalysis(m[1]); else show("upload");
 }
 /* تغيير الرابط يدوياً أو زر الرجوع: نفتح التحليل المطلوب (setHash يستعمل replaceState فما يسبب تكرار) */
 window.addEventListener("hashchange", () => {

@@ -9,6 +9,7 @@ from uuid import uuid4
 import matplotlib
 matplotlib.use("Agg")  # بدون شاشة، حتى يشتغل على السيرفر
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 from fastapi import Body, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, Response
@@ -70,9 +71,12 @@ ALLOWED_EXTENSIONS = {".csv", ".xlsx"}
 MAX_FILE_SIZE = 20 * 1024 * 1024
 MAX_MISSING_RATIO_FILE = 0.6  # إذا كان أكثر من 60% من الملف فارغًا = مخربط
 MAX_MISSING_RATIO_COLUMN = 0.5  # عمود أكثر من 50% فارغًا = نحذفه
-ALLOWED_AGG = {"sum", "mean", "count", "max", "min"}
+ALLOWED_AGG = {"sum", "mean", "median", "count", "max", "min"}
 ALLOWED_CHARTS = {"bar", "pie"}
-MAX_ANALYSES = 5
+MAX_ANALYSES = 10            # أقصى عدد تحليلات يخططها الذكاء الاصطناعي
+MAX_TOTAL_ANALYSES = 14      # أقصى عدد بعد ما الكود يكمّل الناقص (كل عمود تصنيفي، الاتجاه الزمني، المقاييس)
+MAX_TOP_N = 30               # أقصى عدد عناصر نعرضه بمخطط واحد
+MAX_DIM_UNIQUE = 200         # عمود تصنيفي أكثر من هذا العدد من القيم ما نحلله تلقائياً
 MESSY_MESSAGE = (
     "الملف مخربط وما قدرنا نفهم البيانات اللي فيه. "
     "تأكد أن الملف فيه عناوين أعمدة واضحة وبيانات مرتبة وارفعه مرة ثانية."
@@ -536,10 +540,9 @@ def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dic
 # ---------------------------------------------------------------------------
 # Agent 2: يخطط التحليل (لا ينفذ كودًا، بل يرجع خطة JSON)
 # ---------------------------------------------------------------------------
-ANALYSIS_PROMPT = """You are a data-analysis planning agent for small businesses.
+ANALYSIS_PROMPT = """You are a data-analysis planning agent for business owners of every kind (shops, companies, students, researchers).
 You receive the business type and a profile of a CLEAN table.
-Plan up to 5 useful analyses that a business owner would care about.
-Return ONLY valid JSON, no extra text, in this exact shape:
+Plan up to 10 useful and DIFFERENT analyses. Return ONLY valid JSON, no extra text, in this exact shape:
 {
 "analyses": [
 {
@@ -547,18 +550,58 @@ Return ONLY valid JSON, no extra text, in this exact shape:
 "kind": "group_agg" | "monthly_trend",
 "group_by": "<existing column name>",
 "value": "<existing numeric column name, or null to just count rows>",
-"agg": "sum" | "mean" | "count" | "max" | "min",
+"agg": "sum" | "mean" | "median" | "count" | "max" | "min",
 "top_n": 10,
 "chart": "bar" | "pie"
 }
 ]
 }
 Rules:
+- Cover EVERY meaningful categorical column. If the table has both a province/governorate column and a city column, plan a separate analysis for EACH of them, never skip one because the other exists. Same for category, branch, payment method, gender, status, etc.
+- Use the most important numeric measure (sales, amount, quantity, profit...) as "value". Also analyze other meaningful measures when they exist, and mix aggregations: sum for amounts, mean for prices and rates, count for frequency.
+- If there is a date column, include one "monthly_trend".
+- Never repeat the same group_by + value + agg.
+- Titles in Arabic, specific, naming the measure and the grouping.
 - "monthly_trend" requires group_by to be a date column and should use chart "bar".
 - Use "pie" only for parts of a whole with few categories (max 6), never for negative values.
 - Use only column names that exist in the profile."""
 
-def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M") -> dict | None:
+OTHERS_LABEL = {"ar": "أخرى", "en": "Other"}
+_ID_COL = re.compile(r"(^|[\s_\-./])(id|code|sku|barcode|phone|mobile|tel|zip|postal)([\s_\-./]|$)|رقم|كود|هاتف|جوال|موبايل|باركود|معرف|تسلسل", re.IGNORECASE)
+_ADDITIVE_COL = re.compile(r"amount|total|sales|revenue|qty|quantity|profit|cost|income|expense|مبلغ|مبيع|اجمال|إجمال|كمية|ربح|تكلف|ايراد|إيراد|مصروف|دخل", re.IGNORECASE)
+
+
+def _label(v) -> str:
+    """رقم صحيح يظهر بدون .0 (سنة 2024 مو 2024.0)."""
+    if isinstance(v, (int, float, np.integer, np.floating)) and float(v).is_integer():
+        return str(int(v))
+    return str(v)
+
+
+def _analysis_stats(series: pd.Series, kind: str, additive: bool) -> dict:
+    """أرقام إضافية للمخطط تُحسب على كل المجموعات (مو بس المعروضة): العدد، الأعلى، الأدنى، النسبة، التغيّر."""
+    desc = series.sort_values(ascending=False)
+    stats = {"groups": int(len(series))}
+    total = float(series.sum())
+    if additive and total > 0:
+        stats["total"] = round(total, 2)
+    if kind == "monthly_trend":
+        ordered = series.sort_index()
+        stats["peak_label"], stats["peak_value"] = _label(desc.index[0]), round(float(desc.iloc[0]), 2)
+        if len(ordered) >= 2 and float(ordered.iloc[-2]) != 0:
+            prev, last = float(ordered.iloc[-2]), float(ordered.iloc[-1])
+            stats["change_pct"] = round((last - prev) / abs(prev) * 100, 1)
+            stats["change_to"] = _label(ordered.index[-1])
+        return stats
+    stats["top_label"], stats["top_value"] = _label(desc.index[0]), round(float(desc.iloc[0]), 2)
+    if len(desc) > 1:
+        stats["low_label"], stats["low_value"] = _label(desc.index[-1]), round(float(desc.iloc[-1]), 2)
+    if additive and total > 0:
+        stats["top_share"] = round(float(desc.iloc[0]) / total * 100, 1)
+    return stats
+
+
+def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M", lang: str = "ar") -> dict | None:
     """ينفذ خطة التحليل باستخدام pandas؛ ويتجاهل أي شيء غير مسموح."""
     kind = spec.get("kind", "group_agg")
     group_by = spec.get("group_by")
@@ -566,7 +609,7 @@ def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M") -> dict | None
     agg = spec.get("agg", "count")
     chart = spec.get("chart") if spec.get("chart") in ALLOWED_CHARTS else "bar"
     try:
-        top_n = max(1, min(int(spec.get("top_n", 10)), 15))
+        top_n = max(1, min(int(spec.get("top_n", 10)), MAX_TOP_N))
     except (TypeError, ValueError):
         top_n = 10
     if group_by not in df.columns or agg not in ALLOWED_AGG:
@@ -576,6 +619,8 @@ def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M") -> dict | None
     df = df.dropna(subset=[group_by])
     if df.empty:
         return None
+    numeric_group = (kind != "monthly_trend" and pd.api.types.is_numeric_dtype(df[group_by])
+                     and not pd.api.types.is_bool_dtype(df[group_by]))
     if kind == "monthly_trend":
         if not pd.api.types.is_datetime64_any_dtype(df[group_by]):
             return None
@@ -584,31 +629,100 @@ def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M") -> dict | None
         keys = per.dt.start_time.dt.strftime("%Y-%m-%d") if period == "W" else per.astype(str)
         chart = "bar"
     else:
-        keys = df[group_by].astype(str)
+        keys = df[group_by] if numeric_group else df[group_by].astype(str)
     if agg == "count" or not value:
         series = df.groupby(keys).size()
     else:
         if not pd.api.types.is_numeric_dtype(df[value]):
             return None
         series = df.groupby(keys)[value].agg(agg)
-    if kind == "monthly_trend":
-        series = series.sort_index().tail(TREND_POINTS.get(period, 24))
-    elif chart == "pie":
-        top_n = min(top_n, 6)
-        series = series.sort_values(ascending=False).head(top_n)
+    series = series.dropna()
     if series.empty:
         return None
-    if chart == "pie" and (series < 0).any():
+    additive = agg in ("sum", "count") or not value
+    non_negative = bool((series >= 0).all())
+    if chart == "pie" and not non_negative:
         chart = "bar"
+    stats = _analysis_stats(series, kind, additive and non_negative)   # على كل المجموعات قبل القص
+    if kind == "monthly_trend":
+        series = series.sort_index().tail(TREND_POINTS.get(period, 24))
+    elif numeric_group and chart != "pie" and len(series) <= MAX_TOP_N:
+        series = series.sort_index()                       # ترتيب طبيعي (سنة، تقييم 1..5)
+    else:
+        series = series.sort_values(ascending=False)
+        if chart == "pie":
+            keep = min(top_n, 5)
+            rest = series.iloc[keep:]
+            series = series.iloc[:keep]
+            if additive and not rest.empty and float(rest.sum()) > 0:   # "أخرى" حتى تكمل النسب 100%
+                series = pd.concat([series, pd.Series({OTHERS_LABEL.get(lang, "أخرى"): float(rest.sum())})])
+        else:
+            series = series.head(top_n)
     return {
         "title": spec.get("title", "تحليل"),
         "chart": chart,
-        "labels": [str(i) for i in series.index],
+        "labels": [_label(i) for i in series.index],
         "values": [round(float(v), 2) for v in series.values],
+        "stats": stats,
         "spec": {"kind": kind, "group_by": group_by, "value": value or None, "agg": agg,
                  "top_n": spec.get("top_n", 10), "chart": spec.get("chart") if spec.get("chart") in ALLOWED_CHARTS else "bar",
                  "title": spec.get("title", "تحليل")},
     }
+
+
+def augment_specs(df: pd.DataFrame, specs: list) -> list:
+    """يكمّل خطة الذكاء الاصطناعي بالكود حتى ما يضيع شي مهم: كل عمود تصنيفي (مثل المحافظة والمدينة)،
+    الاتجاه الزمني، وكل مقياس رقمي مهم. يرجع الخطط الجديدة فقط."""
+    specs = [s for s in specs if isinstance(s, dict)]
+    n = len(df)
+    numeric = [str(c) for c in df.columns
+               if pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_bool_dtype(df[c])
+               and not _ID_COL.search(str(c)) and df[c].nunique(dropna=True) > 1]
+    dims = []
+    for c in df.columns:
+        col = df[c]
+        if pd.api.types.is_numeric_dtype(col) or pd.api.types.is_datetime64_any_dtype(col) or _ID_COL.search(str(c)):
+            continue
+        u = col.nunique(dropna=True)
+        if 2 <= u <= MAX_DIM_UNIQUE and u <= 0.6 * n and col.dropna().astype(str).str.len().mean() <= 40:
+            dims.append((u, str(c)))
+    dims.sort()                                            # الأقل تنوعاً أولاً
+    dates = [str(c) for c in df.columns if pd.api.types.is_datetime64_any_dtype(df[c])]
+    ai_values = [s.get("value") for s in specs if s.get("value") in numeric]
+    if ai_values:
+        measure = max(set(ai_values), key=ai_values.count)
+    else:
+        measure = next((c for c in numeric if _ADDITIVE_COL.search(c)), numeric[0] if numeric else None)
+    seen = {(s.get("kind", "group_agg"), s.get("group_by"), s.get("value") or None, s.get("agg")) for s in specs}
+    used_groups = {s.get("group_by") for s in specs}
+    used_values = {s.get("value") for s in specs if s.get("value")}
+    extra: list = []
+
+    def add(spec: dict) -> None:
+        spec = _clean_spec(spec)
+        key = (spec["kind"], spec["group_by"], spec["value"], spec["agg"])
+        if key in seen or len(specs) + len(extra) >= MAX_TOTAL_ANALYSES:
+            return
+        seen.add(key)
+        spec["title"] = auto_title(spec, "ar")
+        extra.append(spec)
+
+    for u, c in dims:                                      # 1) كل عمود تصنيفي ياخذ تحليل
+        if c in used_groups:
+            continue
+        pie = u <= 6 and (not measure or float(df[measure].min()) >= 0)
+        add({"kind": "group_agg", "group_by": c, "value": measure, "agg": "sum" if measure else "count",
+             "top_n": 10, "chart": "pie" if pie else "bar"})
+    if dates and not any(s.get("kind") == "monthly_trend" for s in specs):   # 2) الاتجاه الزمني
+        add({"kind": "monthly_trend", "group_by": dates[0], "value": measure,
+             "agg": "sum" if measure else "count", "chart": "bar"})
+    if dims:                                               # 3) مقاييس رقمية مهمة ما اتغطت
+        for m in numeric:
+            if m not in used_values and m != measure:
+                add({"kind": "group_agg", "group_by": dims[0][1], "value": m,
+                     "agg": "sum" if _ADDITIVE_COL.search(m) else "mean", "top_n": 10, "chart": "bar"})
+    return extra
+
 
 # ---------------------------------------------------------------------------
 # الرسومات: bar و pie فقط
@@ -633,14 +747,15 @@ def make_chart(result: dict) -> str:
 # ---------------------------------------------------------------------------
 # Agent 3: الاستنتاجات والنصائح
 # ---------------------------------------------------------------------------
-INSIGHTS_PROMPT = """You are a business advisor for small business owners with no data expertise.
-You receive the business type and the results of several analyses (labels and values).
+INSIGHTS_PROMPT = """You are a business advisor for owners with no data expertise.
+You receive the business type and the results of several analyses. Each has: title, group_by, value, agg, the shown labels/values, and 'stats' (groups = number of groups, total, top_share = % of the biggest group, low_label, change_pct = change of the last period vs the previous one).
 Write in simple Arabic. Base every point ONLY on the numbers you were given; do not invent data. If a 'filter' field is present, the numbers cover only that filtered subset; mention this briefly in the summary.
+Cover every analysis dimension: if related columns exist (for example governorate and city), comment on both and how they relate. Mention the biggest and smallest groups, the share in %, and any change over time.
 Return ONLY valid JSON, no extra text, in this exact shape:
 {
-"summary": "2-3 sentences summarizing the overall picture",
-"insights": ["what the data shows, each with a concrete number"],
-"recommendations": ["practical, actionable advice"]
+"summary": "3-4 sentences summarizing the overall picture",
+"insights": ["6 to 10 points, each with a concrete number and a comparison"],
+"recommendations": ["5 to 8 practical, actionable pieces of advice ordered by impact, each tied to a number from the data"]
 }"""
 
 # ---------------------------------------------------------------------------
@@ -722,6 +837,11 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
     pairs = await asyncio.to_thread(lambda: [(s, run_analysis(df, s)) for s in specs])
     results = [r for _, r in pairs if r]
     used_specs = [s for s, r in pairs if r]
+    # ---- نكمّل الخطة بالكود: كل عمود تصنيفي (مثل المحافظة والمدينة) ومقياس مهم يصير له تحليل ----
+    extra_specs = await asyncio.to_thread(augment_specs, df, used_specs)
+    extra_pairs = await asyncio.to_thread(lambda: [(s, run_analysis(df, s)) for s in extra_specs])
+    results += [r for _, r in extra_pairs if r]
+    used_specs += [s for s, r in extra_pairs if r]
     if not results:
         raise HTTPException(
             status_code=422,
@@ -735,9 +855,7 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
         INSIGHTS_PROMPT,
         {
             "business_type": business_type,
-            "analyses": [
-                {k: r[k] for k in ("title", "labels", "values")} for r in results
-            ],
+            "analyses": _analyses_for_ai(results),
         },
     )
     # ---- حفظ البيانات النظيفة + الخطة حتى يكدر المستخدم يفلتر بدون إعادة رفع ----
@@ -807,11 +925,11 @@ MAX_FILTER_VALUES = 500
 PERIODS = {"day": "D", "week": "W", "month": "M"}
 TREND_POINTS = {"D": 31, "W": 26, "M": 24}
 SPEC_KEYS = ("kind", "group_by", "value", "agg", "top_n", "chart", "title")
-MAX_DASH_CHARTS = 12
+MAX_DASH_CHARTS = 20
 SEVERITY = {"high": 0, "medium": 1, "low": 2}
 AGG_WORDS = {
-    "ar": {"sum": "مجموع", "mean": "متوسط", "max": "أعلى", "min": "أدنى", "count": "عدد الصفوف"},
-    "en": {"sum": "Total", "mean": "Average", "max": "Max", "min": "Min", "count": "Row count"},
+    "ar": {"sum": "مجموع", "mean": "متوسط", "median": "وسيط", "max": "أعلى", "min": "أدنى", "count": "عدد الصفوف"},
+    "en": {"sum": "Total", "mean": "Average", "median": "Median", "max": "Max", "min": "Min", "count": "Row count"},
 }
 WORDS = {
     "ar": {"only": "إظهار فقط", "hide": "إخفاء", "from": "من", "to": "إلى", "contains": "يحتوي",
@@ -846,7 +964,7 @@ class SpecIn(BaseModel):
     kind: Literal["group_agg", "monthly_trend"] = "group_agg"
     group_by: str
     value: str | None = None
-    agg: Literal["sum", "mean", "count", "max", "min"] = "count"
+    agg: Literal["sum", "mean", "median", "count", "max", "min"] = "count"
     top_n: int = 10
     chart: Literal["bar", "pie"] = "bar"
     title: str | None = None
@@ -1000,7 +1118,7 @@ def _clean_spec(d: dict) -> dict:
     if not value:
         agg = "count"
     try:
-        top_n = max(1, min(int(d.get("top_n", 10)), 15))
+        top_n = max(1, min(int(d.get("top_n", 10)), MAX_TOP_N))
     except (TypeError, ValueError):
         top_n = 10
     chart = d.get("chart") if d.get("chart") in ALLOWED_CHARTS else "bar"
@@ -1058,7 +1176,7 @@ def compute_dashboard(df: pd.DataFrame, saved: dict, req: "FilterRequest"):
         use = dict(base)
         if period and base["kind"] == "monthly_trend":
             use["title"] = f"{base['title']} ({label})"
-        r = run_analysis(filtered, use, period=period or "M")
+        r = run_analysis(filtered, use, period=period or "M", lang=lang)
         if r:
             r["spec"] = base            # الـ spec الأصلي بدون لاحقة الفترة، حتى الواجهة تكدر تعدّل عليه
             results.append(r)
@@ -1182,7 +1300,7 @@ Return ONLY valid JSON, no extra text, in this exact shape:
 "kind": "group_agg" | "monthly_trend",
 "group_by": "<existing column name>",
 "value": "<existing numeric column name, or null to just count rows>",
-"agg": "sum" | "mean" | "count" | "max" | "min",
+"agg": "sum" | "mean" | "median" | "count" | "max" | "min",
 "top_n": 10,
 "chart": "bar" | "pie"
 }
@@ -1233,7 +1351,14 @@ def _check_request(req: "FilterRequest") -> None:
 
 
 def _analyses_for_ai(analyses: list) -> list:
-    return [{k: r[k] for k in ("title", "labels", "values")} for r in analyses]
+    """ما نرسل للذكاء الاصطناعي بس الأرقام: نرسل معها نوع التحليل والإحصائيات حتى تكون الاستنتاجات أدق."""
+    out = []
+    for r in analyses:
+        sp = r.get("spec") or {}
+        out.append({"title": r["title"], "chart": r.get("chart"), "group_by": sp.get("group_by"),
+                    "value": sp.get("value"), "agg": sp.get("agg"),
+                    "labels": r["labels"][:15], "values": r["values"][:15], "stats": r.get("stats", {})})
+    return out
 
 
 @app.post("/filter")
@@ -1297,7 +1422,7 @@ async def ask_analysis(req: FilterRequest):
     use = dict(spec)
     if req.granularity and spec["kind"] == "monthly_trend":
         use["title"] = f"{spec['title']} ({WORDS[lang][req.granularity]})"
-    result = await asyncio.to_thread(run_analysis, filtered, use, period)
+    result = await asyncio.to_thread(run_analysis, filtered, use, period, lang)
     if not result:
         raise HTTPException(status_code=422, detail=WORDS[lang]["no_request"])
     result["spec"] = spec
@@ -2033,7 +2158,7 @@ def build_report_pdf(data: dict, fix_text) -> bytes:
     notes += [(f"{t['dropped']}: {_clean(c, 60)}", True) for c in (rep.get("dropped_columns") or [])]
     r.chips(notes[:40])
 
-    analyses = [a for a in (data.get("analyses") or []) if isinstance(a, dict)][:10]
+    analyses = [a for a in (data.get("analyses") or []) if isinstance(a, dict)][:MAX_DASH_CHARTS]
     if analyses:
         r.section(t["charts"])
         for a in analyses:
@@ -2103,4 +2228,5 @@ async def db_check():
     except Exception as error:
         logger.error("db-check failed:\n%s", traceback.format_exc())
         return {"connected": False, "error_type": type(error).__name__}
+
 
