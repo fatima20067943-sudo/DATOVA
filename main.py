@@ -111,7 +111,7 @@ def profile_data(df: pd.DataFrame) -> dict:
 # ---------------------------------------------------------------------------
 # دالة عامة لاستدعاء الذكاء الاصطناعي وإرجاع JSON
 # ---------------------------------------------------------------------------
-async def ask_json(system_prompt: str, payload: dict) -> dict:
+async def ask_json(system_prompt: str, payload: dict, max_tokens: int | None = None) -> dict:
     messages = [
         {"role": "system", "content": system_prompt},
         {
@@ -127,6 +127,7 @@ async def ask_json(system_prompt: str, payload: dict) -> dict:
                 messages=messages,
                 response_format={"type": "json_object"},  # يجبره على إرجاع JSON
                 temperature=0,
+                **({"max_tokens": max_tokens} if max_tokens else {}),
             )
         except Exception:
             raise HTTPException(
@@ -982,6 +983,7 @@ class FilterRequest(BaseModel):
     goal: str | None = None
     exclude: list[str] = []
     request: str | None = None
+    budget: str | None = None                # مستوى الميزانية للخطة التسويقية (low / medium / high أو نص حر)
 
 
 def save_session(upload_id: str, df: pd.DataFrame, specs: list, business_type: str, cleaning_report: dict | None = None) -> None:
@@ -1447,6 +1449,137 @@ async def advice(req: FilterRequest):
     return {"recommendations": recs}
 
 
+MARKETING_PROMPT = """You are a senior marketing strategist for businesses of every size (shops, restaurants, clinics, companies, freelancers).
+You receive: business_type, the current analyses (title, group_by, value, agg, labels/values, stats), 'facts' about the data (rows, columns, date ranges), an optional 'filter' description, an optional owner 'goal', a 'budget_level' (low / medium / high / unspecified) and 'language'.
+Write in the language given in 'language'. Build a practical, realistic marketing plan grounded ONLY in the numbers you were given.
+Rules:
+- Every audience, opportunity and risk needs an 'evidence' field that quotes a real label or number from the analyses. Never invent figures, competitors, prices or ad costs.
+- Anything the data cannot tell you (costs, competitors, customer age, ad results) goes in 'data_gaps' as a suggestion for what the owner should collect.
+- Pick channels that fit this business type and budget_level; with a low budget prefer organic and low-cost channels. Do not recommend a channel without a reason.
+- Use the strongest and weakest groups, the trend and the shares in the analyses to decide who to target, what to promote and when.
+- channels[].budget_share are percentages that sum to 100.
+Return ONLY valid JSON, no extra text, in this exact shape:
+{
+"headline": "one sentence that captures the strategy",
+"summary": "3-4 sentences",
+"objective": "the main objective (use the owner goal when given)",
+"audiences": [{"name": "", "description": "", "evidence": "", "priority": "high" | "medium" | "low", "message": "what to tell them"}],
+"opportunities": [{"title": "", "detail": "", "evidence": ""}],
+"risks": [{"title": "", "detail": "", "evidence": ""}],
+"positioning": {"value_proposition": "", "tone": "", "slogans": ["", ""]},
+"channels": [{"name": "", "priority": "high" | "medium" | "low", "why": "", "actions": [""], "budget_share": 0}],
+"content": [{"idea": "", "format": "", "timing": "", "audience": ""}],
+"offers": [{"title": "", "detail": "", "target": ""}],
+"timeline": [{"phase": "0-30 days", "focus": "", "tasks": [""]}, {"phase": "31-60 days", "focus": "", "tasks": [""]}, {"phase": "61-90 days", "focus": "", "tasks": [""]}],
+"kpis": [{"name": "", "target": "", "how_to_measure": ""}],
+"data_gaps": [""]
+}
+Sizes: 2-4 audiences, 3-5 opportunities, 2-4 risks, 3-5 channels, 4-6 content ideas, 2-4 offers, 3 timeline phases, 4-6 KPIs, 2-4 data_gaps."""
+
+
+def _s(v, n: int = 400) -> str:
+    return str(v).strip()[:n] if isinstance(v, (str, int, float)) and not isinstance(v, bool) else ""
+
+
+def _items(v, spec: dict, limit: int) -> list:
+    """قائمة عناصر: نحتفظ فقط بالحقول المعروفة وننظّف النصوص. الحقل الأول إلزامي."""
+    out, first = [], next(iter(spec))
+    for it in (v if isinstance(v, list) else [])[:limit]:
+        if isinstance(it, dict):
+            row = {k: _s(it.get(k), n) for k, n in spec.items()}
+            if row[first]:
+                out.append(row)
+    return out
+
+
+def _priority(v) -> str:
+    v = _s(v, 12).lower()
+    return v if v in ("high", "medium", "low") else "medium"
+
+
+def _clean_plan(ai: dict) -> dict | None:
+    """ينظّف رد الذكاء الاصطناعي: أنواع وأطوال محددة، أولويات صحيحة، وميزانية القنوات تساوي 100%."""
+    audiences = _items(ai.get("audiences"), {"name": 80, "description": 400, "evidence": 300, "priority": 12, "message": 300}, 4)
+    for a in audiences:
+        a["priority"] = _priority(a["priority"])
+    item3 = {"title": 120, "detail": 400, "evidence": 300}
+    pos = ai.get("positioning") if isinstance(ai.get("positioning"), dict) else {}
+    channels = []
+    for ch in (ai.get("channels") if isinstance(ai.get("channels"), list) else [])[:6]:
+        if not isinstance(ch, dict) or not _s(ch.get("name"), 80):
+            continue
+        try:
+            share = float(ch.get("budget_share") or 0)
+        except (TypeError, ValueError):
+            share = 0.0
+        channels.append({"name": _s(ch.get("name"), 80), "priority": _priority(ch.get("priority")),
+                         "why": _s(ch.get("why"), 400), "actions": _clean_list(ch.get("actions"), 5, 250),
+                         "budget_share": max(0.0, min(100.0, share))})
+    if channels:
+        total = sum(c["budget_share"] for c in channels)
+        for c in channels:
+            c["budget_share"] = round(c["budget_share"] / total * 100) if total > 0 else round(100 / len(channels))
+        biggest = max(channels, key=lambda c: c["budget_share"])
+        biggest["budget_share"] += 100 - sum(c["budget_share"] for c in channels)      # فرق التقريب
+    timeline = []
+    for ph in (ai.get("timeline") if isinstance(ai.get("timeline"), list) else [])[:4]:
+        if isinstance(ph, dict) and _s(ph.get("phase"), 60):
+            timeline.append({"phase": _s(ph.get("phase"), 60), "focus": _s(ph.get("focus"), 250),
+                             "tasks": _clean_list(ph.get("tasks"), 6, 250)})
+    plan = {
+        "headline": _s(ai.get("headline"), 300), "summary": _s(ai.get("summary"), 900), "objective": _s(ai.get("objective"), 300),
+        "audiences": audiences,
+        "opportunities": _items(ai.get("opportunities"), item3, 5),
+        "risks": _items(ai.get("risks"), item3, 4),
+        "positioning": {"value_proposition": _s(pos.get("value_proposition"), 400), "tone": _s(pos.get("tone"), 120),
+                        "slogans": _clean_list(pos.get("slogans"), 4, 120)},
+        "channels": channels,
+        "content": _items(ai.get("content"), {"idea": 250, "format": 80, "timing": 100, "audience": 100}, 6),
+        "offers": _items(ai.get("offers"), {"title": 120, "detail": 300, "target": 120}, 4),
+        "timeline": timeline,
+        "kpis": _items(ai.get("kpis"), {"name": 100, "target": 120, "how_to_measure": 250}, 6),
+        "data_gaps": _clean_list(ai.get("data_gaps"), 5, 300),
+    }
+    if not (plan["audiences"] or plan["channels"] or plan["timeline"]):
+        return None
+    return plan
+
+
+def _data_facts(df: pd.DataFrame) -> dict:
+    """حقائق بسيطة عن البيانات تُرسل مع التحليل حتى تعتمد الخطة على نطاق زمني حقيقي."""
+    facts = {"rows": int(len(df)), "columns": [str(c) for c in df.columns[:40]]}
+    ranges = {}
+    for c in df.columns:
+        if pd.api.types.is_datetime64_any_dtype(df[c]):
+            col = df[c].dropna()
+            if not col.empty:
+                ranges[str(c)] = [str(col.min().date()), str(col.max().date())]
+    if ranges:
+        facts["date_ranges"] = ranges
+    return facts
+
+
+@app.post("/marketing-plan")
+async def marketing_plan(req: FilterRequest):
+    """خطة تسويقية مبنية على التحليل الحالي (بعد الفلتر وتعديلات المستخدم على المخططات)."""
+    _check_request(req)
+    lang = "en" if req.lang == "en" else "ar"
+    df, saved = await asyncio.to_thread(load_session, req.upload_id, req.lang)
+    out, filtered = await asyncio.to_thread(compute_dashboard, df, saved, req)
+    facts = await asyncio.to_thread(_data_facts, filtered)
+    goal, budget = (req.goal or "").strip()[:300], (req.budget or "").strip()[:100]
+    ai = await ask_json(MARKETING_PROMPT, {
+        "business_type": saved.get("business_type", ""), "filter": out["filter_info"]["descriptions"],
+        "analyses": _analyses_for_ai(out["analyses"]), "facts": facts, "goal": goal,
+        "budget_level": budget or "unspecified", "language": "Arabic" if lang == "ar" else "English",
+    }, max_tokens=4000)
+    plan = _clean_plan(ai)
+    if not plan:
+        raise HTTPException(status_code=502, detail="AI returned no marketing plan.")
+    return {"plan": plan, "meta": {"rows": facts["rows"], "filter": out["filter_info"]["descriptions"],
+                                   "business_type": saved.get("business_type", ""), "goal": goal, "budget": budget}}
+
+
 @app.post("/find-problems")
 async def find_problems(req: FilterRequest):
     """يكتشف المشاكل: فحوصات بالكود (أرقام حقيقية) + الذكاء الاصطناعي يصيغها ويرتبها. إذا فشل نرجّع نتائج الكود."""
@@ -1479,7 +1612,7 @@ async def find_problems(req: FilterRequest):
 MAX_BLOB_BYTES = 50 * 1024 * 1024     # أكبر حجم (مضغوط) نخزنه للبيانات النظيفة
 MAX_STATE_BYTES = 1_500_000
 STATE_KEYS = ("analyses", "summary", "insights", "recommendations", "problems", "problems_source",
-              "dismissed", "filter_info", "insights_stale", "skipped", "ui")
+              "dismissed", "filter_info", "insights_stale", "skipped", "ui", "marketing")
 _DB = {"ready": False, "engine": None}
 
 

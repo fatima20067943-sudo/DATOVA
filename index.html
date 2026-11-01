@@ -37,14 +37,13 @@ body{
 :lang(ar) body,body:lang(ar){font-family:Cairo,Inter,system-ui,sans-serif}
 button{font:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--purple);outline-offset:3px;border-radius:8px}
-
 /* ---------- background ---------- */
 .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;
   background:
     radial-gradient(60% 50% at 12% 8%,rgba(217,203,187,0.45),transparent 45%),
     radial-gradient(50% 45% at 92% 18%,rgba(237,227,213,0.8),transparent 45%),
     radial-gradient(55% 50% at 80% 95%,rgba(217,203,187,0.35),transparent 45%),
-    
+
     var(--ivory);}
 .bubble{position:absolute;border-radius:50%;
   background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.95),rgba(201,184,255,.28) 42%,rgba(167,227,255,.22) 72%,rgba(247,200,216,.12));
@@ -58,12 +57,10 @@ button{font:inherit;cursor:pointer}
 .s1{top:120px;inset-inline-start:9%}
 .s2{top:38%;inset-inline-end:14%;width:14px;height:14px}
 .s3{bottom:16%;inset-inline-end:30%;width:18px;height:18px}
-
 /* ---------- layout ---------- */
 .wrap{max-width:1080px;margin:0 auto;padding:18px 20px 60px}
 .glass{background:var(--glass);border:1px solid var(--glass-line);border-radius:var(--radius);
   backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)}
-
 header.top{display:flex;align-items:center;justify-content:space-between;
   padding:12px 20px;border-radius:999px;margin-bottom:56px}
 .wordmark{direction:ltr;unicode-bidi:isolate;display:inline-flex;align-items:center;
@@ -76,7 +73,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;
 .lang{border:1px solid var(--glass-line);background:rgba(255,255,255,.7);color:var(--ink);
   padding:7px 16px;border-radius:999px;font-weight:600;font-size:14px}
 .lang:hover{background:#fff}
-
 /* ---------- hero ---------- */
 .hero{max-width:720px;margin:0 auto 34px;text-align:center}
 .hero h1{margin:0 0 14px;font-family:Montserrat,Cairo,sans-serif;font-weight:500;
@@ -84,7 +80,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;
 .hero h1 em{font-style:normal;white-space:nowrap;background:linear-gradient(100deg,#272A43,#6E6AA8 55%,#A8A4D4);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 .hero p{margin:0 auto;max-width:560px;font-size:17px}
-
 /* ---------- upload ---------- */
 .upload{max-width:640px;margin:0 auto;padding:22px}
 .drop{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;
@@ -102,7 +97,6 @@ header.top{display:flex;align-items:center;justify-content:space-between;
 .btn.ghost{color:var(--purple);background:rgba(255,255,255,.75);box-shadow:none;border:1px solid var(--lilac)}
 .btn[disabled]{opacity:.5;cursor:not-allowed;transform:none}
 input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
-
 .chosen{display:none;align-items:center;gap:12px;margin-top:16px;padding:12px 16px;border-radius:16px;
   background:rgba(255,255,255,.75);border:1px solid var(--glass-line)}
 .chosen.show{display:flex}
@@ -110,11 +104,9 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .chosen .size{color:var(--gray);font-size:14px;direction:ltr}
 .actions{display:none;justify-content:center;gap:10px;margin-top:18px;flex-wrap:wrap}
 .actions.show{display:flex}
-
 .error{display:none;margin-top:16px;padding:14px 16px;border-radius:16px;
   background:rgba(247,200,216,.55);border:1px solid rgba(233,147,184,.6);color:#7A2148;font-weight:500}
 .error.show{display:block}
-
 /* ---------- loading ---------- */
 .loading{display:none;max-width:460px;margin:20px auto 0;padding:36px 28px;text-align:center}
 .loading .logo-o{width:96px;height:96px;margin:0 auto 18px;display:block}
@@ -130,7 +122,6 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .steps li.active::before{background:var(--purple);border-color:var(--purple);box-shadow:0 0 0 5px rgba(110,106,168,.2)}
 .steps li.done{color:var(--body)}
 .steps li.done::before{background:var(--blue);border-color:var(--blue)}
-
 /* ---------- results ---------- */
 .results{display:none}
 .res-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
@@ -142,7 +133,6 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .summary h2,.card h3{margin:0 0 8px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600}
 .summary h2{font-size:20px}
 .summary p{margin:0;font-size:17px;color:var(--ink)}
-
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px}
 .stat{padding:16px 18px;border-radius:18px;background:rgba(255,255,255,.7);border:1px solid var(--glass-line)}
 .stat small{display:block;color:var(--gray);font-size:13px}
@@ -151,13 +141,11 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .notes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px}
 .note{padding:5px 12px;border-radius:999px;font-size:13px;background:rgba(231,223,247,.8);color:var(--ink)}
 .note.warn{background:rgba(247,200,216,.7)}
-
 .sec-title{margin:30px 0 14px;color:var(--ink);font-family:Montserrat,Cairo,sans-serif;font-weight:600;font-size:20px}
 .charts{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
 .card{padding:22px}
 .charts .card:last-child:nth-child(odd){grid-column:1/-1}
 .card h3{font-size:17px;margin-bottom:16px}
-
 .hbar{display:grid;grid-template-columns:minmax(70px,30%) 1fr 84px;align-items:center;gap:10px;margin:9px 0;font-size:14px}
 .hb-label{color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hb-track{height:12px;border-radius:99px;background:rgba(201,184,255,.22);overflow:hidden}
@@ -165,14 +153,12 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
   background:linear-gradient(90deg,var(--lilac),var(--purple-2));transition:width .9s cubic-bezier(.2,.7,.2,1)}
 .hb-track i.neg{background:linear-gradient(90deg,var(--pink),#E993B8)}
 .hb-val{color:var(--body);font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;text-align:start}
-
 .vbars{direction:ltr;display:flex;align-items:stretch;gap:4px;height:240px}
 .vb{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center}
 .vb-plot{flex:1;width:100%;display:flex;align-items:flex-end}
 .vb-plot i{display:block;width:100%;height:0;min-height:2px;border-radius:8px 8px 3px 3px;
   background:linear-gradient(180deg,var(--purple-2),var(--lilac));transition:height .9s cubic-bezier(.2,.7,.2,1)}
 .vb span{margin-top:6px;font-size:11px;color:var(--gray);white-space:nowrap;height:16px}
-
 .donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap;justify-content:center}
 .donut-wrap svg{width:190px;height:190px;flex:none;transform:none}
 .legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px;flex:1;min-width:150px}
@@ -180,17 +166,14 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 .legend i{width:12px;height:12px;border-radius:50%;flex:none}
 .legend .l{flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .legend .p{color:var(--gray);font-weight:600;direction:ltr}
-
 .two{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
 .list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 .list li{display:flex;gap:12px;align-items:flex-start;color:var(--ink)}
 .list svg{width:20px;height:20px;flex:none;margin-top:4px}
 .again{text-align:center;margin-top:34px}
-
 footer{margin-top:64px;text-align:center;color:var(--gray);font-size:14px}
 footer .wordmark{margin-bottom:8px}
 footer p{margin:2px 0}
-
 /* ---------- الفلتر ---------- */
 /* ---------- لوحة المعلومات المخصصة ---------- */
 /* ---------- واجهة الترحيب ---------- */
@@ -306,7 +289,6 @@ footer p{margin:2px 0}
 .b3{
   display: none !important;
 }
-
 /* =====================================================================
    الثيم الغامق: خلفية كحلية عميقة مع لمسات فاتحة (لافندر، أزرق جليدي، وردي)
    كل الألوان من هذي المتغيرات، غيّرها من مكان واحد
@@ -364,10 +346,58 @@ html{color-scheme:dark}
 .pill{background:rgba(255,255,255,.06);color:var(--ink);border:1px solid rgba(190,184,245,.34)}
 .pill.on{background:#5A50BA;border-color:#8E84EE;color:#fff}
 .fchips label{background:rgba(255,255,255,.06);color:var(--ink)}
+
+/* ---------- الخطة التسويقية ---------- */
+.mkt{display:none;max-width:1000px;margin:0 auto}
+.mkt-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.mkt-title{margin:0 0 16px;color:var(--ink);font-size:clamp(26px,4vw,38px)}
+.mctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:18px;margin-bottom:18px;align-items:end}
+.mnav{position:sticky;top:8px;z-index:5;display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;margin-bottom:18px;border-radius:18px}
+.mpill{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--glass-line);color:var(--ink);font-size:13px;font-weight:600}
+.mpill:hover{background:rgba(255,255,255,.18)}
+.msec{padding:24px;margin-bottom:18px;scroll-margin-top:90px}
+.msec h2{margin:0 0 14px;color:var(--ink);font-size:21px}
+.mquote{font-size:19px;color:var(--ink);line-height:1.6;margin:0 0 10px;font-weight:600}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.mcard{background:rgba(255,255,255,.06);border:1px solid var(--glass-line);border-radius:16px;padding:16px}
+.mcard h3{margin:0 0 6px;font-size:16px;color:var(--ink)}
+.mcard p{margin:6px 0}
+.mev{font-size:13px;color:var(--gray);border-inline-start:3px solid var(--lilac);padding-inline-start:10px;margin-top:8px}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-bottom:6px}
+.badge.high{background:rgba(94,201,140,.18);color:#8EE2B1}.badge.medium{background:rgba(240,190,80,.18);color:#F3CF85}.badge.low{background:rgba(255,255,255,.10);color:var(--gray)}
+.mlist{margin:6px 0 0;padding-inline-start:20px}.mlist li{margin:3px 0}
+.mbar{display:flex;height:16px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.12);margin:6px 0 10px}
+.mbar i{display:block;height:100%}
+.mlegend{display:flex;gap:6px 18px;flex-wrap:wrap;font-size:13px;margin-bottom:14px}
+.mlegend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-inline-end:6px}
+.mtl{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.mscroll{overflow-x:auto}
+.mtable{width:100%;border-collapse:collapse;font-size:14px}
+.mtable th,.mtable td{padding:9px 10px;text-align:start;border-bottom:1px solid var(--lavender);vertical-align:top}
+.mtable th{color:var(--ink)}
+.slogan{display:inline-block;margin:4px;padding:6px 14px;border-radius:999px;background:var(--lilac);color:var(--ink);font-weight:600}
+.mcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.mcta{margin-top:22px;padding:22px 24px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}
+.mcta h3{margin:0 0 4px;color:var(--ink)}.mcta p{margin:0}
+.mpulse{animation:mp 1.4s ease-in-out infinite}
+@keyframes mp{50%{opacity:.55}}
+.mnote{font-size:13px;color:var(--gray);text-align:center;margin:8px 0 0}
+.sum-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.cstats{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:14px;font-size:13px;color:var(--gray)}
+@media print{
+  .bg,header.top,footer,#resultsView,#uploadView,#loadingView,#historyView,#welcomeView,.mnav,.mctl,.mkt-top{display:none!important}
+  body{background:#fff!important}.wrap{max-width:none;padding:0}
+  .mkt{display:block!important;max-width:none}
+  .glass,.mcard{background:#fff!important;box-shadow:none!important;backdrop-filter:none!important;border:1px solid #ccc!important}
+  .msec{break-inside:avoid;margin-bottom:12px}
+  .mkt h1,.mkt h2,.mkt h3,.mkt p,.mkt li,.mkt td,.mkt th,.mkt span,.mkt b,.mkt div{color:#1b1d33!important}
+  .mkt .mev,.mkt .mnote{color:#555a78!important}
+  .slogan{background:#ECE9F8!important}.mbar{background:#E7E9F2!important}
+  .badge{background:#EEF0F7!important}.mtable th,.mtable td{border-bottom:1px solid #d9dbea!important}
+}
 </style>
 </head>
 <body>
-
 <!-- gradient + star symbol shared by the whole page -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
@@ -377,20 +407,17 @@ html{color-scheme:dark}
     <symbol id="star" viewBox="0 0 24 24"><path d="M12 0C13 7 17 11 24 12C17 13 13 17 12 24C11 17 7 13 0 12C7 11 11 7 12 0Z"/></symbol>
   </defs>
 </svg>
-
 <div class="bg" aria-hidden="true">
   <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
   <svg class="spark s1"><use href="#star"/></svg>
   <svg class="spark s2"><use href="#star"/></svg>
   <svg class="spark s3"><use href="#star"/></svg>
 </div>
-
 <div class="wrap">
   <header class="top glass">
     <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
     <span class="hbtns"><button class="lang" id="histBtn" type="button" data-i18n="myAnalyses"></button><button class="lang" id="langBtn" type="button">EN</button></span>
   </header>
-
   <!-- ===== upload view ===== -->
   <section class="welcome" id="welcomeView">
     <div class="w-hero">
@@ -404,28 +431,22 @@ html{color-scheme:dark}
       </div>
       <ul class="w-badges"><li data-i18n="wB1"></li><li data-i18n="wB2"></li><li data-i18n="wB3"></li><li data-i18n="wB4"></li></ul>
     </div>
-
     <h2 class="w-h" data-i18n="wHow"></h2>
     <div class="w-steps"><article class="w-card glass"><span class="w-num">1</span><h3 data-i18n="wS1T"></h3><p data-i18n="wS1P"></p></article><article class="w-card glass"><span class="w-num">2</span><h3 data-i18n="wS2T"></h3><p data-i18n="wS2P"></p></article><article class="w-card glass"><span class="w-num">3</span><h3 data-i18n="wS3T"></h3><p data-i18n="wS3P"></p></article></div>
-
     <h2 class="w-h" data-i18n="wFeat"></h2>
     <div class="w-feats"><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg></span><h3 data-i18n="wF1T"></h3><p data-i18n="wF1P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M2 20h20"/></svg></span><h3 data-i18n="wF2T"></h3><p data-i18n="wF2P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4-2v-4z"/></svg></span><h3 data-i18n="wF3T"></h3><p data-i18n="wF3P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg></span><h3 data-i18n="wF4T"></h3><p data-i18n="wF4P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span><h3 data-i18n="wF5T"></h3><p data-i18n="wF5P"></p></article><article class="w-feat glass"><span class="w-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><h3 data-i18n="wF6T"></h3><p data-i18n="wF6P"></p></article></div>
-
     <section class="w-prep glass">
       <h3 data-i18n="wPrepT"></h3>
       <ul><li data-i18n="wP1"></li><li data-i18n="wP2"></li><li data-i18n="wP3"></li><li data-i18n="wP4"></li></ul>
       <p class="w-privacy" data-i18n="wPrivacy"></p>
     </section>
-
     <div class="w-final"><button class="btn big" id="startBtn2" type="button" data-i18n="wStart"></button></div>
   </section>
-
   <main id="uploadView">
     <section class="hero">
       <h1><span data-i18n="heroPre"></span> <em data-i18n="heroTitle"></em></h1>
       <p data-i18n="heroSub"></p>
     </section>
-
     <section class="upload glass">
       <label class="drop" id="drop" for="fileInput">
         <svg viewBox="0 0 54 54" aria-hidden="true">
@@ -438,7 +459,6 @@ html{color-scheme:dark}
         <span class="btn ghost" style="margin-top:10px" data-i18n="choose"></span>
       </label>
       <input type="file" id="fileInput" accept=".csv,.xlsx">
-
       <div class="chosen" id="chosen">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
         <span class="name" id="fileName"></span>
@@ -451,33 +471,29 @@ html{color-scheme:dark}
       <div class="error" id="error" role="alert"></div>
     </section>
   </main>
-
   <!-- ===== loading view ===== -->
   <section class="loading glass" id="loadingView" aria-live="polite">
     <svg class="logo-o" viewBox="0 0 100 100" data-mark data-live></svg>
     <ul class="steps" id="steps"></ul>
   </section>
-
   <!-- ===== results view ===== -->
   <section class="results" id="resultsView"></section>
   <section class="hist" id="historyView" style="display:none"></section>
-
+<section class="mkt" id="marketView"></section>
   <footer>
     <span class="wordmark sm" aria-label="DATOVA">DAT<svg class="logo-o" viewBox="0 0 100 100" data-mark></svg>VA</span>
     <p>Discover What Data Hides.</p>
     <p data-i18n="footer"></p>
   </footer>
 </div>
-
 <script>
 /* ============================================================
    إعدادات الربط بالـ backend
    - اذا فتحت الصفحه من نفس السيرفر (http://127.0.0.1:8000/) خلي API_BASE فارغ
    ============================================================ */
-const API_BASE = "";   
+const API_BASE = "";
 const MAX_SIZE = 20 * 1024 * 1024;
 const ALLOWED = [".csv", ".xlsx"];
-
 const I18N = {
   ar: {
     heroPre: "حوّل بياناتك إلى",
@@ -515,19 +531,34 @@ const I18N = {
     contains: "يحتوي", notContains: "لا يحتوي", from: "من", to: "إلى", min: "الأدنى", max: "الأعلى",
     search: "بحث...", typeText: "اكتب النص", remove: "حذف الشرط", granTitle: "عرض الاتجاه عبر الزمن",
     granNone: "بدون تغيير", day: "يومي", week: "أسبوعي", month: "شهري", hideCols: "إخفاء أعمدة من التحليل",
-    rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح تخص كل البيانات (تعذّر تحديثها)",
+    rowsAfterFilter: "الصفوف بعد الفلتر", staleInsights: "الخلاصة والنصائح لم تتحدّث بعد حسب آخر تعديل على المخططات",
     errFilter: "ما كدرنا نطبّق الفلتر. جرب مرة ثانية.",
     addChart: "مخطط جديد", restoreCharts: "استعادة المخططات الأصلية", askPlaceholder: "اطلب تحليلاً بكلامك، مثلاً: مبيعات كل مدينة", askBtn: "حلّل لي",
     editChart: "تعديل المخطط", removeChart: "حذف المخطط", formAdd: "إضافة المخطط", formSave: "حفظ التعديل", cancel: "إلغاء",
     kindGroup: "تجميع حسب عمود", kindTrend: "اتجاه زمني", fieldKind: "نوع التحليل", fieldGroup: "حسب العمود", fieldDate: "عمود التاريخ",
     fieldValue: "القيمة", fieldAgg: "الدالة", fieldChart: "شكل المخطط", fieldTop: "عدد العناصر", fieldTitle: "العنوان (اختياري)",
-    countRows: "عدد الصفوف", aggSum: "المجموع", aggMean: "المتوسط", aggMax: "الأعلى", aggMin: "الأدنى", chartBar: "أعمدة", chartPie: "دائري",
+    countRows: "عدد الصفوف", aggSum: "المجموع", aggMean: "المتوسط", aggMax: "الأعلى", aggMin: "الأدنى", aggMedian: "الوسيط", statGroups: "عدد المجموعات", statTotal: "المجموع", statTop: "الأعلى", statLow: "الأدنى",
+    statPeak: "الذروة", statChange: "التغيّر عن الفترة السابقة", refreshInsights: "تحديث التحليل", refreshingInsights: "جاري تحديث التحليل…", chartBar: "أعمدة", chartPie: "دائري",
     findProblems: "اكتشف المشاكل", betterAdvice: "اقتراحات أنسب", goalPlaceholder: "شنو هدفك؟ (اختياري) مثلاً: زيادة المبيعات", suggest: "اقترح",
     problemsTitle: "المشاكل المكتشفة", fix: "الحل", sevHigh: "عالية", sevMed: "متوسطة", sevLow: "منخفضة", srcAi: "بالذكاء الاصطناعي + فحوصات الكود",
     srcRules: "بفحوصات الكود", noProblems: "ما لقينا مشاكل واضحة بالبيانات الحالية.", working: "جاري العمل...", skippedCharts: "تعذّر رسم",
     removeItem: "حذف", trendTitle: "الاتجاه عبر الزمن",
     myAnalyses: "تحليلاتي", newAnalysis: "+ تحليل جديد", openAnalysis: "فتح", deleteAnalysis: "حذف", confirmDelete: "تحذف هذا التحليل نهائياً؟",
-    saved: "تم الحفظ ✓", saving: "جاري الحفظ...", saveFailed: "تعذّر الحفظ", analysisName: "اسم التحليل",
+    saved: "تم الحفظ ✓", saving: "جاري الحفظ...", saveFailed: "تعذّر الحفظ",
+    notSaved: "هذا التحليل ما انحفظ بحسابك (للعرض فقط).", notSavedOwner: "ما انحفظ: السيرفر ما استلم معرّف المستخدم.", notSavedDb: "ما انحفظ: قاعدة البيانات غير متاحة حالياً.",
+    mktCtaTitle: "جاهز للخطوة الجاية؟", mktCtaSub: "حوّل تحليلك إلى خطة تسويقية مرتبة، مبنية على أرقام بياناتك.", mktBtn: "اطلع على خطتك التسويقية",
+    mktTitle: "الخطة التسويقية", mktBack: "← رجوع للتحليل", mktPrint: "طباعة / حفظ PDF", mktRegen: "حدّث الخطة",
+    mktGoal: "هدفك (اختياري)", mktGoalPh: "مثلاً: زيادة المبيعات بالمحافظات الأضعف", mktBudget: "الميزانية",
+    mktBudgetNone: "غير محددة", mktBudgetLow: "منخفضة", mktBudgetMed: "متوسطة", mktBudgetHigh: "عالية",
+    mktLoading: "جاري بناء خطتك التسويقية من بياناتك…", mktErr: "ما كدرنا نبني الخطة. جرّب مرة ثانية.",
+    mktBasedOn: "مبنية على", mktRowsWord: "صف",
+    secSummary: "ملخص الخطة", secAudience: "الجمهور المستهدف", secOpp: "الفرص والمخاطر", secPosition: "الرسالة والتموضع",
+    secChannels: "قنوات التسويق والميزانية", secContent: "المحتوى والعروض", secTimeline: "خطة 90 يوم", secKpi: "مؤشرات الأداء", secGaps: "كيف نحسّن الخطة",
+    mktObjective: "الهدف", mktEvidence: "من بياناتك", mktMessage: "الرسالة", mktOpportunities: "الفرص", mktRisks: "المخاطر",
+    mktValue: "القيمة المقترحة", mktTone: "أسلوب الخطاب", mktSlogans: "شعارات مقترحة", mktShare: "حصة الميزانية", mktActions: "خطوات التنفيذ",
+    mktContentIdeas: "أفكار محتوى", mktOffers: "عروض مقترحة", mktIdea: "الفكرة", mktFormat: "الصيغة", mktTiming: "التوقيت", mktAudience: "الجمهور",
+    mktTarget: "المستهدف", mktKpi: "المؤشر", mktHow: "كيف يُقاس", prHigh: "أولوية عالية", prMed: "أولوية متوسطة", prLow: "أولوية منخفضة",
+    mktNote: "هذي اقتراحات مبنية على بياناتك فقط؛ راجعها قبل التنفيذ.", analysisName: "اسم التحليل",
     noSaved: "ما اكو تحليلات محفوظة بعد. ارفع ملفاً وراح يتحفظ تلقائياً.", lastEdit: "آخر تعديل",
     histHint: "تحليلاتك محفوظة على هذا المتصفح، وتكدر ترجعلها وتعدّل بكيفك.", loadingHist: "جاري التحميل...",
     errOpen: "ما كدرنا نفتح هذا التحليل. يمكن انحذف، أو مو محفوظ على هذا المتصفح.",
@@ -590,19 +621,34 @@ const I18N = {
     contains: "Contains", notContains: "Does not contain", from: "From", to: "To", min: "Min", max: "Max",
     search: "Search...", typeText: "Type text", remove: "Remove condition", granTitle: "Trend over time",
     granNone: "No change", day: "Daily", week: "Weekly", month: "Monthly", hideCols: "Hide columns from the analysis",
-    rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice cover all data (could not be refreshed)",
+    rowsAfterFilter: "Rows after filter", staleInsights: "The summary and advice have not been updated for the latest chart changes yet",
     errFilter: "Couldn't apply the filter. Please try again.",
     addChart: "New chart", restoreCharts: "Restore original charts", askPlaceholder: "Ask for an analysis in your own words, e.g. sales per city", askBtn: "Analyze",
     editChart: "Edit chart", removeChart: "Remove chart", formAdd: "Add chart", formSave: "Save changes", cancel: "Cancel",
     kindGroup: "Group by a column", kindTrend: "Trend over time", fieldKind: "Analysis type", fieldGroup: "By column", fieldDate: "Date column",
     fieldValue: "Value", fieldAgg: "Function", fieldChart: "Chart style", fieldTop: "Items to show", fieldTitle: "Title (optional)",
-    countRows: "Row count", aggSum: "Sum", aggMean: "Average", aggMax: "Max", aggMin: "Min", chartBar: "Bars", chartPie: "Pie",
+    countRows: "Row count", aggSum: "Sum", aggMean: "Average", aggMax: "Max", aggMin: "Min", aggMedian: "Median", statGroups: "Groups", statTotal: "Total", statTop: "Top", statLow: "Lowest",
+    statPeak: "Peak", statChange: "Change vs previous period", refreshInsights: "Refresh analysis", refreshingInsights: "Refreshing analysis…", chartBar: "Bars", chartPie: "Pie",
     findProblems: "Find problems", betterAdvice: "Better advice", goalPlaceholder: "What is your goal? (optional) e.g. grow sales", suggest: "Suggest",
     problemsTitle: "Detected problems", fix: "Fix", sevHigh: "High", sevMed: "Medium", sevLow: "Low", srcAi: "AI + code checks",
     srcRules: "Code checks", noProblems: "No clear problems found in the current data.", working: "Working...", skippedCharts: "Could not draw",
     removeItem: "Remove", trendTitle: "Trend over time",
     myAnalyses: "My analyses", newAnalysis: "+ New analysis", openAnalysis: "Open", deleteAnalysis: "Delete", confirmDelete: "Delete this analysis permanently?",
-    saved: "Saved ✓", saving: "Saving...", saveFailed: "Could not save", analysisName: "Analysis name",
+    saved: "Saved ✓", saving: "Saving...", saveFailed: "Could not save",
+    notSaved: "This analysis was not saved to your account (view only).", notSavedOwner: "Not saved: the server did not receive a user ID.", notSavedDb: "Not saved: the database is unavailable right now.",
+    mktCtaTitle: "Ready for the next step?", mktCtaSub: "Turn your analysis into an organized marketing plan built on your own numbers.", mktBtn: "See your marketing plan",
+    mktTitle: "Marketing plan", mktBack: "← Back to analysis", mktPrint: "Print / Save PDF", mktRegen: "Update plan",
+    mktGoal: "Your goal (optional)", mktGoalPh: "e.g. grow sales in the weakest provinces", mktBudget: "Budget",
+    mktBudgetNone: "Not set", mktBudgetLow: "Low", mktBudgetMed: "Medium", mktBudgetHigh: "High",
+    mktLoading: "Building your marketing plan from your data…", mktErr: "We could not build the plan. Please try again.",
+    mktBasedOn: "Based on", mktRowsWord: "rows",
+    secSummary: "Plan summary", secAudience: "Target audience", secOpp: "Opportunities & risks", secPosition: "Message & positioning",
+    secChannels: "Channels & budget", secContent: "Content & offers", secTimeline: "90-day plan", secKpi: "KPIs", secGaps: "How to improve the plan",
+    mktObjective: "Objective", mktEvidence: "From your data", mktMessage: "Message", mktOpportunities: "Opportunities", mktRisks: "Risks",
+    mktValue: "Value proposition", mktTone: "Tone of voice", mktSlogans: "Suggested slogans", mktShare: "Budget share", mktActions: "Actions",
+    mktContentIdeas: "Content ideas", mktOffers: "Suggested offers", mktIdea: "Idea", mktFormat: "Format", mktTiming: "Timing", mktAudience: "Audience",
+    mktTarget: "Target", mktKpi: "KPI", mktHow: "How to measure", prHigh: "High priority", prMed: "Medium priority", prLow: "Low priority",
+    mktNote: "These are suggestions based only on your data; review them before acting.", analysisName: "Analysis name",
     noSaved: "No saved analyses yet. Upload a file and it is saved automatically.", lastEdit: "Last edited",
     histHint: "Your analyses are saved on this browser. Come back any time and keep editing.", loadingHist: "Loading...",
     errOpen: "We could not open this analysis. It may have been deleted, or it is not saved on this browser.",
@@ -630,17 +676,14 @@ const I18N = {
     langBtn: "عربي"
   }
 };
-
 let lang = "ar";
 try { lang = localStorage.getItem("datova-lang") || "ar"; } catch (e) {}
 let chosenFile = null;
 let lastData = null;
 let stepTimer = null;
-
 const $ = (id) => document.getElementById(id);
 const t = (k) => I18N[lang][k];
 const fmt = (n) => Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
-
 /* ---------- الشعار: الـ O مع المدار والنجمه ---------- */
 const MARK = `
   <circle cx="50" cy="50" r="33" fill="rgba(201,184,255,.22)" stroke="url(#gO)" stroke-width="7"/>
@@ -651,7 +694,6 @@ document.querySelectorAll("[data-mark]").forEach((s) => {
   // الحركه بس بشاشه التحميل
   if (!s.hasAttribute("data-live")) s.querySelectorAll(".orbit-g,.pulse").forEach((g) => (g.style.animation = "none"));
 });
-
 /* ---------- اللغه ---------- */
 function applyLang() {
   document.documentElement.lang = lang;
@@ -660,6 +702,9 @@ function applyLang() {
   $("langBtn").textContent = t("langBtn");
   buildSteps();
   if (lastData) renderResults(lastData);
+  if (curView === "market") {
+    if (lastData && lastData.marketing && lastData.marketing.lang !== lang) generateMarketing(); else renderMarketing();
+  }
   if (curView === "history" && histItems) renderHistory();
   renderContinue();
 }
@@ -668,11 +713,9 @@ $("langBtn").addEventListener("click", () => {
   try { localStorage.setItem("datova-lang", lang); } catch (e) {}
   applyLang();
 });
-
 /* ---------- اختيار الملف ---------- */
 const drop = $("drop");
 const input = $("fileInput");
-
 function showError(msg) {
   const box = $("error");
   box.textContent = msg || "";
@@ -707,7 +750,6 @@ $("clearBtn").addEventListener("click", clearFile);
 ["dragleave", "drop"].forEach((ev) =>
   drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
-
 /* ---------- العرض ---------- */
 let curView = "upload";
 function show(view) {
@@ -717,9 +759,9 @@ function show(view) {
   $("uploadView").style.display = view === "upload" ? "" : "none";
   $("loadingView").style.display = view === "loading" ? "block" : "none";
   $("resultsView").style.display = view === "results" ? "block" : "none";
+  $("marketView").style.display = view === "market" ? "block" : "none";
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 /* مراحل التحميل شكلية (الـ backend يرد مره وحده بالنهايه) */
 function buildSteps(active = 0) {
   const ul = $("steps");
@@ -740,17 +782,14 @@ function startSteps() {
   }, 3500);
 }
 function stopSteps() { clearInterval(stepTimer); }
-
 /* ---------- الاتصال بالـ backend ---------- */
 async function analyze() {
   if (!chosenFile) return;
   showError("");
   show("loading");
   startSteps();
-
   const body = new FormData();
   body.append("file", chosenFile);
-
   try {
     const res = await fetch(API_BASE + "/upload", { method: "POST", body, headers: { "X-Owner": getOwner() } });
     let data = null;
@@ -772,7 +811,6 @@ async function analyze() {
     stopSteps();
   }
 }
-
 /* ---------- تحميل النتائج PDF ---------- */
 async function downloadPdf(btn) {
   if (!lastData) return;
@@ -807,7 +845,6 @@ async function downloadPdf(btn) {
   }
 }
 $("analyzeBtn").addEventListener("click", analyze);
-
 /* ---------- بناء النتائج (textContent فقط، حتى ما ينحقن اي شي من الـ AI) ---------- */
 function el(tag, cls, text) {
   const n = document.createElement(tag);
@@ -820,7 +857,6 @@ function svgEl(tag, attrs) {
   for (const k in attrs) n.setAttribute(k, attrs[k]);
   return n;
 }
-
 function hBars(labels, values) {
   const box = el("div");
   const max = Math.max(...values.map((v) => Math.abs(v)), 1);
@@ -836,7 +872,6 @@ function hBars(labels, values) {
   });
   return box;
 }
-
 function vBars(labels, values) {
   const box = el("div", "vbars");
   const max = Math.max(...values.map((v) => Math.abs(v)), 1);
@@ -855,7 +890,6 @@ function vBars(labels, values) {
   });
   return box;
 }
-
 const PIE_COLORS = ["#9B87F5", "#F4A9C6", "#8FD3F4", "#C9B8FF", "#B8B9C6", "#E7C6F0"];
 function donut(labels, values) {
   const wrap = el("div", "donut-wrap");
@@ -883,7 +917,6 @@ function donut(labels, values) {
   wrap.append(svg, legend);
   return wrap;
 }
-
 function chartCard(a, i, editable) {
   const card = el("article", "card glass");
   const head = el("div", "chead");
@@ -903,8 +936,9 @@ function chartCard(a, i, editable) {
     rm.title = t("removeChart");
     rm.addEventListener("click", () => {
       dState.form = null;
-      lastData = { ...lastData, analyses: lastData.analyses.filter((_, j) => j !== i) };
+      lastData = { ...lastData, analyses: lastData.analyses.filter((_, j) => j !== i), insights_stale: true, problems: undefined };
       renderResults(lastData);
+      scheduleInsightsRefresh();
     });
     tools.append(ed, rm);
     head.appendChild(tools);
@@ -913,6 +947,18 @@ function chartCard(a, i, editable) {
   const isTime = a.labels.length > 1 && a.labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
   if (a.chart === "pie") card.appendChild(donut(a.labels, a.values));
   else card.appendChild(isTime ? vBars(a.labels, a.values) : hBars(a.labels, a.values));
+  const st = a.stats;
+  if (st) {                                   // أرقام إضافية تحت المخطط (من كل البيانات مو بس المعروض)
+    const cs = el("div", "cstats");
+    const add = (txt) => cs.appendChild(el("span", "", txt));
+    if (st.groups > 1) add(`${t("statGroups")}: ${fmt(st.groups)}`);
+    if (st.total !== undefined) add(`${t("statTotal")}: ${fmt(st.total)}`);
+    if (st.top_label !== undefined) add(`${t("statTop")}: ${st.top_label} (${fmt(st.top_value)}${st.top_share !== undefined ? " · " + st.top_share + "%" : ""})`);
+    if (st.low_label !== undefined) add(`${t("statLow")}: ${st.low_label} (${fmt(st.low_value)})`);
+    if (st.peak_label !== undefined) add(`${t("statPeak")}: ${st.peak_label} (${fmt(st.peak_value)})`);
+    if (st.change_pct !== undefined) add(`${t("statChange")}: ${st.change_pct > 0 ? "+" : ""}${st.change_pct}%`);
+    if (cs.childNodes.length) card.appendChild(cs);
+  }
   return card;
 }
 function listCard(title, items, kind, opts = {}) {
@@ -947,14 +993,12 @@ function listCard(title, items, kind, opts = {}) {
   card.appendChild(ul);
   return card;
 }
-
 function statCard(label, value, sub) {
   const s = el("div", "stat");
   s.append(el("small", "", label), el("b", "", value));
   if (sub) s.appendChild(el("span", "", sub));
   return s;
 }
-
 /* ---------- الفلتر ---------- */
 let baseData = null;
 let fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false };
@@ -962,7 +1006,6 @@ function resetFilter() {
   fState = { rows: [], hidden: [], gran: "", dateCol: "", open: false };
   dState = { form: null, askText: "", advice: false, goal: "" };
 }
-
 const F_OPS = {
   category: [["in", "showOnly"], ["not_in", "hide"]],
   text: [["contains", "contains"], ["not_contains", "notContains"]],
@@ -971,7 +1014,6 @@ const F_OPS = {
 };
 const colOf = (meta, name) => (meta.columns || []).find((c) => c.name === name);
 const blankRow = (c) => ({ column: c.name, op: F_OPS[c.kind][0][0], values: [], min: "", max: "", start: "", end: "", text: "" });
-
 function fSelect(options, value, onChange) {
   const s = el("select", "fsel");
   options.forEach(([v, label]) => {
@@ -997,7 +1039,6 @@ function labeled(text, input) {
   l.append(el("span", "", text), input);
   return l;
 }
-
 function filterRow(meta, row, rebuild) {
   const c = colOf(meta, row.column) || meta.columns[0];
   const box = el("div", "frow");
@@ -1009,7 +1050,6 @@ function filterRow(meta, row, rebuild) {
   box.appendChild(ops.length > 1
     ? fSelect(ops.map(([v, k]) => [v, t(k)]), row.op, (v) => { row.op = v; })
     : el("span", "fop", t(ops[0][1])));
-
   const val = el("div", "fval");
   if (c.kind === "category") {
     const list = el("div", "fvals");
@@ -1045,7 +1085,6 @@ function filterRow(meta, row, rebuild) {
     val.appendChild(fInput("text", row.text, t("typeText"), (v) => (row.text = v)));
   }
   box.appendChild(val);
-
   const x = el("button", "fx", "×");
   x.type = "button";
   x.title = t("remove");
@@ -1053,7 +1092,6 @@ function filterRow(meta, row, rebuild) {
   box.appendChild(x);
   return box;
 }
-
 function buildFilterPanel(d) {
   const meta = d.filter_meta;
   const panel = el("section", "fpanel glass");
@@ -1067,7 +1105,6 @@ function buildFilterPanel(d) {
     body.classList.toggle("open", fState.open);
     toggle.textContent = fState.open ? t("close") : t("open");
   });
-
   // شروط الفلتر (كل شرط: عمود + نوع الشرط + القيم)
   const rowsBox = el("div", "frows");
   const rebuild = () => {
@@ -1082,7 +1119,6 @@ function buildFilterPanel(d) {
     if (meta.columns.length) { fState.rows.push(blankRow(meta.columns[0])); rebuild(); }
   });
   body.append(rowsBox, add);
-
   // التجميع الزمني: يومي / أسبوعي / شهري
   if ((meta.date_columns || []).length) {
     const g = el("div", "fgroup");
@@ -1106,7 +1142,6 @@ function buildFilterPanel(d) {
     }
     body.appendChild(g);
   }
-
   // إخفاء أعمدة من التحليل
   const hg = el("div", "fgroup");
   hg.appendChild(el("h4", "", t("hideCols")));
@@ -1124,7 +1159,6 @@ function buildFilterPanel(d) {
   });
   hg.appendChild(chips);
   body.appendChild(hg);
-
   const err = el("div", "error");
   const apply = el("button", "btn", t("apply"));
   apply.type = "button";
@@ -1140,15 +1174,12 @@ function buildFilterPanel(d) {
   const actions = el("div", "factions");
   actions.append(apply, reset);
   body.append(actions, err);
-
   panel.append(head, body);
   return panel;
 }
-
 /* ---------- لوحة المعلومات المخصصة ---------- */
 let dState = { form: null, askText: "", advice: false, goal: "" };
 let curMsg = null;
-
 function filterPayload(meta) {
   const filters = [];
   fState.rows.forEach((r) => {
@@ -1174,7 +1205,6 @@ function filterPayload(meta) {
 }
 const currentSpecs = (d) => (d.analyses || []).map((a) => a.spec).filter(Boolean);
 const keepInfo = (fi) => (fi && (fi.descriptions || []).length ? fi : undefined);
-
 let memOwner = "";
 function getOwner() {
   const hex = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, "")
@@ -1212,7 +1242,6 @@ async function guarded(btn, work, box) {
   finally { btn.disabled = false; btn.textContent = label; }
 }
 const scrollToForm = () => { const f = document.querySelector(".dform"); if (f) f.scrollIntoView({ behavior: "smooth", block: "center" }); };
-
 /* إذا المستخدم اختار يومي/أسبوعي/شهري وما اكو مخطط زمني، نضيف واحد */
 function ensureTrend(specs, d) {
   const meta = d.filter_meta;
@@ -1220,7 +1249,6 @@ function ensureTrend(specs, d) {
   const v = (specs.find((s) => s.value) || {}).value || null;
   return [...specs, { kind: "monthly_trend", group_by: fState.dateCol || meta.date_columns[0], value: v, agg: v ? "sum" : "count", top_n: 10, chart: "bar", title: t("trendTitle") }];
 }
-
 async function applyFilter(d, btn, errBox) {
   errBox.classList.remove("show");
   const label = btn.textContent;
@@ -1245,13 +1273,47 @@ async function applyFilter(d, btn, errBox) {
     btn.textContent = label;
   }
 }
-
-/* يعيد رسم المخططات حسب القائمة الجديدة (بدون ذكاء اصطناعي) */
+/* يعيد رسم المخططات حسب القائمة الجديدة، ويحدّث الخلاصة والاستنتاجات حتى ما تبقى قديمة */
 async function refreshDashboard(d, specs) {
-  const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs, refresh_insights: false, lang });
-  lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info) };
+  const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs, refresh_insights: true, lang });
+  lastData = { ...d, analyses: data.analyses, filter_info: keepInfo(data.filter_info), problems: undefined, insights_stale: !!data.insights_error };
+  if (!data.insights_error) {
+    Object.assign(lastData, { summary: data.summary, insights: data.insights, recommendations: data.recommendations, dismissed: [] });
+  }
   renderResults(lastData);
   if ((data.skipped || []).length) showMsg(`${t("skippedCharts")}: ${data.skipped.join("، ")}`, true);
+}
+
+/* تحديث الخلاصة والاستنتاجات والنصائح حسب المخططات الحالية (تلقائي بعد أي تعديل، أو من زر "تحديث التحليل") */
+let insTimer = null, insBusy = false;
+function scheduleInsightsRefresh(tries = 0) {
+  clearTimeout(insTimer);
+  insTimer = setTimeout(() => {
+    const a = document.activeElement;
+    const typing = dState.form || (a && ["INPUT", "SELECT", "TEXTAREA"].includes(a.tagName));
+    if (typing && tries < 6) return scheduleInsightsRefresh(tries + 1);      // المستخدم يكتب: نأجّل شوية
+    refreshInsights();
+  }, 1200);
+}
+async function refreshInsights(btn) {
+  const d = lastData;
+  if (!d || !d.upload_id || !d.filter_meta || insBusy) return;
+  insBusy = true;
+  if (btn) { btn.disabled = true; btn.textContent = t("refreshingInsights"); }
+  const sig = JSON.stringify(currentSpecs(d));
+  let again = false;
+  try {
+    const data = await api("/filter", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs: currentSpecs(d), refresh_insights: true, lang });
+    if (data.insights_error) throw new Error("ai");
+    again = JSON.stringify(currentSpecs(lastData)) !== sig;                  // المستخدم عدّل المخططات أثناء التحديث
+    lastData = { ...lastData, summary: data.summary, insights: data.insights, recommendations: data.recommendations, dismissed: [], problems: undefined, insights_stale: again };
+  } catch (e) {
+    lastData = { ...lastData, insights_stale: true };
+  } finally {
+    insBusy = false;
+  }
+  renderResults(lastData);
+  if (again) scheduleInsightsRefresh();
 }
 
 /* ---- نموذج إضافة/تعديل مخطط ---- */
@@ -1264,7 +1326,7 @@ function blankSpec(meta) {
 function normalizeSpec(s) {
   return {
     kind: s.kind, group_by: s.group_by, value: s.value || null, agg: s.value ? s.agg : "count",
-    top_n: Math.max(1, Math.min(15, Number(s.top_n) || 10)), chart: s.kind === "monthly_trend" ? "bar" : s.chart, title: (s.title || "").trim()
+    top_n: Math.max(1, Math.min(30, Number(s.top_n) || 10)), chart: s.kind === "monthly_trend" ? "bar" : s.chart, title: (s.title || "").trim()
   };
 }
 function chartForm(d) {
@@ -1289,11 +1351,11 @@ function chartForm(d) {
     rebuild();
   }));
   if (s.value) {
-    grid.appendChild(labeledSel(t("fieldAgg"), [["sum", t("aggSum")], ["mean", t("aggMean")], ["max", t("aggMax")], ["min", t("aggMin")]], s.agg, (v) => (s.agg = v)));
+    grid.appendChild(labeledSel(t("fieldAgg"), [["sum", t("aggSum")], ["mean", t("aggMean")], ["median", t("aggMedian")], ["max", t("aggMax")], ["min", t("aggMin")]], s.agg, (v) => (s.agg = v)));
   }
   if (!isTrend) {
     grid.appendChild(labeledSel(t("fieldChart"), [["bar", t("chartBar")], ["pie", t("chartPie")]], s.chart, (v) => (s.chart = v)));
-    grid.appendChild(labeled(t("fieldTop"), fInput("number", String(s.top_n), "", (v) => (s.top_n = v), { min: "1", max: "15" })));
+    grid.appendChild(labeled(t("fieldTop"), fInput("number", String(s.top_n), "", (v) => (s.top_n = v), { min: "1", max: "30" })));
   }
   grid.appendChild(labeled(t("fieldTitle"), fInput("text", s.title || "", "", (v) => (s.title = v))));
   const ok = el("button", "btn", f.mode === "edit" ? t("formSave") : t("formAdd"));
@@ -1313,7 +1375,6 @@ function chartForm(d) {
   box.append(grid, acts);
   return box;
 }
-
 /* ---- شريط المخططات: مخطط جديد / طلب بالكتابة / استعادة ---- */
 function buildDashBar(d) {
   const wrap = el("div", "dbar");
@@ -1328,7 +1389,6 @@ function buildDashBar(d) {
     await refreshDashboard(d, baseData.analyses.map((a) => a.spec).filter(Boolean));
   }));
   row.append(add, restore);
-
   const ask = el("div", "dask");
   const inp = fInput("text", dState.askText, t("askPlaceholder"), (v) => (dState.askText = v));
   const go = el("button", "btn sm", t("askBtn"));
@@ -1339,19 +1399,18 @@ function buildDashBar(d) {
     if (!text) return;
     const data = await api("/ask-analysis", { upload_id: d.upload_id, ...filterPayload(d.filter_meta), request: text, lang });
     dState.askText = "";
-    lastData = { ...d, analyses: [...d.analyses, data.analysis] };
+    lastData = { ...d, analyses: [...d.analyses, data.analysis], insights_stale: true, problems: undefined };
     renderResults(lastData);
     if (data.note) showMsg(data.note, false);
+    scheduleInsightsRefresh();
   }));
   ask.append(inp, go);
-
   curMsg = el("div", "okmsg");
   wrap.append(row, ask);
   if (dState.form) wrap.appendChild(chartForm(d));
   wrap.appendChild(curMsg);
   return wrap;
 }
-
 function problemsCard(d) {
   const sevLabel = { high: t("sevHigh"), medium: t("sevMed"), low: t("sevLow") };
   const card = el("article", "card glass");
@@ -1376,46 +1435,52 @@ function problemsCard(d) {
   card.appendChild(list);
   return card;
 }
-
 function renderResults(d) {
   const root = $("resultsView");
   root.innerHTML = "";
   const rep = d.cleaning_report || {};
-
   const head = el("div", "res-head");
   const chip = el("span", "chip");
   chip.append(el("small", "", t("business")), document.createTextNode(d.business_type || "-"));
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
   again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); setHash(null); root.innerHTML = ""; clearFile(); show("upload"); });
-
   const pdfBtn = el("button", "btn", t("pdf"));
   pdfBtn.type = "button";
   pdfBtn.addEventListener("click", () => downloadPdf(pdfBtn));
-
   const btns = el("div", "res-btns");
   btns.append(pdfBtn, again);
-
   head.append(chip, btns);
   root.appendChild(head);
   if (d.saved) root.appendChild(buildTitleRow(d));
-
+  else if (d.upload_id) {      // التحليل ما انحفظ: نبين السبب بدل ما نسكت
+    const ns = el("div", "notes");
+    const key = d.save_error === "missing_owner" ? "notSavedOwner" : d.save_error === "database_error" ? "notSavedDb" : "notSaved";
+    ns.appendChild(el("span", "note warn", t(key)));
+    root.appendChild(ns);
+  }
   if (d.filter_meta) root.appendChild(buildFilterPanel(d));
   if (d.filter_info) {
     const fi = d.filter_info;
     const fn = el("div", "notes");
     fn.appendChild(el("span", "note", `${t("rowsAfterFilter")}: ${fmt(fi.rows_after)} ${t("of")} ${fmt(fi.rows_before)}`));
     (fi.descriptions || []).forEach((x) => fn.appendChild(el("span", "note", x)));
-    if (d.insights_stale) fn.appendChild(el("span", "note warn", t("staleInsights")));
     root.appendChild(fn);
   }
-
-  if (d.summary) {
+  if (d.summary || d.insights_stale) {
     const sum = el("section", "summary glass");
-    sum.append(el("h2", "", t("summary")), el("p", "", d.summary));
+    const sh = el("div", "sum-head");
+    sh.appendChild(el("h2", "", t("summary")));
+    if (d.insights_stale && d.filter_meta) {
+      const rb = el("button", "btn ghost sm", t("refreshInsights"));
+      rb.type = "button";
+      rb.addEventListener("click", () => refreshInsights(rb));
+      sh.appendChild(rb);
+    }
+    sum.append(sh, el("p", "", d.summary || ""));
+    if (d.insights_stale) sum.appendChild(el("span", "note warn", t("staleInsights")));
     root.appendChild(sum);
   }
-
   const stats = el("div", "stats");
   stats.append(
     statCard(t("rowsAnalyzed"), fmt(rep.rows_after ?? 0), `${t("of")} ${fmt(rep.rows_before ?? 0)}`),
@@ -1424,20 +1489,17 @@ function renderResults(d) {
     statCard(t("cols"), fmt(rep.columns_after ?? 0), `${t("of")} ${fmt(rep.columns_before ?? 0)}`)
   );
   root.appendChild(stats);
-
   const notes = el("div", "notes");
   Object.entries(rep.filled_columns || {}).forEach(([col, how]) =>
     notes.appendChild(el("span", "note", `${t("filled")}: ${col} (${t(how) || how})`)));
   (rep.dropped_columns || []).forEach((col) =>
     notes.appendChild(el("span", "note warn", `${t("dropped")}: ${col}`)));
   root.appendChild(notes);
-
   root.appendChild(el("h2", "sec-title", t("charts")));
   if (d.filter_meta) root.appendChild(buildDashBar(d));
   const grid = el("div", "charts");
   (d.analyses || []).forEach((a, i) => grid.appendChild(chartCard(a, i, !!d.filter_meta)));
   root.appendChild(grid);
-
   const two = el("div", "two");
   two.style.marginTop = "18px";
   const editable = !!d.filter_meta;
@@ -1483,12 +1545,20 @@ function renderResults(d) {
   root.appendChild(two);
   if (editable) root.appendChild(bMsg);
   if (d.problems) { const pc = problemsCard(d); pc.style.marginTop = "18px"; root.appendChild(pc); }
+  if (d.upload_id && d.filter_meta) {          // الخطوة الجاية: الخطة التسويقية
+    const cta = el("section", "glass mcta");
+    const ct = el("div");
+    ct.append(el("h3", "", t("mktCtaTitle")), el("p", "", t("mktCtaSub")));
+    const cb = el("button", "btn", t("mktBtn"));
+    cb.type = "button";
+    cb.addEventListener("click", openMarketing);
+    cta.append(ct, cb);
+    root.appendChild(cta);
+  }
   scheduleSave();
 }
-
 /* ---------- حفظ التحليلات (تحليلاتي) ---------- */
 let saveTimer = null, lastSaved = "", saveBox = null, histItems = null;
-
 function setHash(id) {
   try { history.replaceState(null, "", id ? "#a=" + id : location.pathname + location.search); } catch (e) {}
 }
@@ -1501,7 +1571,6 @@ function stateForSave(d) {
 }
 const savePayload = (d) => JSON.stringify({ title: d.title || "", state: stateForSave(d) });
 const setSaveText = (txt) => { if (saveBox && saveBox.isConnected) saveBox.textContent = txt; };
-
 function scheduleSave() {
   if (!lastData || !lastData.saved || !lastData.upload_id) return;
   clearTimeout(saveTimer);
@@ -1531,7 +1600,6 @@ function buildTitleRow(d) {
   row.append(labeled(t("analysisName"), inp), saveBox);
   return row;
 }
-
 function fmtDate(s) {
   if (!s) return "";
   const raw = String(s).replace(" ", "T");
@@ -1612,6 +1680,243 @@ async function openAnalysis(id) {
   }
 }
 $("histBtn").addEventListener("click", openHistory);
+/* ---------- الخطة التسويقية ---------- */
+let mktBusy = false, mktError = "", mktOpts = { goal: "", budget: "" };
+const MKT_COLORS = ["#6E6AA8", "#A8A4D4", "#CBC6EA", "#272A43", "#BFC4DA", "#9B87F5"];
+const PRI_KEY = { high: "prHigh", medium: "prMed", low: "prLow" };
+
+function mkBadge(p) { return el("span", "badge " + (PRI_KEY[p] ? p : "medium"), t(PRI_KEY[p] || "prMed")); }
+function mkList(items) {
+  const ul = el("ul", "mlist");
+  (items || []).forEach((x) => ul.appendChild(el("li", "", x)));
+  return ul;
+}
+const mkP = (txt, cls) => (txt ? el("p", cls || "", txt) : null);
+const mkEv = (txt) => (txt ? el("div", "mev", t("mktEvidence") + ": " + txt) : null);
+function mkLab(key, txt) {
+  if (!txt) return null;
+  const p = el("p", "");
+  p.append(el("b", "", t(key) + ": "), document.createTextNode(txt));
+  return p;
+}
+function mkCard(title, ...parts) {
+  const c = el("div", "mcard");
+  if (title) c.appendChild(el("h3", "", title));
+  parts.forEach((p) => { if (p) c.appendChild(p); });
+  return c;
+}
+function mkTable(heads, rows) {
+  const tb = el("table", "mtable"), tr = el("tr");
+  heads.forEach((h) => tr.appendChild(el("th", "", h)));
+  tb.appendChild(el("thead")).appendChild(tr);
+  const body = el("tbody");
+  rows.forEach((r) => { const x = el("tr"); r.forEach((c) => x.appendChild(el("td", "", c))); body.appendChild(x); });
+  tb.appendChild(body);
+  const wrap = el("div", "mscroll");
+  wrap.appendChild(tb);
+  return wrap;
+}
+
+function renderMarketing() {
+  const root = $("marketView");
+  root.innerHTML = "";
+  const d = lastData;
+  if (!d) return;
+  const m = d.marketing;
+
+  const top = el("div", "mkt-top");
+  const back = el("button", "btn ghost", t("mktBack"));
+  back.type = "button";
+  back.addEventListener("click", () => show("results"));
+  top.appendChild(back);
+  if (m && !mktBusy) {
+    const pr = el("button", "btn ghost", t("mktPrint"));
+    pr.type = "button";
+    pr.addEventListener("click", () => window.print());
+    top.appendChild(pr);
+  }
+  root.append(top, el("h1", "mkt-title", t("mktTitle")));
+
+  const ctl = el("section", "glass mctl");
+  const gen = el("button", "btn", m ? t("mktRegen") : t("mktBtn"));
+  gen.type = "button";
+  gen.disabled = mktBusy;
+  gen.addEventListener("click", generateMarketing);
+  ctl.append(
+    labeled(t("mktGoal"), fInput("text", mktOpts.goal, t("mktGoalPh"), (v) => (mktOpts.goal = v))),
+    labeled(t("mktBudget"), fSelect([["", t("mktBudgetNone")], ["low", t("mktBudgetLow")], ["medium", t("mktBudgetMed")], ["high", t("mktBudgetHigh")]], mktOpts.budget, (v) => (mktOpts.budget = v))),
+    gen
+  );
+  root.appendChild(ctl);
+
+  if (mktBusy) {
+    const ld = el("section", "glass msec mpulse");
+    ld.appendChild(el("p", "", t("mktLoading")));
+    root.appendChild(ld);
+    return;
+  }
+  if (mktError) {
+    const er = el("section", "glass msec");
+    er.appendChild(el("span", "note warn", mktError));
+    root.appendChild(er);
+  }
+  if (!m || !m.plan) return;
+  const p = m.plan, meta = m.meta || {};
+  const secs = [];
+  const mkSec = (id, key) => {
+    const s = el("section", "glass msec");
+    s.id = "msec-" + id;
+    s.appendChild(el("h2", "", t(key)));
+    secs.push([id, key, s]);
+    return s;
+  };
+
+  // 1) الملخص
+  const s1 = mkSec("summary", "secSummary");
+  s1.append(mkP(p.headline, "mquote") || "", mkP(p.summary) || "", mkLab("mktObjective", p.objective) || "");
+  const basis = `${t("mktBasedOn")} ${fmt(meta.rows || 0)} ${t("mktRowsWord")}` + ((meta.filter || []).length ? " · " + meta.filter.join(" · ") : "");
+  s1.appendChild(el("div", "mev", basis));
+
+  // 2) الجمهور
+  if ((p.audiences || []).length) {
+    const s = mkSec("audience", "secAudience");
+    const g = el("div", "mgrid");
+    p.audiences.forEach((a) => g.appendChild(mkCard(a.name, mkBadge(a.priority), mkP(a.description), mkLab("mktMessage", a.message), mkEv(a.evidence))));
+    s.appendChild(g);
+  }
+
+  // 3) الفرص والمخاطر
+  if ((p.opportunities || []).length || (p.risks || []).length) {
+    const s = mkSec("opp", "secOpp");
+    const cols = el("div", "mcols");
+    const side = (key, items) => {
+      const box = el("div");
+      box.appendChild(el("h3", "", t(key)));
+      items.forEach((x) => { box.appendChild(mkCard(x.title, mkP(x.detail), mkEv(x.evidence))); box.lastChild.style.marginBottom = "10px"; });
+      return box;
+    };
+    if (p.opportunities.length) cols.appendChild(side("mktOpportunities", p.opportunities));
+    if (p.risks.length) cols.appendChild(side("mktRisks", p.risks));
+    s.appendChild(cols);
+  }
+
+  // 4) الرسالة والتموضع
+  const pos = p.positioning || {};
+  if (pos.value_proposition || (pos.slogans || []).length) {
+    const s = mkSec("position", "secPosition");
+    s.append(mkLab("mktValue", pos.value_proposition) || "", mkLab("mktTone", pos.tone) || "");
+    if ((pos.slogans || []).length) {
+      s.appendChild(el("h3", "", t("mktSlogans")));
+      const w = el("div");
+      pos.slogans.forEach((x) => w.appendChild(el("span", "slogan", x)));
+      s.appendChild(w);
+    }
+  }
+
+  // 5) القنوات والميزانية
+  if ((p.channels || []).length) {
+    const s = mkSec("channels", "secChannels");
+    const bar = el("div", "mbar"), legend = el("div", "mlegend");
+    p.channels.forEach((c, i) => {
+      const color = MKT_COLORS[i % MKT_COLORS.length];
+      const seg = el("i");
+      seg.style.width = c.budget_share + "%";
+      seg.style.background = color;
+      seg.title = `${c.name} ${c.budget_share}%`;
+      bar.appendChild(seg);
+      const lg = el("span", "", `${c.name} ${c.budget_share}%`);
+      lg.style.setProperty("--c", color);
+      legend.appendChild(lg);
+    });
+    s.append(bar, legend);
+    const g = el("div", "mgrid");
+    p.channels.forEach((c) => {
+      g.appendChild(mkCard(c.name, mkBadge(c.priority), mkP(c.why), mkLab("mktShare", c.budget_share + "%"),
+        (c.actions || []).length ? el("div", "", "") : null));
+      const card = g.lastChild;
+      if ((c.actions || []).length) { card.appendChild(el("b", "", t("mktActions") + ":")); card.appendChild(mkList(c.actions)); }
+    });
+    s.appendChild(g);
+  }
+
+  // 6) المحتوى والعروض
+  if ((p.content || []).length || (p.offers || []).length) {
+    const s = mkSec("content", "secContent");
+    if (p.content.length) {
+      s.appendChild(el("h3", "", t("mktContentIdeas")));
+      s.appendChild(mkTable([t("mktIdea"), t("mktFormat"), t("mktTiming"), t("mktAudience")], p.content.map((c) => [c.idea, c.format, c.timing, c.audience])));
+    }
+    if (p.offers.length) {
+      s.appendChild(el("h3", "", t("mktOffers")));
+      const g = el("div", "mgrid");
+      p.offers.forEach((o) => g.appendChild(mkCard(o.title, mkP(o.detail), mkP(o.target))));
+      s.appendChild(g);
+    }
+  }
+
+  // 7) خطة 90 يوم
+  if ((p.timeline || []).length) {
+    const s = mkSec("timeline", "secTimeline");
+    const g = el("div", "mtl");
+    p.timeline.forEach((ph) => g.appendChild(mkCard(ph.phase, mkP(ph.focus), mkList(ph.tasks))));
+    s.appendChild(g);
+  }
+
+  // 8) المؤشرات
+  if ((p.kpis || []).length) {
+    const s = mkSec("kpi", "secKpi");
+    s.appendChild(mkTable([t("mktKpi"), t("mktTarget"), t("mktHow")], p.kpis.map((k) => [k.name, k.target, k.how_to_measure])));
+  }
+
+  // 9) فجوات البيانات
+  if ((p.data_gaps || []).length) {
+    const s = mkSec("gaps", "secGaps");
+    s.appendChild(mkList(p.data_gaps));
+  }
+
+  const nav = el("nav", "glass mnav");
+  secs.forEach(([id, key]) => {
+    const b = el("button", "mpill", t(key));
+    b.type = "button";
+    b.addEventListener("click", () => document.getElementById("msec-" + id).scrollIntoView({ behavior: "smooth", block: "start" }));
+    nav.appendChild(b);
+  });
+  root.appendChild(nav);
+  secs.forEach(([, , s]) => root.appendChild(s));
+  root.appendChild(el("p", "mnote", t("mktNote")));
+}
+
+/* بصمة التحليل الحالي (المخططات + الفلاتر): إذا تغيّرت، الخطة القديمة ما تناسب وتنعاد */
+const marketSig = (d) => JSON.stringify([currentSpecs(d), filterPayload(d.filter_meta)]);
+
+async function generateMarketing() {
+  const d = lastData;
+  if (!d || !d.upload_id || !d.filter_meta || mktBusy) return;
+  const sig = marketSig(d);
+  mktBusy = true;
+  mktError = "";
+  renderMarketing();
+  try {
+    const data = await api("/marketing-plan", {
+      upload_id: d.upload_id, ...filterPayload(d.filter_meta), specs: currentSpecs(d),
+      goal: mktOpts.goal.trim() || null, budget: mktOpts.budget || null, lang
+    });
+    lastData = { ...lastData, marketing: { plan: data.plan, meta: data.meta, lang, sig } };
+    scheduleSave();                                        // التحليل المحفوظ يحتفظ بالخطة
+  } catch (e) {
+    mktError = e instanceof TypeError ? t("errNet") : (e.message || t("mktErr"));
+  }
+  mktBusy = false;
+  if (curView === "market") renderMarketing();
+}
+
+async function openMarketing() {
+  const d = lastData;
+  if (!d || !d.upload_id) return;
+  if (!mktOpts.goal && dState.goal) mktOpts.goal = dState.goal;
+  show("market");
+  if (d.marketing && d.marketing.lang === lang && d.marketing.sig === marketSig(d)) renderMarketing(); else await generateMarketing();
+}
 
 /* ---------- واجهة الترحيب ---------- */
 function renderContinue() {
@@ -1639,7 +1944,6 @@ brand.setAttribute("role", "link");
 brand.setAttribute("tabindex", "0");
 brand.addEventListener("click", goWelcome);
 brand.addEventListener("keydown", (e) => { if (e.key === "Enter") goWelcome(); });
-
 applyLang();
 {
   const m = location.hash.match(/^#a=([0-9a-f]{32})$/);
