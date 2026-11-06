@@ -31,7 +31,7 @@ from datetime import time as dt_time
 from difflib import SequenceMatcher
 import math
 from reportlab.lib.colors import HexColor, white
-from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
@@ -1854,7 +1854,7 @@ PINK = HexColor("#E8B4CB")
 PIE = [HexColor(c) for c in ("#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0")]
 
 M = 44
-PAGE_W, PAGE_H = landscape(A4)      # صفحة عريضة تناسب القراءة على الكمبيوتر
+PAGE_W, PAGE_H = A4
 CW = PAGE_W - 2 * M
 AR_RE = re.compile(r"[\u0600-\u06FF]")
 
@@ -1935,7 +1935,7 @@ class _Report:
         self.t = LABELS[self.lang]
         self.rtl = self.lang == "ar"
         self.buf = BytesIO()
-        self.c = canvas.Canvas(self.buf, pagesize=landscape(A4))
+        self.c = canvas.Canvas(self.buf, pagesize=A4)
         self.page = 1
         self.y = PAGE_H - M
 
@@ -2024,22 +2024,14 @@ class _Report:
             first = False
         self.y -= gap
 
-    def section(self, text, keep=40):
-        text = _clean(text)
-        self.need(70 + keep)
-        self.y -= 24
-        base = self.y
-        right = self.rtl or self.right(text)
-        self.c.setFillColor(PURPLE)
-        self.c.roundRect(M + CW - 5 if right else M, base - 5, 5, 24, 2.5, stroke=0, fill=1)
-        if right:
-            self.put(text, M + CW - 17, base, 17, INK, "r")
-        else:
-            self.put(text, M + 17, base, 17, INK, "l")
+    def section(self, text):
+        self.need(54)
+        self.y -= 14
+        self.para(text, size=15, gap=2)
         self.c.setStrokeColor(LILAC)
         self.c.setLineWidth(1)
-        self.c.line(M, base - 12, M + CW, base - 12)
-        self.y = base - 26
+        self.c.line(M, self.y, M + CW, self.y)
+        self.y -= 10
 
     # ---- أقسام الصفحة
     def header(self, data):
@@ -2100,8 +2092,9 @@ class _Report:
 
     def stats(self, rep):
         t = self.t
-        cw, hh, vh = CW / 4, 30, 54
-        self.need(hh + vh + 16)
+        gap = 10
+        bw, bh = (CW - 3 * gap) / 4, 72
+        self.need(bh + 10)
         top = self.y
         items = [
             (t["rows"], rep.get("rows_after"), rep.get("rows_before")),
@@ -2109,25 +2102,19 @@ class _Report:
             (t["missing"], rep.get("dropped_rows_missing"), None),
             (t["cols"], rep.get("columns_after"), rep.get("columns_before")),
         ]
-        self.c.setStrokeColor(LILAC)
-        self.c.setLineWidth(0.8)
-        self.c.setFillColor(CHIP)
-        self.c.rect(M, top - hh, CW, hh, stroke=0, fill=1)
-        self.c.setFillColor(CARD)
-        self.c.rect(M, top - hh - vh, CW, vh, stroke=0, fill=1)
-        self.c.rect(M, top - hh - vh, CW, hh + vh, stroke=1, fill=0)
-        self.c.line(M, top - hh, M + CW, top - hh)
-        for i in range(1, 4):
-            x = M + i * cw
-            self.c.line(x, top, x, top - hh - vh)
         for i, (label, val, of) in enumerate(items):
-            left = self.reg(M, CW, i * cw, cw)
-            mid = left + cw / 2
-            self.put(self.fit(label, 9.5, cw - 14), mid, top - hh + 10, 9.5, GRAY, "c")
-            self.put(fmt(val or 0), mid, top - hh - 26, 20, INK, "c")
+            left = self.reg(M, CW, i * (bw + gap), bw)
+            self.c.setFillColor(CARD)
+            self.c.setStrokeColor(LILAC)
+            self.c.roundRect(left, top - bh, bw, bh, 10, stroke=1, fill=1)
+            ty = top - 15
+            for ln in self.lines(label, 8.5, bw - 16)[:2]:
+                self.put_lead(ln, left + 8, bw - 16, ty, 8.5, GRAY)
+                ty -= 11
+            self.put_lead(fmt(val or 0), left + 8, bw - 16, top - bh + 26, 18, INK)
             if of is not None:
-                self.put(f"{t['of']} {fmt(of)}", mid, top - hh - 43, 9, GRAY, "c")
-        self.y = top - hh - vh - 16
+                self.put_lead(f"{t['of']} {fmt(of)}", left + 8, bw - 16, top - bh + 10, 8.5, GRAY)
+        self.y = top - bh - 14
 
     def chips(self, items):
         if not items:
@@ -2170,7 +2157,13 @@ class _Report:
         title = _clean(a.get("title") or "-", 150)
 
         pad = 16
-        card_h, body_h, rh = self.chart_dims(a, n)
+        if is_pie:
+            body_h = max(150, n * 20 + 10)
+        elif is_time:
+            body_h = 165
+        else:
+            body_h = n * 22
+        card_h = 2 * pad + 26 + body_h
         self.need(card_h + 10)
         top = self.y
         self.c.setFillColor(CARD)
@@ -2189,29 +2182,15 @@ class _Report:
         elif is_time:
             self._vbars(labels, vals, x0, iw, body_top, body_h)
         else:
-            self._hbars(labels, vals, x0, iw, body_top, rh)
+            self._hbars(labels, vals, x0, iw, body_top)
         self.y = top - card_h - 12
 
-    def chart_dims(self, a, n=None):
-        """ارتفاع بطاقة المخطط (card_h, body_h, rh)."""
-        n = n or max(1, min(len(a.get("labels") or []), len(_nums(a.get("values"))), 31))
-        pad = 16
-        rh = 22
-        if a.get("chart") == "pie":
-            body_h = max(150, n * 20 + 10)
-        elif n > 1 and all(re.fullmatch(r"\d{4}-\d{2}(?:-\d{2})?", _clean(x, 80)) for x in (a.get("labels") or [])[:n]):
-            body_h = 200
-        else:
-            rh = max(14, min(24, (PAGE_H - 2 * M - 2 * pad - 90) / n))
-            body_h = n * rh
-        return 2 * pad + 26 + body_h, body_h, rh
-
-    def _hbars(self, labels, vals, x0, iw, top, rh=22):
+    def _hbars(self, labels, vals, x0, iw, top):
         mx = max(max(abs(v) for v in vals), 1)
         lw, vw = iw * 0.30, 78
         tw = iw - lw - vw - 16
         for i, (lab, v) in enumerate(zip(labels, vals)):
-            base = top - i * rh - (rh - 7)
+            base = top - i * 22 - 15
             self.put_lead(self.fit(lab, 10, lw), self.reg(x0, iw, 0, lw), lw, base, 10, INK)
             tl = self.reg(x0, iw, lw + 8, tw)
             self.c.setFillColor(TRACK)
@@ -2247,11 +2226,7 @@ class _Report:
     def _donut(self, labels, vals, x0, iw, top, h):
         total = sum(v for v in vals if v > 0) or 1
         r = min(70, h / 2 - 4)
-        legend_w = min(iw - 2 * r - 30, 380)
-        if self.rtl:
-            cx = x0 + iw - legend_w - 30 - r
-        else:
-            cx = x0 + legend_w + 30 + r
+        cx = x0 + r + 5 if self.rtl else x0 + iw - r - 5
         cy = top - h / 2
         cum = 0.0
         for i, v in enumerate(vals):
@@ -2270,6 +2245,7 @@ class _Report:
         self.c.setFillColor(CARD)
         self.c.circle(cx, cy, r * 0.58, stroke=0, fill=1)
 
+        legend_w = iw - 2 * r - 30
         pw = 46
         label_w = legend_w - 16 - pw
         row_top = cy + len(vals) * 10
@@ -2317,7 +2293,7 @@ def build_report_pdf(data: dict, fix_text) -> bytes:
 
     analyses = [a for a in (data.get("analyses") or []) if isinstance(a, dict)][:MAX_DASH_CHARTS]
     if analyses:
-        r.section(t["charts"], keep=r.chart_dims(analyses[0])[0])
+        r.section(t["charts"])
         for a in analyses:
             r.chart(a)
 
@@ -2340,362 +2316,6 @@ def build_report_pdf(data: dict, fix_text) -> bytes:
     return r.finish()
 
 # ---------------------------------------------------------------------------
-# تقرير Word (.docx): نفس محتوى الـ PDF بالضبط، بعناوين وجداول حقيقية قابلة للتعديل
-# (يحتاج: pip install python-docx)
-# ---------------------------------------------------------------------------
-DOC_FONT = "Arial"
-_DOC_PIE = ("6E6AA8", "E8B4CB", "8FC3E8", "A8A4D4", "B8B9C6", "E7C6F0")
-_PPR_ORDER = ["pStyle", "keepNext", "keepLines", "pageBreakBefore", "framePr", "widowControl", "numPr",
-              "suppressLineNumbers", "pBdr", "shd", "tabs", "suppressAutoHyphens", "kinsoku", "wordWrap",
-              "overflowPunct", "topLinePunct", "autoSpaceDE", "autoSpaceDN", "bidi", "adjustRightInd",
-              "snapToGrid", "spacing", "ind", "contextualSpacing", "mirrorIndents", "suppressOverlap", "jc",
-              "textDirection", "textAlignment", "textboxTightWrap", "outlineLvl", "divId", "cnfStyle", "rPr",
-              "sectPr", "pPrChange"]
-_TBLPR_ORDER = ["tblStyle", "tblpPr", "tblOverlap", "bidiVisual", "tblStyleRowBandSize", "tblStyleColBandSize",
-                "tblW", "jc", "tblCellSpacing", "tblInd", "tblBorders", "shd", "tblLayout", "tblCellMar", "tblLook"]
-_TCPR_ORDER = ["cnfStyle", "tcW", "gridSpan", "hMerge", "vMerge", "tcBorders", "shd", "noWrap", "tcMar",
-               "textDirection", "tcFitText", "vAlign", "hideMark"]
-
-
-def build_report_docx(data: dict) -> bytes:
-    """يستلم نفس JSON اللي يستلمه /export-pdf (+ lang) ويرجع bytes مال ملف Word."""
-    from docx import Document
-    from docx.enum.section import WD_ORIENT
-    from docx.oxml import OxmlElement
-    from docx.oxml.ns import qn
-    from docx.shared import Cm, Pt
-    from docx.text.run import Run
-
-    lang = "en" if data.get("lang") == "en" else "ar"
-    rtl = lang == "ar"
-    t = LABELS[lang]
-    rep = data.get("cleaning_report") if isinstance(data.get("cleaning_report"), dict) else {}
-    C = {"ink": "272A43", "purple": "6E6AA8", "purple2": "A8A4D4", "lilac": "CBC6EA", "gray": "777B91",
-         "body": "5A5D78", "card": "F5F3FB", "chip": "E7E3F5", "warn": "F8DCE6", "pink": "E8B4CB", "white": "FFFFFF"}
-    FULL_W = 26.1                                            # عرض المساحة المتاحة بالسم (A4 عرضي - الهوامش)
-
-    # ---------- أدوات XML ----------
-    def ins(parent, el, order):
-        name = el.tag.split("}")[1]
-        idx = order.index(name)
-        if name not in ("rPr",):                      # نستبدل العنصر القديم بدل ما نكرره (Word يرفض العناصر المكررة)
-            for old_el in parent.findall(el.tag):
-                parent.remove(old_el)
-        for child in list(parent):
-            cn = child.tag.split("}")[1]
-            if cn in order and order.index(cn) > idx:
-                child.addprevious(el)
-                return el
-        parent.append(el)
-        return el
-
-    def mk(tag, **attrs):
-        e = OxmlElement(tag)
-        for k, v in attrs.items():
-            e.set(qn("w:" + k), str(v))
-        return e
-
-    def style_run(run, size=11, color=None, bold=False):
-        r = run._r
-        old = r.find(qn("w:rPr"))
-        if old is not None:
-            r.remove(old)
-        rpr = OxmlElement("w:rPr")
-        rpr.append(mk("w:rFonts", ascii=DOC_FONT, hAnsi=DOC_FONT, cs=DOC_FONT, eastAsia=DOC_FONT))
-        if bold:
-            rpr.append(mk("w:b"))
-            rpr.append(mk("w:bCs"))
-        if color:
-            rpr.append(mk("w:color", val=color))
-        rpr.append(mk("w:sz", val=int(size * 2)))
-        rpr.append(mk("w:szCs", val=int(size * 2)))
-        if rtl:
-            rpr.append(mk("w:rtl"))
-        r.insert(0, rpr)
-
-    def fmt_par(p, align=None, after=6, before=0, keep=False, border=None):
-        pf = p.paragraph_format
-        pf.space_after, pf.space_before = Pt(after), Pt(before)
-        ppr = p._p.get_or_add_pPr()
-        if rtl:
-            ins(ppr, mk("w:bidi"), _PPR_ORDER)
-        if keep:
-            ins(ppr, mk("w:keepNext"), _PPR_ORDER)
-        if border:
-            b = mk("w:pBdr")
-            b.append(mk("w:bottom", val="single", sz=8, space=4, color=border))
-            ins(ppr, b, _PPR_ORDER)
-        if align == "center":
-            ins(ppr, mk("w:jc", val="center"), _PPR_ORDER)
-
-    def add_text(p, text, size=11, color=None, bold=False):
-        run = p.add_run(_clean(text))
-        style_run(run, size, color or C["ink"], bold)
-        return run
-
-    def shade(cell, fill):
-        ins(cell._tc.get_or_add_tcPr(), mk("w:shd", val="clear", color="auto", fill=fill), _TCPR_ORDER)
-
-    def cell_borders(cell, color=None, sides=("top", "left", "bottom", "right")):
-        b = mk("w:tcBorders")
-        for sd in ("top", "left", "bottom", "right"):
-            if color and sd in sides:
-                b.append(mk("w:" + sd, val="single", sz=6, space=0, color=color))
-            else:
-                b.append(mk("w:" + sd, val="nil"))
-        ins(cell._tc.get_or_add_tcPr(), b, _TCPR_ORDER)
-
-    def cell_margins(cell, v=70, h=130):
-        m = mk("w:tcMar")
-        for sd, val in (("top", v), ("left", h), ("bottom", v), ("right", h)):
-            m.append(mk("w:" + sd, w=val, type="dxa"))
-        ins(cell._tc.get_or_add_tcPr(), m, _TCPR_ORDER)
-
-    def cell_valign(cell, v="center"):
-        ins(cell._tc.get_or_add_tcPr(), mk("w:vAlign", val=v), _TCPR_ORDER)
-
-    def new_table(rows, widths):
-        tb = doc.add_table(rows=rows, cols=len(widths))
-        tb.autofit = False
-        tblpr = tb._tbl.tblPr
-        for tag in ("w:tblStyle", "w:tblLayout", "w:tblW"):
-            old = tblpr.find(qn(tag))
-            if old is not None:
-                tblpr.remove(old)
-        if rtl:
-            ins(tblpr, mk("w:bidiVisual"), _TBLPR_ORDER)
-        ins(tblpr, mk("w:tblW", w=int(sum(widths) / 2.54 * 1440), type="dxa"), _TBLPR_ORDER)
-        ins(tblpr, mk("w:tblLayout", type="fixed"), _TBLPR_ORDER)
-        for row in tb.rows:
-            ins_trpr = row._tr.get_or_add_trPr()
-            ins_trpr.append(mk("w:cantSplit"))
-            for i, c in enumerate(row.cells):
-                c.width = Cm(widths[i])
-                cell_borders(c)
-                cell_margins(c)
-                cell_valign(c)
-        return tb
-
-    def cell_par(cell, first=True):
-        return cell.paragraphs[0] if first else cell.add_paragraph()
-
-    def keep_table_together(tb):
-        rows = tb.rows
-        for ri, row in enumerate(rows):
-            if ri == len(rows) - 1:
-                continue
-            for c in row.cells:
-                for p in c.paragraphs:
-                    ins(p._p.get_or_add_pPr(), mk("w:keepNext"), _PPR_ORDER)
-
-    def spacer(pts=6):
-        p = doc.add_paragraph()
-        fmt_par(p, after=0)
-        p.paragraph_format.line_spacing = Pt(pts)
-        return p
-
-    def heading(text, level=1):
-        p = doc.add_paragraph(style=f"Heading {level}")
-        fmt_par(p, after=8, before=18, keep=True, border=C["lilac"] if level == 1 else None)
-        add_text(p, text, 16 if level == 1 else 13, C["ink"], True)
-        return p
-
-    def bullets(items):
-        for item in items:
-            p = doc.add_paragraph(style="List Bullet")
-            fmt_par(p, after=4)
-            add_text(p, item, 11.5)
-
-    # ---------- المستند ----------
-    doc = Document()
-    sec = doc.sections[0]
-    sec.orientation = WD_ORIENT.LANDSCAPE
-    sec.page_width, sec.page_height = Cm(29.7), Cm(21.0)
-    sec.left_margin = sec.right_margin = Cm(1.8)
-    sec.top_margin, sec.bottom_margin = Cm(1.6), Cm(1.8)
-    doc.core_properties.title = t["title"]
-    doc.core_properties.author = "DATOVA"
-    normal = doc.styles["Normal"]
-    normal.font.name = DOC_FONT
-    normal.font.size = Pt(11)
-    rf = normal.element.get_or_add_rPr().get_or_add_rFonts()
-    for a in ("ascii", "hAnsi", "cs", "eastAsia"):
-        rf.set(qn("w:" + a), DOC_FONT)
-
-    # رقم الصفحة بالتذييل
-    fp = sec.footer.paragraphs[0]
-    fmt_par(fp, align="center", after=0)
-    add_text(fp, "DATOVA   -   ", 9, C["gray"])
-    fld = mk("w:fldSimple", instr="PAGE")
-    fr = OxmlElement("w:r")
-    ft = OxmlElement("w:t")
-    ft.text = "1"
-    fr.append(ft)
-    fld.append(fr)
-    fp._p.append(fld)
-    style_run(Run(fr, fp), 9, C["gray"])
-
-    # الترويسة: اسم DATOVA + العنوان + التاريخ
-    hd = new_table(1, [FULL_W * 0.64, FULL_W * 0.36])
-    left_c, right_c = hd.rows[0].cells
-    for c in (left_c, right_c):
-        shade(c, C["ink"])
-        cell_margins(c, 200, 300)
-    p = cell_par(left_c)
-    fmt_par(p, after=4)
-    add_text(p, t["title"], 22, C["white"], True)
-    name = _clean(data.get("original_filename"), 60)
-    if name:
-        p = cell_par(left_c, False)
-        fmt_par(p, after=2)
-        add_text(p, f"{t['file']}: {name}", 10.5, C["lilac"])
-    p = cell_par(left_c, False)
-    fmt_par(p, after=0)
-    add_text(p, f"{t['date']}: {datetime.now():%Y-%m-%d %H:%M}", 10.5, C["lilac"])
-    p = cell_par(right_c)
-    fmt_par(p, after=4)
-    add_text(p, "DATOVA", 20, C["white"], True)
-    p = cell_par(right_c, False)
-    fmt_par(p, after=0)
-    add_text(p, "Discover What Data Hides.", 9, C["lilac"])
-    spacer(8)
-
-    # نوع المشروع
-    bt = new_table(1, [11.0])
-    c = bt.rows[0].cells[0]
-    shade(c, C["card"])
-    cell_borders(c, C["lilac"])
-    p = cell_par(c)
-    fmt_par(p, after=0)
-    add_text(p, f"{t['business']}: ", 11.5, C["gray"])
-    add_text(p, _clean(data.get("business_type"), 80) or "-", 11.5, C["ink"], True)
-    spacer(6)
-
-    # الخلاصة
-    if data.get("summary"):
-        heading(t["summary"])
-        st_ = new_table(1, [FULL_W])
-        c = st_.rows[0].cells[0]
-        shade(c, C["card"])
-        cell_borders(c, C["lilac"])
-        cell_margins(c, 140, 220)
-        p = cell_par(c)
-        fmt_par(p, after=0)
-        add_text(p, data["summary"], 12)
-        spacer(6)
-
-    # الإحصائيات (جدول)
-    stats_items = [
-        (t["rows"], rep.get("rows_after"), rep.get("rows_before")),
-        (t["dups"], rep.get("duplicates_removed"), None),
-        (t["missing"], rep.get("dropped_rows_missing"), None),
-        (t["cols"], rep.get("columns_after"), rep.get("columns_before")),
-    ]
-    tb = new_table(2, [FULL_W / 4] * 4)
-    for i, (label, val, of) in enumerate(stats_items):
-        h, v = tb.rows[0].cells[i], tb.rows[1].cells[i]
-        shade(h, C["chip"])
-        shade(v, C["card"])
-        for cc in (h, v):
-            cell_borders(cc, C["lilac"])
-        p = cell_par(h)
-        fmt_par(p, align="center", after=0)
-        add_text(p, label, 9.5, C["gray"], True)
-        p = cell_par(v)
-        fmt_par(p, align="center", after=0, before=4)
-        add_text(p, fmt(val or 0), 20, C["ink"], True)
-        if of is not None:
-            p = cell_par(v, False)
-            fmt_par(p, align="center", after=2)
-            add_text(p, f"{t['of']} {fmt(of)}", 9, C["gray"])
-    keep_table_together(tb)
-    spacer(8)
-
-    # تفاصيل الفلتر / ملاحظات التنظيف
-    fi = data.get("filter_info")
-    if isinstance(fi, dict):
-        items = [f"{t['filtered_rows']}: {fmt(fi.get('rows_after'))} {t['of']} {fmt(fi.get('rows_before'))}"]
-        items += [_clean(d, 120) for d in (fi.get("descriptions") or [])[:12]]
-        p = doc.add_paragraph()
-        fmt_par(p, after=6)
-        add_text(p, "  •  ".join(items), 10, C["body"])
-    notes = [f"{t['filled']}: {_clean(c_, 60)} ({t.get(h_, h_)})" for c_, h_ in (rep.get("filled_columns") or {}).items()]
-    notes += [f"{t['dropped']}: {_clean(c_, 60)}" for c_ in (rep.get("dropped_columns") or [])]
-    if notes:
-        p = doc.add_paragraph()
-        fmt_par(p, after=6)
-        add_text(p, "  •  ".join(notes[:40]), 10, C["body"])
-
-    # المخططات: جداول حقيقية (اسم | شريط | قيمة)
-    analyses = [a for a in (data.get("analyses") or []) if isinstance(a, dict)][:MAX_DASH_CHARTS]
-    if analyses:
-        heading(t["charts"])
-    for a in analyses:
-        labels = [_clean(x, 80) for x in (a.get("labels") or [])][:31]
-        vals = _nums(a.get("values"))[:31]
-        n = min(len(labels), len(vals))
-        labels, vals = labels[:n], vals[:n]
-        if not n:
-            continue
-        is_pie = a.get("chart") == "pie"
-        total = sum(v for v in vals if v > 0) or 1
-        mx = max(max(abs(v) for v in vals), 1)
-        widths = [FULL_W * 0.28, FULL_W * 0.58, FULL_W * 0.14]
-        tb = new_table(n + 1, widths)
-        top = tb.rows[0].cells[0].merge(tb.rows[0].cells[2])
-        shade(top, C["chip"])
-        cell_borders(top, C["lilac"], ("top", "left", "right"))
-        cell_margins(top, 100, 160)
-        p = cell_par(top)
-        fmt_par(p, after=0)
-        add_text(p, _clean(a.get("title") or "-", 150), 13, C["ink"], True)
-        for i, (lab, v) in enumerate(zip(labels, vals)):
-            cl, cb, cv = tb.rows[i + 1].cells
-            last = i == n - 1
-            for cc in (cl, cb, cv):
-                shade(cc, C["card"])
-                cell_margins(cc, 8 if n > 24 else (22 if n > 14 else 45), 130)
-                cell_borders(cc, C["lilac"], ("left", "right", "bottom") if last else ("left", "right"))
-            color = C["pink"] if v < 0 else C["purple2"]
-            if is_pie:
-                color = _DOC_PIE[i % len(_DOC_PIE)]
-                frac = max(v, 0) / total
-            else:
-                frac = abs(v) / mx
-            p = cell_par(cl)
-            fmt_par(p, after=0)
-            if is_pie:
-                add_text(p, "● ", 11, color)
-            add_text(p, lab, 10.5 if n <= 24 else 9)
-            p = cell_par(cb)
-            fmt_par(p, after=0)
-            add_text(p, "█" * max(1, round(frac * 36)) if frac > 0 else "", 8, color)
-            p = cell_par(cv)
-            fmt_par(p, after=0)
-            add_text(p, f"{max(v, 0) / total * 100:.1f}%" if is_pie else fmt(v), 10.5 if n <= 24 else 9, C["body"], True)
-        keep_table_together(tb)
-        spacer(10)
-
-    insights = [i for i in (data.get("insights") or []) if i][:20]
-    if insights:
-        heading(t["insights"])
-        bullets(insights)
-    recs = [i for i in (data.get("recommendations") or []) if i][:20]
-    if recs:
-        heading(t["recs"])
-        bullets(recs)
-    probs = [p_ for p_ in (data.get("problems") or []) if isinstance(p_, dict)][:15]
-    if probs:
-        heading(t["problems"])
-        bullets([f"[{t.get('sev_' + str(p_.get('severity')), '')}] {_clean(p_.get('title'), 120)}: {_clean(p_.get('detail'), 300)}"
-                 f" ({t['fix']}: {_clean(p_.get('fix'), 200)})" for p_ in probs])
-
-    buf = BytesIO()
-    doc.save(buf)
-    return buf.getvalue()
-
-
-# ---------------------------------------------------------------------------
 # endpoint جديد: تحويل نتيجة التحليل إلى PDF
 # ---------------------------------------------------------------------------
 @app.post("/export-pdf")
@@ -2715,26 +2335,6 @@ def export_pdf(data: dict = Body(...)):
         content=pdf_bytes,
         media_type="application/pdf",
         headers={"Content-Disposition": 'attachment; filename="report.pdf"'},
-    )
-
-
-@app.post("/export-docx")
-def export_docx(data: dict = Body(...)):
-    """يستلم نفس JSON اللي رجّعه /upload ويرجع ملف Word (.docx) قابل للتعديل."""
-    try:
-        blob = build_report_docx(data)
-    except ImportError:
-        raise HTTPException(status_code=500, detail="python-docx is not installed. Run: pip install python-docx")
-    except Exception as error:
-        logger.error("DOCX export failed:\n%s", traceback.format_exc())
-        raise HTTPException(
-            status_code=500,
-            detail=f"Word export failed: {type(error).__name__}: {error}",
-        )
-    return Response(
-        content=blob,
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        headers={"Content-Disposition": 'attachment; filename="report.docx"'},
     )
 
 
