@@ -1838,15 +1838,16 @@ async def delete_analysis(aid: str, x_owner: str | None = Header(default=None)):
 BASE_DIR = Path(__file__).resolve().parent
 FONT = "DatovaFont"
 _font_ready = False
+_FONT_FILE = {"path": None}
 
 # ---------------------------------------------------------------- الألوان (نفس ثيم الفرونت)
-INK = HexColor("#272A43")
+INK = HexColor("#1B1D33")
 PURPLE = HexColor("#6E6AA8")
 PURPLE2 = HexColor("#A8A4D4")
-LILAC = HexColor("#CBC6EA")
+LILAC = HexColor("#CCCCCC")
 GRAY = HexColor("#777B91")
 BODY = HexColor("#5A5D78")
-CARD = HexColor("#F5F3FB")
+CARD = HexColor("#FFFFFF")
 TRACK = HexColor("#E4E0F3")
 CHIP = HexColor("#E7E3F5")
 WARN = HexColor("#F8DCE6")
@@ -1899,6 +1900,7 @@ def register_font() -> None:
             except Exception:
                 continue
             _font_ready = True
+            _FONT_FILE["path"] = str(path)
             return
     raise RuntimeError("ما لقينا خط عربي. حط Amiri-Regular.ttf داخل مجلد fonts/ جنب main.py")
 
@@ -2036,24 +2038,25 @@ class _Report:
     # ---- أقسام الصفحة
     def header(self, data):
         t = self.t
-        h, pad = 92, 20
         top = self.y
-        self.c.setFillColor(INK)
-        self.c.roundRect(M, top - h, CW, h, 16, stroke=0, fill=1)
-        x0, iw = M + pad, CW - 2 * pad
-        half = iw * 0.62
-        left = self.reg(x0, iw, 0, half)
-        self.put_lead(t["title"], left, half, top - 36, 20, white)
+        half = CW * 0.64
+        left = self.reg(M, CW, 0, half)
+        self.put_lead(t["title"], left, half, top - 24, 22, INK)
+        yy = top - 44
         name = _clean(data.get("original_filename"), 60)
         if name:
-            self.put_lead(f"{t['file']}: {name}", left, half, top - 56, 10, LILAC)
-        self.put_lead(f"{t['date']}: {datetime.now():%Y-%m-%d %H:%M}", left, half, top - 72, 10, LILAC)
-        # العلامة على الجهة الثانية
-        trail_w = iw - half - 10
-        tl = self.reg(x0, iw, iw - trail_w, trail_w)
-        self.put("DATOVA", tl, top - 40, 17, white, "l")
-        self.put("Discover What Data Hides.", tl, top - 56, 8, LILAC, "l")
-        self.y = top - h - 16
+            self.put_lead(f"{t['file']}: {name}", left, half, yy, 10, GRAY)
+            yy -= 15
+        self.put_lead(f"{t['date']}: {datetime.now():%Y-%m-%d %H:%M}", left, half, yy, 10, GRAY)
+        trail_w = CW - half - 10
+        tl = self.reg(M, CW, CW - trail_w, trail_w)
+        self.put("DATOVA", tl, top - 24, 17, PURPLE, "l")
+        self.put("Discover What Data Hides.", tl, top - 40, 8, GRAY, "l")
+        line_y = top - 70
+        self.c.setStrokeColor(LILAC)
+        self.c.setLineWidth(1)
+        self.c.line(M, line_y, M + CW, line_y)
+        self.y = line_y - 12
 
     def business_chip(self, business):
         text = f"{self.t['business']}: {_clean(business, 80) or '-'}"
@@ -2335,6 +2338,319 @@ def export_pdf(data: dict = Body(...)):
         content=pdf_bytes,
         media_type="application/pdf",
         headers={"Content-Disposition": 'attachment; filename="report.pdf"'},
+    )
+
+
+# ---------------------------------------------------------------------------
+# تقرير Word: نفس تنظيم الصفحة التسويقية (أقسام داخل بطاقات بيضاء بإطار رمادي ونص داكن)
+# (يحتاج: pip install python-docx)
+# ---------------------------------------------------------------------------
+_WORD_INK, _WORD_GRAY, _WORD_PURPLE, _WORD_BORDER = "1B1D33", "555A78", "6E6AA8", "CCCCCC"
+_WORD_PIE = ["#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0"]
+
+
+def _use_mpl_font() -> None:
+    """يخلي matplotlib يستعمل نفس الخط العربي حتى تظهر حروف المخططات سليمة."""
+    try:
+        register_font()
+        path = _FONT_FILE.get("path")
+        if path:
+            from matplotlib import font_manager
+            font_manager.fontManager.addfont(path)
+            plt.rcParams["font.family"] = font_manager.FontProperties(fname=path).get_name()
+    except Exception:
+        pass
+
+
+def _chart_png(a: dict) -> BytesIO | None:
+    """يرسم المخطط كصورة بألوان الموقع (أعمدة أفقية / أعمدة زمنية / دائري) لإدراجها داخل Word."""
+    raw = [_clean(x, 60) for x in (a.get("labels") or [])][:31]
+    vals = _nums(a.get("values"))[:31]
+    n = min(len(raw), len(vals))
+    raw, vals = raw[:n], vals[:n]
+    if not n:
+        return None
+    _use_mpl_font()
+    is_pie = a.get("chart") == "pie"
+    is_time = n > 1 and all(re.fullmatch(r"\d{4}-\d{2}(?:-\d{2})?", l) for l in raw)
+    labels = [fix_text(_clean(x, 40)) for x in raw]
+    ink, track = "#1B1D33", "#E4E0F3"
+    fig, ax = plt.subplots(figsize=(7.2, 3.4 if (is_pie or is_time) else max(2.0, 0.36 * n + 0.7)))
+    fig.patch.set_facecolor("white")
+    if is_pie:
+        pos = [max(v, 0.0) for v in vals]
+        total = sum(pos) or 1.0
+        colors = [_WORD_PIE[i % len(_WORD_PIE)] for i in range(n)]
+        wedges, _ = ax.pie(pos, colors=colors, startangle=90, counterclock=False,
+                           wedgeprops={"width": 0.42, "edgecolor": "white"})
+        ax.legend(wedges, [f"{labels[i]}   {pos[i] / total * 100:.1f}%" for i in range(n)],
+                  loc="center left", bbox_to_anchor=(1.0, 0.5), frameon=False, fontsize=9, labelcolor=ink)
+        ax.axis("equal")
+    elif is_time:
+        step = 2 if n > 12 else 1
+        short = []
+        for i, l in enumerate(raw):
+            p = l.split("-")
+            s = f"{p[2]}/{p[1]}" if len(p) == 3 else f"{p[1]}/{p[0][2:]}"
+            short.append(s if i % step == 0 else "")
+        ax.bar(range(n), vals, color=["#E8B4CB" if v < 0 else "#A8A4D4" for v in vals], width=0.7)
+        ax.set_xticks(range(n))
+        ax.set_xticklabels(short, fontsize=8, color=ink)
+        ax.tick_params(axis="y", labelsize=8, colors=ink)
+        ax.yaxis.grid(True, color=track, linewidth=0.8)
+        ax.set_axisbelow(True)
+        if n <= 8:
+            for i, v in enumerate(vals):
+                ax.annotate(fmt(v), (i, v), ha="center", va="bottom" if v >= 0 else "top", fontsize=8, color=ink)
+    else:
+        mx = max(max(abs(v) for v in vals), 1.0)
+        ax.barh(range(n), vals, color=["#E8B4CB" if v < 0 else "#A8A4D4" for v in vals], height=0.6)
+        ax.set_yticks(range(n))
+        ax.set_yticklabels(labels, fontsize=9, color=ink)
+        ax.invert_yaxis()
+        ax.set_xlim(min(0, min(vals)) * 1.05, mx * 1.22)
+        ax.xaxis.set_visible(False)
+        for i, v in enumerate(vals):
+            ax.annotate(fmt(v), (v, i), xytext=(5 if v >= 0 else -5, 0), textcoords="offset points",
+                        ha="left" if v >= 0 else "right", va="center", fontsize=9, color=ink)
+    if not is_pie:
+        for s in ("top", "right", "left" if not is_time else "bottom"):
+            ax.spines[s].set_visible(False)
+        for s in ax.spines.values():
+            s.set_color("#CCCCCC")
+        ax.tick_params(length=0)
+    fig.tight_layout()
+    buf = BytesIO()
+    fig.savefig(buf, format="png", dpi=170, facecolor="white")
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
+def build_report_docx(data: dict) -> bytes:
+    """يستلم نفس JSON اللي يستلمه /export-pdf ويرجع bytes مال ملف Word (.docx)."""
+    try:
+        from docx import Document
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+        from docx.shared import Cm, Pt
+    except ImportError:
+        raise RuntimeError("python-docx is not installed. Run: pip install python-docx")
+
+    lang = "en" if data.get("lang") == "en" else "ar"
+    t = LABELS[lang]
+    rtl = lang == "ar"
+    rep = data.get("cleaning_report") if isinstance(data.get("cleaning_report"), dict) else {}
+    CONTENT_W = 17.4   # سم (A4 ناقص الهوامش)
+
+    doc = Document()
+    sec = doc.sections[0]
+    sec.page_width, sec.page_height = Cm(21), Cm(29.7)
+    sec.left_margin = sec.right_margin = Cm(1.8)
+    sec.top_margin = sec.bottom_margin = Cm(1.8)
+    doc.core_properties.title = t["title"]
+    normal = doc.styles["Normal"]
+    normal.font.name = "Arial"
+    normal.font.size = Pt(11)
+
+    def mk(tag, **attrs):
+        e = OxmlElement(tag)
+        for k, v in attrs.items():
+            e.set(qn(k), v)
+        return e
+
+    def run(p, text, size=11, bold=False, color=_WORD_INK):
+        r = p.add_run(_clean(text, 4000))
+        rPr = r._r.get_or_add_rPr()
+        for child in list(rPr):
+            rPr.remove(child)
+        rPr.append(mk("w:rFonts", **{"w:ascii": "Arial", "w:hAnsi": "Arial", "w:cs": "Arial"}))
+        if bold:
+            rPr.append(mk("w:b"))
+            rPr.append(mk("w:bCs"))
+        rPr.append(mk("w:color", **{"w:val": color}))
+        rPr.append(mk("w:sz", **{"w:val": str(int(size * 2))}))
+        rPr.append(mk("w:szCs", **{"w:val": str(int(size * 2))}))
+        if rtl:
+            rPr.append(mk("w:rtl"))
+        return r
+
+    def par(container, text="", size=11, bold=False, color=_WORD_INK, before=0, after=4):
+        p = container.add_paragraph()
+        if rtl:
+            p._p.get_or_add_pPr().append(mk("w:bidi"))   # لازم أول عنصر قبل التباعد
+        p.paragraph_format.space_before = Pt(before)
+        p.paragraph_format.space_after = Pt(after)
+        if text:
+            run(p, text, size, bold, color)
+        return p
+
+    def spacer(pts=6):
+        p = par(doc, "", after=0)
+        p.paragraph_format.line_spacing = Pt(pts)
+
+    def style_table(tbl, borders=True):
+        tblPr = tbl._tbl.tblPr
+        look = tblPr.find(qn("w:tblLook"))
+        tblW = tblPr.find(qn("w:tblW"))
+        if rtl:
+            bv = mk("w:bidiVisual")
+            if tblW is not None:
+                tblW.addprevious(bv)
+            else:
+                tblPr.append(bv)
+        extra = []
+        if borders:
+            b = mk("w:tblBorders")
+            for side in ("top", "left", "bottom", "right", "insideH", "insideV"):
+                b.append(mk(f"w:{side}", **{"w:val": "single", "w:sz": "6", "w:space": "0", "w:color": _WORD_BORDER}))
+            extra.append(b)
+        mar = mk("w:tblCellMar")
+        for side in ("top", "left", "bottom", "right"):
+            mar.append(mk(f"w:{side}", **{"w:w": "170", "w:type": "dxa"}))
+        extra.append(mar)
+        for e in extra:
+            if look is not None:
+                look.addprevious(e)
+            else:
+                tblPr.append(e)
+
+    def drop_first_empty(cell):
+        ps = cell.paragraphs
+        if len(ps) > 1 and not ps[0].text and not ps[0].runs:
+            ps[0]._p.getparent().remove(ps[0]._p)
+
+    def card(title=None):
+        tbl = doc.add_table(rows=1, cols=1)
+        style_table(tbl)
+        cell = tbl.cell(0, 0)
+        cell.width = Cm(CONTENT_W)
+        if title:
+            par(cell, title, size=15, bold=True, after=6)
+        return cell
+
+    def end_card(cell):
+        drop_first_empty(cell)
+        spacer(8)
+
+    def bullets(cell, items):
+        for it in items:
+            par(cell, f"•  {_clean(it, 1200)}", size=11, after=5)
+
+    # ---------- العنوان ----------
+    par(doc, t["title"], size=22, bold=True, after=2)
+    name = _clean(data.get("original_filename"), 80)
+    if name:
+        par(doc, f"{t['file']}: {name}", size=10, color=_WORD_GRAY, after=0)
+    par(doc, f"{t['date']}: {datetime.now():%Y-%m-%d %H:%M}", size=10, color=_WORD_GRAY, after=0)
+    par(doc, "DATOVA  —  Discover What Data Hides.", size=9, color=_WORD_PURPLE, after=8)
+    par(doc, f"{t['business']}: {_clean(data.get('business_type'), 80) or '-'}", size=12, bold=True, after=8)
+
+    # ---------- الخلاصة ----------
+    if data.get("summary"):
+        c = card(t["summary"])
+        par(c, data["summary"], size=11.5, after=2)
+        end_card(c)
+
+    # ---------- الأرقام ----------
+    items = [
+        (t["rows"], rep.get("rows_after"), rep.get("rows_before")),
+        (t["dups"], rep.get("duplicates_removed"), None),
+        (t["missing"], rep.get("dropped_rows_missing"), None),
+        (t["cols"], rep.get("columns_after"), rep.get("columns_before")),
+    ]
+    st = doc.add_table(rows=1, cols=4)
+    style_table(st)
+    for i, (label, val, of) in enumerate(items):
+        cell = st.cell(0, i)
+        cell.width = Cm(CONTENT_W / 4)
+        par(cell, label, size=9, color=_WORD_GRAY, after=2)
+        par(cell, fmt(val or 0), size=18, bold=True, after=1)
+        par(cell, f"{t['of']} {fmt(of)}" if of is not None else " ", size=9, color=_WORD_GRAY, after=0)
+        drop_first_empty(cell)
+    spacer(8)
+
+    # ---------- شروط الفلتر + ملاحظات التنظيف ----------
+    fi = data.get("filter_info")
+    notes = []
+    if isinstance(fi, dict):
+        notes.append(f"{t['filtered_rows']}: {fmt(fi.get('rows_after'))} {t['of']} {fmt(fi.get('rows_before'))}")
+        notes += [_clean(d, 120) for d in (fi.get("descriptions") or [])[:12]]
+    notes += [f"{t['filled']}: {_clean(col, 60)} ({t.get(how, how)})" for col, how in (rep.get("filled_columns") or {}).items()]
+    notes += [f"{t['dropped']}: {_clean(col, 60)}" for col in (rep.get("dropped_columns") or [])]
+    if notes:
+        par(doc, "   •   ".join(notes[:40]), size=9.5, color=_WORD_GRAY, after=8)
+
+    # ---------- المخططات (كل مخطط ببطاقة) ----------
+    analyses = [a for a in (data.get("analyses") or []) if isinstance(a, dict)][:MAX_DASH_CHARTS]
+    if analyses:
+        par(doc, t["charts"], size=16, bold=True, before=4, after=6)
+        for a in analyses:
+            c = card(_clean(a.get("title") or "-", 150))
+            for p in c.paragraphs:
+                for r in p.runs:
+                    r.font.size = Pt(13)
+            png = None
+            try:
+                png = _chart_png(a)
+            except Exception:
+                logger.error("Word chart failed:\n%s", traceback.format_exc())
+            if png:
+                pp = par(c, "", after=2)
+                pp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                pp.add_run().add_picture(png, width=Cm(15.8))
+            end_card(c)
+
+    # ---------- الاستنتاجات والنصائح والمشاكل ----------
+    insights = [i for i in (data.get("insights") or []) if i][:20]
+    if insights:
+        c = card(t["insights"])
+        bullets(c, insights)
+        end_card(c)
+    recs = [i for i in (data.get("recommendations") or []) if i][:20]
+    if recs:
+        c = card(t["recs"])
+        bullets(c, recs)
+        end_card(c)
+    probs = [p for p in (data.get("problems") or []) if isinstance(p, dict)][:15]
+    if probs:
+        c = card(t["problems"])
+        for p in probs:
+            sev = t.get("sev_" + str(p.get("severity")), "")
+            par(c, f"[{sev}] {_clean(p.get('title'), 120)}", size=11.5, bold=True, after=1)
+            if p.get("detail"):
+                par(c, _clean(p.get("detail"), 400), size=11, after=1)
+            if p.get("fix"):
+                par(c, f"{t['fix']}: {_clean(p.get('fix'), 300)}", size=11, color=_WORD_GRAY, after=7)
+        end_card(c)
+
+    fp = sec.footer.paragraphs[0]
+    fp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run(fp, "DATOVA  —  Discover What Data Hides.", size=8.5, color=_WORD_GRAY)
+
+    buf = BytesIO()
+    doc.save(buf)
+    return buf.getvalue()
+
+
+@app.post("/export-docx")
+def export_docx(data: dict = Body(...)):
+    """يستلم نفس JSON اللي يستلمه /export-pdf ويرجع ملف Word للتحميل."""
+    try:
+        docx_bytes = build_report_docx(data)
+    except RuntimeError as error:  # مثلًا: python-docx غير مثبّت
+        raise HTTPException(status_code=500, detail=str(error))
+    except Exception as error:
+        logger.error("Word export failed:\n%s", traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail=f"Word export failed: {type(error).__name__}: {error}",
+        )
+    return Response(
+        content=docx_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": 'attachment; filename="report.docx"'},
     )
 
 

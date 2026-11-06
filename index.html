@@ -395,6 +395,15 @@ html{color-scheme:dark}
   .slogan{background:#ECE9F8!important}.mbar{background:#E7E9F2!important}
   .badge{background:#EEF0F7!important}.mtable th,.mtable td{border-bottom:1px solid #d9dbea!important}
 }
+
+/* ---------- قائمة الحفظ (PDF / Word) ---------- */
+.dl{position:relative;display:inline-block}
+.dl-menu{display:none;position:absolute;inset-inline-end:0;top:calc(100% + 8px);min-width:210px;padding:8px;z-index:30;border-radius:16px;
+  background:#1D2040;border:1px solid var(--glass-line);box-shadow:var(--shadow)}
+.dl-menu.open{display:grid;gap:4px}
+.dl-item{display:flex;align-items:center;gap:10px;border:0;border-radius:12px;padding:10px 14px;background:transparent;color:var(--ink);font-weight:600;text-align:start}
+.dl-item:hover{background:rgba(255,255,255,.1)}
+.dl-item svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 </style>
 </head>
 <body>
@@ -508,6 +517,7 @@ const I18N = {
     pdf: "تحميل النتائج PDF",
     pdfBusy: "جاري التحضير...",
     errPdf: "ما كدرنا نجهّز ملف الـ PDF. جرب مرة ثانية.",
+    dl: "حفظ النتائج", dlPdf: "حفظ كملف PDF", dlWord: "حفظ كملف Word",
     steps: ["قراءة الملف", "فهم نوع مشروعك", "تنظيف البيانات", "تخطيط التحليل", "رسم المخططات", "كتابة الاستنتاجات والنصائح"],
     errType: "نوع الملف غير مدعوم. ارفع ملف CSV أو XLSX.",
     errSize: "حجم الملف أكبر من 20 ميغابايت.",
@@ -598,6 +608,7 @@ const I18N = {
     pdf: "Download results (PDF)",
     pdfBusy: "Preparing...",
     errPdf: "Couldn't prepare the PDF. Please try again.",
+    dl: "Save results", dlPdf: "Save as PDF", dlWord: "Save as Word",
     steps: ["Reading your file", "Understanding your business", "Cleaning the data", "Planning the analysis", "Drawing the charts", "Writing insights and advice"],
     errType: "Unsupported file type. Upload a CSV or XLSX file.",
     errSize: "The file is larger than 20 MB.",
@@ -812,13 +823,15 @@ async function analyze() {
   }
 }
 /* ---------- تحميل النتائج PDF ---------- */
-async function downloadPdf(btn) {
+const DL_FORMATS = { pdf: { path: "/export-pdf", ext: "pdf" }, docx: { path: "/export-docx", ext: "docx" } };
+async function downloadReport(kind, btn) {
   if (!lastData) return;
+  const info = DL_FORMATS[kind];
   const label = btn.textContent;
   btn.disabled = true;
   btn.textContent = t("pdfBusy");
   try {
-    const res = await fetch(API_BASE + "/export-pdf", {
+    const res = await fetch(API_BASE + info.path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify((({ filter_meta, ...rest }) => ({ ...rest, lang }))(lastData)),
@@ -832,7 +845,7 @@ async function downloadPdf(btn) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "datova-report.pdf";
+    a.download = "datova-report." + info.ext;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -844,6 +857,31 @@ async function downloadPdf(btn) {
     btn.textContent = label;
   }
 }
+/* زر الحفظ: قائمة فيها PDF و Word */
+function buildDownloadMenu() {
+  const wrap = el("div", "dl");
+  const toggle = el("button", "btn", t("dl") + " ▾");
+  toggle.type = "button";
+  toggle.setAttribute("aria-haspopup", "true");
+  const menu = el("div", "dl-menu");
+  const icons = {
+    pdf: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z M14 3v5h5 M9 14h6 M9 17h4",
+    docx: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z M14 3v5h5 M8.5 12l1.5 5 2-5 2 5 1.5-5"
+  };
+  [["pdf", "dlPdf"], ["docx", "dlWord"]].forEach(([kind, key]) => {
+    const item = el("button", "dl-item");
+    item.type = "button";
+    const ic = svgEl("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" });
+    ic.appendChild(svgEl("path", { d: icons[kind] }));
+    item.append(ic, el("span", "", t(key)));
+    item.addEventListener("click", () => { menu.classList.remove("open"); downloadReport(kind, toggle); });
+    menu.appendChild(item);
+  });
+  toggle.addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("open"); });
+  wrap.append(toggle, menu);
+  return wrap;
+}
+document.addEventListener("click", () => document.querySelectorAll(".dl-menu.open").forEach((m) => m.classList.remove("open")));
 $("analyzeBtn").addEventListener("click", analyze);
 /* ---------- بناء النتائج (textContent فقط، حتى ما ينحقن اي شي من الـ AI) ---------- */
 function el(tag, cls, text) {
@@ -1445,11 +1483,8 @@ function renderResults(d) {
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
   again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); setHash(null); root.innerHTML = ""; clearFile(); show("upload"); });
-  const pdfBtn = el("button", "btn", t("pdf"));
-  pdfBtn.type = "button";
-  pdfBtn.addEventListener("click", () => downloadPdf(pdfBtn));
   const btns = el("div", "res-btns");
-  btns.append(pdfBtn, again);
+  btns.append(buildDownloadMenu(), again);
   head.append(chip, btns);
   root.appendChild(head);
   if (d.saved) root.appendChild(buildTitleRow(d));
