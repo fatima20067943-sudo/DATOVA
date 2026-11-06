@@ -1887,7 +1887,7 @@ def register_font() -> None:
     if _font_ready:
         return
     dirs = [BASE_DIR / "fonts", BASE_DIR]
-    names = ["Amiri-Regular.ttf", "Cairo-Regular.ttf", "NotoNaskhArabic-Regular.ttf"]
+    names = ["Cairo-Regular.ttf", "Cairo[slnt,wght].ttf", "Cairo-VariableFont_slnt,wght.ttf", "Amiri-Regular.ttf", "NotoNaskhArabic-Regular.ttf"]
     candidates = [d / n for d in dirs for n in names]
     for d in dirs:
         if d.is_dir():
@@ -1901,6 +1901,8 @@ def register_font() -> None:
                 continue
             _font_ready = True
             _FONT_FILE["path"] = str(path)
+            if "cairo" not in path.name.lower():
+                logger.warning("Cairo font not found in fonts/, using %s instead. Put Cairo-Regular.ttf inside fonts/.", path.name)
             return
     raise RuntimeError("ما لقينا خط عربي. حط Amiri-Regular.ttf داخل مجلد fonts/ جنب main.py")
 
@@ -2345,6 +2347,7 @@ def export_pdf(data: dict = Body(...)):
 # تقرير Word: نفس تنظيم الصفحة التسويقية (أقسام داخل بطاقات بيضاء بإطار رمادي ونص داكن)
 # (يحتاج: pip install python-docx)
 # ---------------------------------------------------------------------------
+WORD_FONT = "Cairo"   # نفس خط الموقع (لازم يكون منصّب على جهاز اللي يفتح الملف)
 _WORD_INK, _WORD_GRAY, _WORD_PURPLE, _WORD_BORDER = "1B1D33", "555A78", "6E6AA8", "CCCCCC"
 _WORD_PIE = ["#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0"]
 
@@ -2451,7 +2454,7 @@ def build_report_docx(data: dict) -> bytes:
     sec.top_margin = sec.bottom_margin = Cm(1.8)
     doc.core_properties.title = t["title"]
     normal = doc.styles["Normal"]
-    normal.font.name = "Arial"
+    normal.font.name = WORD_FONT
     normal.font.size = Pt(11)
 
     def mk(tag, **attrs):
@@ -2465,7 +2468,7 @@ def build_report_docx(data: dict) -> bytes:
         rPr = r._r.get_or_add_rPr()
         for child in list(rPr):
             rPr.remove(child)
-        rPr.append(mk("w:rFonts", **{"w:ascii": "Arial", "w:hAnsi": "Arial", "w:cs": "Arial"}))
+        rPr.append(mk("w:rFonts", **{"w:ascii": WORD_FONT, "w:hAnsi": WORD_FONT, "w:cs": WORD_FONT}))
         if bold:
             rPr.append(mk("w:b"))
             rPr.append(mk("w:bCs"))
@@ -2677,5 +2680,4 @@ async def db_check():
     except Exception as error:
         logger.error("db-check failed:\n%s", traceback.format_exc())
         return {"connected": False, "error_type": type(error).__name__}
-
 
