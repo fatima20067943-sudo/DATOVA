@@ -174,6 +174,20 @@ input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events
 footer{margin-top:64px;text-align:center;color:var(--gray);font-size:14px}
 footer .wordmark{margin-bottom:8px}
 footer p{margin:2px 0}
+/* ---------- زر الحفظ (قائمة PDF / Word) ---------- */
+.savewrap{position:relative;z-index:30}
+.savewrap>.btn{display:inline-flex;align-items:center;gap:8px}
+.savewrap .caret{font-size:12px;opacity:.85;transition:transform .15s}
+.savewrap>.btn[aria-expanded="true"] .caret{transform:rotate(180deg)}
+.savemenu{display:none;position:absolute;inset-inline-end:0;top:calc(100% + 8px);min-width:210px;padding:6px;
+  border-radius:16px;background:#1D2040;border:1px solid var(--glass-line);box-shadow:0 18px 40px -16px rgba(0,0,0,.75)}
+.savemenu.open{display:block}
+.savemenu button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;color:var(--ink);
+  padding:10px 12px;border-radius:12px;text-align:start;font-weight:600}
+.savemenu button:hover,.savemenu button:focus-visible{background:rgba(163,154,234,.2)}
+.savemenu .ftag{flex:none;min-width:48px;text-align:center;padding:2px 8px;border-radius:8px;font-size:12px;font-weight:700;
+  background:rgba(163,154,234,.22);color:var(--purple-2);direction:ltr}
+.save-err{margin:0 0 16px}
 /* ---------- الفلتر ---------- */
 /* ---------- لوحة المعلومات المخصصة ---------- */
 /* ---------- واجهة الترحيب ---------- */
@@ -508,6 +522,8 @@ const I18N = {
     pdf: "تحميل النتائج PDF",
     pdfBusy: "جاري التحضير...",
     errPdf: "ما كدرنا نجهّز ملف الـ PDF. جرب مرة ثانية.",
+    errDocx: "ما كدرنا نجهّز ملف الـ Word. جرب مرة ثانية.",
+    save: "حفظ", savePdf: "ملف PDF", saveWord: "ملف Word",
     steps: ["قراءة الملف", "فهم نوع مشروعك", "تنظيف البيانات", "تخطيط التحليل", "رسم المخططات", "كتابة الاستنتاجات والنصائح"],
     errType: "نوع الملف غير مدعوم. ارفع ملف CSV أو XLSX.",
     errSize: "حجم الملف أكبر من 20 ميغابايت.",
@@ -598,6 +614,8 @@ const I18N = {
     pdf: "Download results (PDF)",
     pdfBusy: "Preparing...",
     errPdf: "Couldn't prepare the PDF. Please try again.",
+    errDocx: "Couldn't prepare the Word file. Please try again.",
+    save: "Save", savePdf: "PDF file", saveWord: "Word file",
     steps: ["Reading your file", "Understanding your business", "Cleaning the data", "Planning the analysis", "Drawing the charts", "Writing insights and advice"],
     errType: "Unsupported file type. Upload a CSV or XLSX file.",
     errSize: "The file is larger than 20 MB.",
@@ -811,14 +829,21 @@ async function analyze() {
     stopSteps();
   }
 }
-/* ---------- تحميل النتائج PDF ---------- */
-async function downloadPdf(btn) {
-  if (!lastData) return;
-  const label = btn.textContent;
+/* ---------- حفظ النتائج (PDF / Word) ---------- */
+const EXPORTS = {
+  pdf:  { path: "/export-pdf",  file: "datova-report.pdf",  label: "savePdf",  err: "errPdf" },
+  docx: { path: "/export-docx", file: "datova-report.docx", label: "saveWord", err: "errDocx" },
+};
+async function downloadReport(kind, btn, lbl, errBox) {
+  const cfg = EXPORTS[kind];
+  if (!cfg || !lastData || btn.disabled) return;
+  const label = lbl.textContent;
+  errBox.classList.remove("show");
+  errBox.textContent = "";
   btn.disabled = true;
-  btn.textContent = t("pdfBusy");
+  lbl.textContent = t("pdfBusy");
   try {
-    const res = await fetch(API_BASE + "/export-pdf", {
+    const res = await fetch(API_BASE + cfg.path, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify((({ filter_meta, ...rest }) => ({ ...rest, lang }))(lastData)),
@@ -826,23 +851,64 @@ async function downloadPdf(btn) {
     if (!res.ok) {
       let d = null;
       try { d = await res.json(); } catch (e) {}
-      throw new Error(d && typeof d.detail === "string" ? d.detail : t("errPdf"));
+      throw new Error(d && typeof d.detail === "string" ? d.detail : t(cfg.err));
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "datova-report.pdf";
+    a.download = cfg.file;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
-    alert(err instanceof TypeError ? t("errNet") : err.message);
+    errBox.textContent = err instanceof TypeError ? t("errNet") : (err.message || t(cfg.err));
+    errBox.classList.add("show");
   } finally {
     btn.disabled = false;
-    btn.textContent = label;
+    lbl.textContent = label;
   }
+}
+function closeSaveMenus() {
+  document.querySelectorAll(".savemenu.open").forEach((m) => {
+    m.classList.remove("open");
+    const b = m.parentNode.querySelector(".btn");
+    if (b) b.setAttribute("aria-expanded", "false");
+  });
+}
+/* القائمة تنغلق بالضغط خارجها أو بزر Escape */
+document.addEventListener("click", (e) => {
+  if (e.target.closest && e.target.closest(".savewrap")) return;
+  closeSaveMenus();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeSaveMenus(); });
+function buildSaveMenu(errBox) {
+  const wrap = el("div", "savewrap");
+  const btn = el("button", "btn");
+  btn.type = "button";
+  btn.setAttribute("aria-haspopup", "menu");
+  btn.setAttribute("aria-expanded", "false");
+  const lbl = el("span", "sl", t("save"));
+  btn.append(lbl, el("span", "caret", "▾"));
+  const menu = el("div", "savemenu");
+  menu.setAttribute("role", "menu");
+  Object.keys(EXPORTS).forEach((kind) => {
+    const it = el("button", "");
+    it.type = "button";
+    it.setAttribute("role", "menuitem");
+    it.append(el("span", "ftag", kind === "pdf" ? "PDF" : "DOCX"), el("span", "", t(EXPORTS[kind].label)));
+    it.addEventListener("click", () => { closeSaveMenus(); downloadReport(kind, btn, lbl, errBox); });
+    menu.appendChild(it);
+  });
+  btn.addEventListener("click", () => {
+    const open = !menu.classList.contains("open");
+    closeSaveMenus();
+    menu.classList.toggle("open", open);
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  wrap.append(btn, menu);
+  return wrap;
 }
 $("analyzeBtn").addEventListener("click", analyze);
 /* ---------- بناء النتائج (textContent فقط، حتى ما ينحقن اي شي من الـ AI) ---------- */
@@ -1445,13 +1511,12 @@ function renderResults(d) {
   const again = el("button", "btn ghost", t("again"));
   again.type = "button";
   again.addEventListener("click", () => { lastData = null; baseData = null; resetFilter(); setHash(null); root.innerHTML = ""; clearFile(); show("upload"); });
-  const pdfBtn = el("button", "btn", t("pdf"));
-  pdfBtn.type = "button";
-  pdfBtn.addEventListener("click", () => downloadPdf(pdfBtn));
+  const saveErr = el("div", "error save-err");
+  saveErr.setAttribute("role", "alert");
   const btns = el("div", "res-btns");
-  btns.append(pdfBtn, again);
+  btns.append(buildSaveMenu(saveErr), again);
   head.append(chip, btns);
-  root.appendChild(head);
+  root.append(head, saveErr);
   if (d.saved) root.appendChild(buildTitleRow(d));
   else if (d.upload_id) {      // التحليل ما انحفظ: نبين السبب بدل ما نسكت
     const ns = el("div", "notes");
