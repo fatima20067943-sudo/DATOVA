@@ -428,6 +428,87 @@ html{color-scheme:dark}
   body.print-results .note.warn{background:#F8DCE6!important}
   body.print-results .card,body.print-results .summary,body.print-results .stat,body.print-results .prob{break-inside:avoid}
 }
+
+/* ---------- شعار التقرير + قائمة الحفظ ---------- */
+.dl-menu{min-width:260px}
+.dl-sep{height:1px;margin:4px 6px;background:var(--glass-line)}
+.dl-logo{display:grid;gap:6px;padding:2px 0 4px}
+.dl-thumb{display:flex;align-items:center;gap:10px;padding:6px 10px;font-size:13px;color:var(--body)}
+.dl-thumb img{max-height:34px;max-width:96px;padding:3px 6px;border-radius:8px;background:#fff;object-fit:contain}
+.dl-thumb span{flex:1}
+.dl-link{border:0;background:transparent;color:var(--purple-2);font-size:13px;font-weight:600;text-decoration:underline;padding:4px}
+.dl-entity{padding:4px 10px 2px}
+.dl-entity .flab{flex-direction:column;align-items:stretch;gap:4px;font-size:13px}
+.dl-hint{padding:0 14px;font-size:12px;color:var(--gray);line-height:1.5}
+.dl-err{margin:2px 10px 4px;padding:6px 10px;border-radius:10px;font-size:12.5px;background:rgba(233,120,165,.15);color:#F8BBD4}
+.print-head,.ptable{display:none}
+
+/* ---------- حجم الورقة وترقيم الصفحات ---------- */
+@page{size:A4;margin:13mm 12mm 17mm;
+  @bottom-center{content:"DATOVA  ·  " counter(page);font-family:Cairo,Inter,sans-serif;font-size:8pt;color:#777B91}}
+
+/* ---------- تنسيق تقرير الـ PDF (الخط، الجداول، الرسومات) ---------- */
+@media print{
+  body.print-results{font-family:Cairo,Inter,system-ui,sans-serif;font-size:10.5pt;line-height:1.75;color:#1b1d33}
+  body.print-results .res-head{display:none!important}
+  /* الرأس: الشعار + العنوان */
+  body.print-results .print-head{display:flex;align-items:center;gap:18px;padding:12px 18px;margin:0 0 16px;
+    border:1px solid #CBC6EA;border-inline-start:5px solid #6E6AA8;border-radius:12px;background:#F5F3FB!important;break-inside:avoid}
+  body.print-results .ph-logo{flex:none;max-height:17mm;max-width:52mm;object-fit:contain}
+  body.print-results .ph-text{flex:1;min-width:0}
+  body.print-results .print-head.has-logo .ph-text{text-align:end}
+  body.print-results .ph-title{font-size:19pt;font-weight:700;line-height:1.3;color:#272A43}
+  body.print-results .ph-for{font-size:12pt;font-weight:600;color:#6E6AA8;line-height:1.5}
+  body.print-results .ph-meta{font-size:9.5pt;color:#555A78}
+  body.print-results .ph-brand{font-size:8pt;letter-spacing:.06em;color:#6E6AA8}
+  /* العناوين */
+  body.print-results .sec-title{margin:20px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #CBC6EA;font-size:14pt;font-weight:700;color:#272A43}
+  body.print-results .summary h2,body.print-results .card h3{font-weight:700;color:#272A43}
+  body.print-results .summary h2{font-size:13pt}
+  body.print-results .summary p{font-size:11pt;line-height:1.85}
+  body.print-results .card h3{font-size:12pt}
+  /* الأرقام */
+  body.print-results .stats{grid-template-columns:repeat(4,1fr)!important;gap:8px}
+  body.print-results .stat{padding:10px 12px;background:#F5F3FB!important}
+  body.print-results .stat small{font-size:8.5pt}
+  body.print-results .stat b{font-size:17pt;font-weight:600}
+  /* المخططات: عمود واحد، كل بطاقة ما تنكسر بين صفحتين */
+  body.print-results .charts,body.print-results .two{grid-template-columns:1fr!important;gap:10px}
+  body.print-results .charts .card:last-child:nth-child(odd){grid-column:auto}
+  body.print-results .card{padding:14px 16px;break-inside:avoid}
+  body.print-results .card[data-pt="bars"] .hbars{display:none}
+  body.print-results .card[data-pt="pie"] .legend{display:none}
+  body.print-results .card[data-pt="pie"] .donut-wrap{justify-content:center}
+  body.print-results .donut-wrap svg{width:150px;height:150px}
+  body.print-results .vbars{height:170px}
+  body.print-results .cstats{font-size:9pt;margin-top:10px}
+  /* الجداول */
+  body.print-results .ptable{display:table;width:100%;margin-top:10px;border-collapse:collapse;font-size:9.5pt;line-height:1.5}
+  body.print-results .ptable thead{display:table-header-group}
+  body.print-results .ptable tr{break-inside:avoid}
+  body.print-results .ptable th{padding:5px 8px;background:#ECE9F8!important;color:#272A43;font-weight:700;text-align:start;border-bottom:1.5px solid #A8A4D4}
+  body.print-results .ptable td{padding:4px 8px;color:#1b1d33;border-bottom:.5pt solid #E4E0F3;vertical-align:middle}
+  body.print-results .ptable tbody tr:nth-child(even) td{background:#FAF9FD!important}
+  body.print-results .ptable tbody tr:last-child td{border-bottom:1px solid #CBC6EA}
+  body.print-results .ptable .num{direction:ltr;text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}
+  body.print-results .ptable .b{font-weight:600}
+  body.print-results .ptable .ltr{direction:ltr;text-align:start}
+  body.print-results .ptable .lab{width:32%}
+  body.print-results .ptable .bar{width:36%}
+  body.print-results .ptable .sw{width:22px;text-align:center}
+  body.print-results .ptable .up{color:#2E7D5B}
+  body.print-results .ptable .down{color:#B0366B}
+  body.print-results .psw{display:inline-block;width:10px;height:10px;border-radius:50%}
+  body.print-results .pbar{height:8px;border-radius:99px;background:#E4E0F3!important;overflow:hidden}
+  body.print-results .pbar i{display:block;height:100%;border-radius:99px;background:#A8A4D4!important}
+  body.print-results .pbar i.neg{background:#E8B4CB!important}
+  /* القوائم والمشاكل (الألوان الفاتحة مال الثيم الغامق ما تنقرأ على ورق أبيض) */
+  body.print-results .list li{margin-bottom:2px}
+  body.print-results .sev.high{background:#F8DCE6!important;color:#7A2148!important}
+  body.print-results .sev.medium{background:#FFE9B8!important;color:#7A4B00!important}
+  body.print-results .sev.low{background:#ECE9F8!important;color:#272A43!important}
+  body.print-results .prob{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -542,6 +623,10 @@ const I18N = {
     pdfBusy: "جاري التحضير...",
     errPdf: "ما كدرنا نجهّز ملف الـ PDF. جرب مرة ثانية.",
     dl: "حفظ النتائج", dlPdf: "حفظ كملف PDF", dlWord: "حفظ كملف Word",
+    reportTitle: "تقرير تحليل البيانات", logoAdd: "إضافة شعار (اختياري)", logoChange: "تغيير الشعار", logoRemove: "إزالة", logoOn: "الشعار مضاف",
+    logoHint: "يظهر أعلى التقرير بصيغتي PDF و Word، ويتحفظ على هذا المتصفح.", logoErrType: "صيغة الشعار غير مدعومة. استعمل PNG أو JPG أو WEBP أو SVG.", logoErrSize: "حجم الشعار أكبر من 3 ميغابايت.",
+    entityLabel: "اسم الجهة المستلمة (اختياري)", entityPh: "مثلاً: شركة النور للتجارة", reportFor: "مُعدّ لصالح",
+    colItem: "العنصر", colValue: "القيمة", colShare: "النسبة", colPeriod: "الفترة", colChange: "التغيّر",
     steps: ["قراءة الملف", "فهم نوع مشروعك", "تنظيف البيانات", "تخطيط التحليل", "رسم المخططات", "كتابة الاستنتاجات والنصائح"],
     errType: "نوع الملف غير مدعوم. ارفع ملف CSV أو XLSX.",
     errSize: "حجم الملف أكبر من 20 ميغابايت.",
@@ -633,6 +718,10 @@ const I18N = {
     pdfBusy: "Preparing...",
     errPdf: "Couldn't prepare the PDF. Please try again.",
     dl: "Save results", dlPdf: "Save as PDF", dlWord: "Save as Word",
+    reportTitle: "Data Analysis Report", logoAdd: "Add logo (optional)", logoChange: "Change logo", logoRemove: "Remove", logoOn: "Logo added",
+    logoHint: "Appears at the top of the PDF and Word report, and is kept on this browser.", logoErrType: "Unsupported logo format. Use PNG, JPG, WEBP or SVG.", logoErrSize: "The logo is larger than 3 MB.",
+    entityLabel: "Recipient name (optional)", entityPh: "e.g. Al-Noor Trading Co.", reportFor: "Prepared for",
+    colItem: "Item", colValue: "Value", colShare: "Share", colPeriod: "Period", colChange: "Change",
     steps: ["Reading your file", "Understanding your business", "Cleaning the data", "Planning the analysis", "Drawing the charts", "Writing insights and advice"],
     errType: "Unsupported file type. Upload a CSV or XLSX file.",
     errSize: "The file is larger than 20 MB.",
@@ -846,103 +935,253 @@ async function analyze() {
     stopSteps();
   }
 }
-/* ---------- تحميل النتائج PDF ---------- */
-/* ---------- حفظ كملف Word من الصفحة نفسها (بدون السيرفر): يبني نفس أقسام الشاشة بجداول يفهمها Word ---------- */
-function buildWordHtml(d) {
+/* ---------- شعار الجهة (اختياري): يظهر أعلى تقرير PDF و Word ---------- */
+let reportLogo = null;   // { url: PNG data URL, w, h }
+try {
+  const s = JSON.parse(localStorage.getItem("datova-logo") || "null");
+  if (s && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(s.url) && s.w > 0 && s.h > 0) reportLogo = s;
+} catch (e) {}
+let reportEntity = "";   // اسم الجهة المستلمة
+try { reportEntity = (localStorage.getItem("datova-entity") || "").slice(0, 80); } catch (e) {}
+function saveEntityStore() { try { localStorage.setItem("datova-entity", reportEntity); } catch (e) {} }
+function saveLogoStore() {
+  try {
+    if (reportLogo) localStorage.setItem("datova-logo", JSON.stringify(reportLogo));
+    else localStorage.removeItem("datova-logo");
+  } catch (e) {}
+}
+/* نصغّر الشعار (حد أقصى 600×300) ونحوّله PNG: يخفف حجم التقرير ويضمن يشتغل بكل البرامج */
+function readLogo(file) {
+  return new Promise((resolve, reject) => {
+    if (!/^image\/(png|jpe?g|webp|svg\+xml)$/.test(file.type)) return reject(new Error(t("logoErrType")));
+    if (file.size > 3 * 1048576) return reject(new Error(t("logoErrSize")));
+    const fr = new FileReader();
+    fr.onerror = () => reject(new Error(t("errGeneric")));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error(t("logoErrType")));
+      img.onload = () => {
+        try {
+          const vec = file.type === "image/svg+xml";
+          const w0 = img.naturalWidth || 300, h0 = img.naturalHeight || 150;
+          const k = Math.min(vec ? Infinity : 1, 600 / w0, 300 / h0);
+          const w = Math.max(1, Math.round(w0 * k)), h = Math.max(1, Math.round(h0 * k));
+          const cv = document.createElement("canvas");
+          cv.width = w; cv.height = h;
+          cv.getContext("2d").drawImage(img, 0, 0, w, h);
+          resolve({ url: cv.toDataURL("image/png"), w, h });
+        } catch (e) { reject(new Error(t("errGeneric"))); }
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+/* ---------- صفوف المخطط (مشتركة بين جدول الـ PDF وجدول الـ Word) ---------- */
+function chartRows(a) {
+  const labels = (a.labels || []).map(String), values = (a.values || []).map(Number);
+  const isTime = labels.length > 1 && labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
+  const pos = values.map((v) => Math.max(v, 0)), sum = pos.reduce((x, y) => x + y, 0);
+  const allPos = values.every((v) => v >= 0);
+  let denom = null;                                   // النسبة تُحسب من المجموع الحقيقي (كل المجموعات) إذا موجود
+  if (a.chart === "pie" && sum > 0) denom = sum;
+  else if (!isTime && allPos && a.stats && a.stats.total > 0) denom = a.stats.total;
+  const rows = labels.map((label, i) => ({
+    label, value: values[i],
+    share: denom ? (values[i] / denom) * 100 : null,
+    change: isTime && i > 0 && values[i - 1] ? ((values[i] - values[i - 1]) / Math.abs(values[i - 1])) * 100 : null
+  }));
+  return { labels, values, isTime, rows };
+}
+const fmtPct = (x) => x.toFixed(1) + "%";
+const fmtChg = (x) => (x > 0 ? "+" : "") + x.toFixed(1) + "%";
+
+/* ---------- حفظ كملف Word من الصفحة نفسها (بدون السيرفر) ---------- */
+function buildWordHtml(d, logo) {
   const ar = lang === "ar", dir = ar ? "rtl" : "ltr", al = ar ? "right" : "left", oppo = ar ? "left" : "right";
-  const INK = "#1B1D33", GRAY = "#555A78", BORDER = "#CCCCCC", PURPLE = "#6E6AA8", BAR = "#A8A4D4", NEG = "#E8B4CB", TRACK = "#E4E0F3";
+  const INK = "#1B1D33", GRAY = "#555A78", BORDER = "#D5D2E6", PURPLE = "#6E6AA8", BAR = "#A8A4D4", NEG = "#E8B4CB",
+    TRACK = "#E4E0F3", HEAD = "#ECE9F8", ZEBRA = "#FAF9FD", CARDBG = "#F5F3FB", LILAC = "#CBC6EA";
   const PIE = ["#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0"];
+  const FONT = "Cairo,'Segoe UI',Tahoma,Arial,sans-serif";
   const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const gap = '<p style="margin:0;font-size:5pt">&nbsp;</p>';
-  const card = (title, inner, size = 15) =>
-    `<table width="100%" dir="${dir}" cellpadding="10" cellspacing="0" style="border:1px solid ${BORDER};border-collapse:collapse"><tr><td style="text-align:${al}">` +
-    `<p style="margin:0 0 8px;font-size:${size}pt;font-weight:bold;color:${INK}"><span style="color:${PURPLE};font-size:${Math.round(size * 0.6)}pt">&#9632;</span>&nbsp; ${esc(title)}</p>${inner}</td></tr></table>${gap}`;
-  const bullet = (txt) => `<p style="margin:0 0 5px;font-size:11pt"><span style="color:${PURPLE};font-size:8pt">&#9679;</span>&nbsp; ${esc(txt)}</p>`;
+  const gap = '<p style="margin:0;font-size:6pt">&nbsp;</p>';
+  const ltr = (v) => `<span dir="ltr">${esc(v)}</span>`;
+
+  const card = (title, inner, size = 14) =>
+    `<table width="100%" dir="${dir}" cellpadding="0" cellspacing="0" style="border:.75pt solid ${BORDER};border-collapse:collapse"><tr><td style="padding:10pt 12pt;text-align:${al}">` +
+    `<p style="margin:0 0 8pt;font-size:${size}pt;font-weight:bold;color:${INK};border-bottom:1pt solid ${LILAC};padding-bottom:4pt">` +
+    `<span style="color:${PURPLE};font-size:${Math.round(size * 0.6)}pt">&#9632;</span>&nbsp; ${esc(title)}</p>${inner}</td></tr></table>${gap}`;
+  const bullet = (txt) => `<p style="margin:0 0 5pt;font-size:11pt;line-height:150%"><span style="color:${PURPLE};font-size:8pt">&#9679;</span>&nbsp; ${esc(txt)}</p>`;
   const chip = (txt, bg) => `<span style="background:${bg};font-size:9pt;color:${INK}">&nbsp;${esc(txt)}&nbsp;</span>&nbsp; `;
   const split = (pct, color) => {                       // شريط من خليتين: الممتلئ + الفاضي (الاتجاه يتبع dir)
     const p = Math.max(0, Math.min(100, pct));
     const cell = (w, c) => `<td width="${w}%" bgcolor="${c}" style="font-size:2pt;line-height:6pt;height:8px">&nbsp;</td>`;
     return `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0"><tr>${p > 0 ? cell(p, color) : ""}${p < 100 ? cell(100 - p, TRACK) : ""}</tr></table>`;
   };
+
+  /* جدول بيانات: رأس ملوّن + صفوف مخططة (zebra) + خطوط رفيعة */
+  const hc = (txt, w, a) =>
+    `<td ${w ? `width="${w}"` : ""} bgcolor="${HEAD}" style="padding:4pt 6pt;border-bottom:1.5pt solid ${BAR};text-align:${a}">` +
+    `<p style="margin:0;font-size:9.5pt;font-weight:bold;color:${INK}">${esc(txt)}</p></td>`;
+  const tc = (inner, i, a, w, bold) =>
+    `<td ${w ? `width="${w}"` : ""} ${i % 2 ? `bgcolor="${ZEBRA}"` : ""} style="padding:3pt 6pt;border-bottom:.5pt solid ${TRACK};text-align:${a}">` +
+    `<p style="margin:0;font-size:10pt;${bold ? "font-weight:bold;" : ""}color:${INK}">${inner}</p></td>`;
+  const table = (head, rows) =>
+    `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0" style="border-collapse:collapse"><tr>${head}</tr>${rows}</table>`;
+
   const chartHtml = (a) => {
-    const labels = a.labels || [], values = (a.values || []).map(Number);
-    if (!labels.length) return "";
-    const isTime = labels.length > 1 && labels.every((l) => /^\d{4}-\d{2}(-\d{2})?$/.test(l));
+    const c = chartRows(a);
+    if (!c.rows.length) return "";
+    const hasShare = c.rows.some((r) => r.share != null);
+    const mx = Math.max(...c.values.map(Math.abs), 1);
+
     if (a.chart === "pie") {
-      const pos = values.map((v) => Math.max(v, 0)), total = pos.reduce((x, y) => x + y, 0) || 1;
+      const pos = c.values.map((v) => Math.max(v, 0)), total = pos.reduce((x, y) => x + y, 0) || 1;
       let stack = `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0"><tr>`;
-      pos.forEach((v, i) => { if (v > 0) stack += `<td width="${(v / total * 100).toFixed(2)}%" bgcolor="${PIE[i % PIE.length]}" style="font-size:2pt;line-height:12pt;height:16px">&nbsp;</td>`; });
-      stack += "</tr></table><p style=\"margin:0;font-size:5pt\">&nbsp;</p>";
-      const rows = labels.map((l, i) => `<tr><td width="4%" bgcolor="${PIE[i % PIE.length]}" style="font-size:2pt">&nbsp;</td><td width="2%">&nbsp;</td><td style="font-size:10pt;text-align:${al}">${esc(l)}</td><td width="18%" dir="ltr" style="font-size:10pt;font-weight:bold;text-align:${oppo}">${(pos[i] / total * 100).toFixed(1)}%</td></tr>`).join("");
-      return stack + `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="3">${rows}</table>`;
+      pos.forEach((v, i) => { if (v > 0) stack += `<td width="${((v / total) * 100).toFixed(2)}%" bgcolor="${PIE[i % PIE.length]}" style="font-size:2pt;line-height:12pt;height:16px">&nbsp;</td>`; });
+      stack += "</tr></table>" + gap;
+      const head = hc("", "5%", "center") + hc(t("colItem"), "", al) + hc(t("colValue"), "20%", "right") + hc(t("colShare"), "16%", "right");
+      const rows = c.rows.map((r, i) =>
+        "<tr>" + tc(`<span style="color:${PIE[i % PIE.length]};font-size:12pt">&#9632;</span>`, i, "center", "5%") + tc(esc(r.label), i, al) +
+        tc(ltr(fmt(r.value)), i, "right", "20%", true) + tc(r.share != null ? ltr(fmtPct(r.share)) : "", i, "right", "16%") + "</tr>").join("");
+      return stack + table(head, rows);
     }
-    const mx = Math.max(...values.map(Math.abs), 1);
-    if (isTime) {
-      const H = 130, step = labels.length > 12 ? 2 : 1, w = (100 / labels.length).toFixed(2);
+
+    if (c.isTime) {
+      const H = 130, step = c.labels.length > 12 ? 2 : 1, w = (100 / c.labels.length).toFixed(2);
       let r1 = "", r2 = "";
-      values.forEach((v, i) => {
-        const h = Math.max(Math.round(Math.abs(v) / mx * H), 2);
-        const p = labels[i].split("-");
+      c.values.forEach((v, i) => {
+        const h = Math.max(Math.round((Math.abs(v) / mx) * H), 2);
+        const p = c.labels[i].split("-");
         const short = p.length === 3 ? p[2] + "/" + p[1] : p[1] + "/" + p[0].slice(2);
-        r1 += `<td width="${w}%" valign="bottom" align="center" height="${H + 14}"><p style="margin:0;font-size:7pt;color:${GRAY}">${labels.length <= 8 ? fmt(v) : "&nbsp;"}</p>` +
+        r1 += `<td width="${w}%" valign="bottom" align="center" height="${H + 14}"><p style="margin:0;font-size:7pt;color:${GRAY}">${c.labels.length <= 8 ? esc(fmt(v)) : "&nbsp;"}</p>` +
               `<table width="70%" align="center" cellspacing="0" cellpadding="0" height="${h}"><tr><td bgcolor="${v < 0 ? NEG : BAR}" style="font-size:1pt;line-height:1pt">&nbsp;</td></tr></table></td>`;
         r2 += `<td align="center" style="font-size:7pt;color:${GRAY}">${i % step === 0 ? esc(short) : "&nbsp;"}</td>`;
       });
-      return `<table width="100%" dir="ltr" cellspacing="2" cellpadding="0"><tr>${r1}</tr><tr>${r2}</tr></table>`;
+      const chart = `<table width="100%" dir="ltr" cellspacing="2" cellpadding="0"><tr>${r1}</tr><tr>${r2}</tr></table>` + gap;
+      const head = hc(t("colPeriod"), "", al) + hc(t("colValue"), "30%", "right") + hc(t("colChange"), "25%", "right");
+      const rows = c.rows.map((r, i) =>
+        "<tr>" + tc(ltr(r.label), i, al) + tc(ltr(fmt(r.value)), i, "right", "30%", true) +
+        tc(r.change != null ? `<span dir="ltr" style="color:${r.change >= 0 ? "#2E7D5B" : "#B0366B"}">${esc(fmtChg(r.change))}</span>` : "", i, "right", "25%") + "</tr>").join("");
+      return chart + table(head, rows);
     }
-    const rows = labels.map((l, i) =>
-      `<tr><td width="30%" style="font-size:10pt;color:${INK};text-align:${al}">${esc(l)}</td><td width="55%">${split(Math.abs(values[i]) / mx * 100, values[i] < 0 ? NEG : BAR)}</td>` +
-      `<td width="15%" dir="ltr" style="font-size:10pt;font-weight:bold;text-align:${oppo}">${esc(fmt(values[i]))}</td></tr>`).join("");
-    return `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="4">${rows}</table>`;
+
+    const head = hc(t("colItem"), "30%", al) + hc("", "36%", al) + hc(t("colValue"), "18%", "right") + (hasShare ? hc(t("colShare"), "16%", "right") : "");
+    const rows = c.rows.map((r, i) =>
+      "<tr>" + tc(esc(r.label), i, al, "30%") +
+      `<td width="36%" ${i % 2 ? `bgcolor="${ZEBRA}"` : ""} style="padding:3pt 6pt;border-bottom:.5pt solid ${TRACK}">${split((Math.abs(r.value) / mx) * 100, r.value < 0 ? NEG : BAR)}</td>` +
+      tc(ltr(fmt(r.value)), i, "right", "18%", true) + (hasShare ? tc(r.share != null ? ltr(fmtPct(r.share)) : "", i, "right", "16%") : "") + "</tr>").join("");
+    return table(head, rows);
   };
 
   const rep = d.cleaning_report || {};
-  let body = `<p style="margin:0 0 2px;font-size:22pt;font-weight:bold;color:${INK}">${ar ? "تقرير تحليل البيانات" : "Data Analysis Report"}</p>` +
-    `<p style="margin:0;font-size:10pt;color:${GRAY}">${esc(new Date().toLocaleString(ar ? "ar-IQ" : "en-US", { dateStyle: "medium", timeStyle: "short" }))}</p>` +
-    `<p style="margin:0 0 10px;font-size:9pt;color:${PURPLE}">DATOVA &mdash; Discover What Data Hides.</p>` +
-    `<p style="margin:0 0 10px;font-size:12pt;font-weight:bold">${esc(t("business"))}: ${esc(d.business_type || "-")}</p>`;
-  if (d.summary) body += card(t("summary"), `<p style="margin:0;font-size:11.5pt">${esc(d.summary)}</p>`);
+  const date = new Date().toLocaleString(ar ? "ar-IQ" : "en-US", { dateStyle: "medium", timeStyle: "short" });
+
+  /* رأس التقرير: الشعار (إذا موجود) + العنوان، وخط ملوّن تحتهم */
+  const span = logo ? 2 : 1;
+  let body =
+    `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0" style="border-collapse:collapse"><tr>` +
+    (logo ? `<td width="34%" valign="middle" style="padding:0 0 8pt;text-align:${al}"><img src="${logo.src}" width="${logo.w}" height="${logo.h}" alt=""></td>` : "") +
+    `<td valign="middle" style="padding:0 0 8pt;text-align:${logo ? oppo : al}">` +
+    `<p style="margin:0;font-size:22pt;font-weight:bold;color:${INK}">${esc(t("reportTitle"))}</p>` +
+    (reportEntity.trim() ? `<p style="margin:3pt 0 0;font-size:12.5pt;font-weight:bold;color:${PURPLE}">${esc(t("reportFor") + ": " + reportEntity.trim())}</p>` : "") +
+    `<p style="margin:2pt 0 0;font-size:10pt;color:${GRAY}">${esc(date)}${d.business_type ? esc("  ·  " + t("business") + ": " + d.business_type) : ""}</p>` +
+    `<p style="margin:2pt 0 0;font-size:9pt;color:${PURPLE}"><span dir="ltr">DATOVA &mdash; Discover What Data Hides.</span></p></td></tr>` +
+    `<tr><td colspan="${span}" bgcolor="${PURPLE}" style="font-size:1pt;line-height:2.5pt;height:3px">&nbsp;</td></tr></table>${gap}${gap}`;
+
+  if (d.summary) body += card(t("summary"), `<p style="margin:0;font-size:11.5pt;line-height:160%">${esc(d.summary)}</p>`);
 
   const stats = [[t("rowsAnalyzed"), rep.rows_after, rep.rows_before], [t("dups"), rep.duplicates_removed], [t("missing"), rep.dropped_rows_missing], [t("cols"), rep.columns_after, rep.columns_before]];
-  body += `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="8" style="border:1px solid ${BORDER};border-collapse:collapse"><tr>` +
-    stats.map(([l, v, of]) => `<td width="25%" bgcolor="#F5F3FB" style="border:1px solid ${BORDER};text-align:${al}"><p style="margin:0;font-size:9pt;color:${GRAY}">${esc(l)}</p>` +
-      `<p style="margin:0;font-size:18pt;font-weight:bold">${esc(fmt(v || 0))}</p><p style="margin:0;font-size:9pt;color:${GRAY}">${of != null ? esc(t("of") + " " + fmt(of)) : "&nbsp;"}</p></td>`).join("") + `</tr></table>${gap}`;
+  body += `<table width="100%" dir="${dir}" cellspacing="6" cellpadding="0"><tr>` +
+    stats.map(([l, v, of]) => `<td width="25%" bgcolor="${CARDBG}" style="padding:8pt 10pt;border:.75pt solid ${BORDER};text-align:${al}"><p style="margin:0;font-size:9pt;color:${GRAY}">${esc(l)}</p>` +
+      `<p style="margin:0;font-size:18pt;font-weight:bold;color:${INK}">${esc(fmt(v || 0))}</p><p style="margin:0;font-size:9pt;color:${GRAY}">${of != null ? esc(t("of") + " " + fmt(of)) : "&nbsp;"}</p></td>`).join("") + `</tr></table>${gap}`;
 
   let notes = "";
   const fi = d.filter_info;
   if (fi) {
-    notes += chip(`${t("rowsAfterFilter")}: ${fmt(fi.rows_after)} ${t("of")} ${fmt(fi.rows_before)}`, "#ECE9F8");
-    (fi.descriptions || []).forEach((x) => (notes += chip(x, "#ECE9F8")));
+    notes += chip(`${t("rowsAfterFilter")}: ${fmt(fi.rows_after)} ${t("of")} ${fmt(fi.rows_before)}`, HEAD);
+    (fi.descriptions || []).forEach((x) => (notes += chip(x, HEAD)));
   }
-  Object.entries(rep.filled_columns || {}).forEach(([c, how]) => (notes += chip(`${t("filled")}: ${c} (${t(how) || how})`, "#ECE9F8")));
+  Object.entries(rep.filled_columns || {}).forEach(([c, how]) => (notes += chip(`${t("filled")}: ${c} (${t(how) || how})`, HEAD)));
   (rep.dropped_columns || []).forEach((c) => (notes += chip(`${t("dropped")}: ${c}`, "#F8DCE6")));
-  if (notes) body += `<p style="margin:0 0 10px;line-height:170%">${notes}</p>`;
+  if (notes) body += `<p style="margin:0 0 10pt;line-height:175%">${notes}</p>`;
 
   const analyses = d.analyses || [];
   if (analyses.length) {
-    body += `<p style="margin:6px 0 8px;font-size:16pt;font-weight:bold">${esc(t("charts"))}</p>`;
+    body += `<p style="margin:8pt 0 8pt;font-size:16pt;font-weight:bold;color:${INK}">${esc(t("charts"))}</p>`;
     analyses.forEach((a) => (body += card(a.title || "-", chartHtml(a), 13)));
   }
   if ((d.insights || []).length) body += card(t("insights"), d.insights.map(bullet).join(""));
   if ((d.recommendations || []).length) body += card(t("recs"), d.recommendations.map(bullet).join(""));
   if ((d.problems || []).length) {
     const sevL = { high: t("sevHigh"), medium: t("sevMed"), low: t("sevLow") };
-    const sevC = { high: ["#F8DCE6", "#7A2148"], medium: ["#FFE9B8", "#7A4B00"], low: ["#ECE9F8", INK] };
+    const sevC = { high: ["#F8DCE6", "#7A2148"], medium: ["#FFE9B8", "#7A4B00"], low: [HEAD, INK] };
     body += card(t("problemsTitle"), d.problems.map((p) => {
       const c = sevC[p.severity] || sevC.low;
-      return `<p style="margin:0 0 2px;font-size:11.5pt;font-weight:bold"><span style="background:${c[0]};color:${c[1]};font-size:9pt">&nbsp;${esc(sevL[p.severity] || "")}&nbsp;</span>&nbsp; ${esc(p.title)}</p>` +
-        `<p style="margin:0 0 2px;font-size:11pt">${esc(p.detail)}</p>` +
-        (p.fix ? `<p style="margin:0 0 8px;font-size:11pt;color:${GRAY}">${esc(t("fix"))}: ${esc(p.fix)}</p>` : "");
+      return `<p style="margin:0 0 2pt;font-size:11.5pt;font-weight:bold"><span style="background:${c[0]};color:${c[1]};font-size:9pt">&nbsp;${esc(sevL[p.severity] || "")}&nbsp;</span>&nbsp; ${esc(p.title)}</p>` +
+        `<p style="margin:0 0 2pt;font-size:11pt">${esc(p.detail)}</p>` +
+        (p.fix ? `<p style="margin:0 0 8pt;font-size:11pt;color:${GRAY}">${esc(t("fix"))}: ${esc(p.fix)}</p>` : "");
     }).join(""));
   }
+
+  const pageField =
+    `<!--[if supportFields]><span style="mso-element:field-begin"></span><span style="mso-spacerun:yes"> </span>PAGE <span style="mso-element:field-separator"></span><![endif]-->` +
+    `<span>1</span><!--[if supportFields]><span style="mso-element:field-end"></span><![endif]-->`;
+  const css =
+    `@page Section1{size:21cm 29.7cm;margin:1.8cm 1.8cm 2cm 1.8cm;mso-footer:f1;mso-footer-margin:1cm}` +
+    `div.Section1{page:Section1}` +
+    `body{font-family:${FONT};mso-bidi-font-family:${FONT};font-size:11pt;color:${INK}}` +
+    `p,td,th,span,li{font-family:${FONT};mso-bidi-font-family:${FONT};mso-ascii-font-family:Cairo;mso-hansi-font-family:Cairo}` +
+    `table{mso-table-lspace:0;mso-table-rspace:0}tr{page-break-inside:avoid}`;
   return `<html lang="${lang}" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>DATOVA</title>` +
     `<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->` +
-    `<style>@page{size:21cm 29.7cm;margin:1.8cm}body{font-family:Cairo,Arial,sans-serif;font-size:11pt;color:${INK}}table{mso-table-lspace:0;mso-table-rspace:0}</style></head>` +
-    `<body dir="${dir}" style="direction:${dir};text-align:${al}">${body}</body></html>`;
+    `<style>${css}</style></head>` +
+    `<body dir="${dir}" style="direction:${dir};text-align:${al}"><div class="Section1">${body}</div>` +
+    `<div style="mso-element:footer" id="f1"><p style="margin:0;text-align:center;font-size:8pt;color:${GRAY}">DATOVA &nbsp;&middot;&nbsp; ${pageField}</p></div>` +
+    `</body></html>`;
+}
+
+/* Word ما يقرأ الصور المدمجة data: من HTML، فنغلّف الملف بصيغة MHTML (HTML + الصورة) وWord يفتحها عادي بامتداد .doc */
+function b64Utf8(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+const wrap76 = (s) => s.replace(/.{1,76}/g, "$&\r\n");
+function buildWordMht(html, pngDataUrl) {
+  const B = "----=_NextPart_datova_" + Date.now().toString(16);
+  return [
+    "MIME-Version: 1.0",
+    `Content-Type: multipart/related; boundary="${B}"; type="text/html"`,
+    "",
+    `--${B}`,
+    'Content-Type: text/html; charset="utf-8"',
+    "Content-Transfer-Encoding: base64",
+    "Content-Location: file:///C:/datova/report.htm",
+    "",
+    wrap76(b64Utf8(html)),
+    `--${B}`,
+    "Content-Type: image/png",
+    "Content-Transfer-Encoding: base64",
+    "Content-Location: file:///C:/datova/logo.png",
+    "",
+    wrap76(pngDataUrl.split(",")[1]),
+    `--${B}--`,
+    ""
+  ].join("\r\n");
 }
 function exportWord() {
   if (!lastData) return;
-  const blob = new Blob(["\ufeff" + buildWordHtml(lastData)], { type: "application/msword;charset=utf-8" });
+  let blob;
+  if (reportLogo) {
+    const s = Math.min(56 / reportLogo.h, 170 / reportLogo.w);        // حجم الشعار بالتقرير: ارتفاع أقصى 56px وعرض أقصى 170px
+    const logo = { src: "file:///C:/datova/logo.png", w: Math.round(reportLogo.w * s), h: Math.round(reportLogo.h * s) };
+    blob = new Blob([buildWordMht(buildWordHtml(lastData, logo), reportLogo.url)], { type: "application/msword" });
+  } else {
+    blob = new Blob(["\ufeff" + buildWordHtml(lastData, null)], { type: "application/msword;charset=utf-8" });
+  }
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -952,32 +1191,163 @@ function exportWord() {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-function printResults() {
+
+/* ---------- حفظ PDF (طباعة المتصفح بخط الموقع) ---------- */
+function buildPrintTable(a) {
+  const c = chartRows(a);
+  if (!c.rows.length) return null;
+  const kind = a.chart === "pie" ? "pie" : c.isTime ? "time" : "bars";
+  const hasShare = c.rows.some((r) => r.share != null);
+  const mx = Math.max(...c.values.map(Math.abs), 1);
+  const cell = (tag, content, cls) => {
+    const n = el(tag, cls || "");
+    if (content instanceof Node) n.appendChild(content); else n.textContent = content;
+    return n;
+  };
+  const heads = kind === "pie" ? [["", "sw"], [t("colItem"), ""], [t("colValue"), "num"], [t("colShare"), "num"]]
+    : kind === "time" ? [[t("colPeriod"), ""], [t("colValue"), "num"], [t("colChange"), "num"]]
+    : [[t("colItem"), "lab"], ["", "bar"], [t("colValue"), "num"], ...(hasShare ? [[t("colShare"), "num"]] : [])];
+  const tb = el("table", "ptable");
+  const hr = el("tr");
+  heads.forEach(([txt, cls]) => hr.appendChild(cell("th", txt, cls)));
+  tb.appendChild(el("thead")).appendChild(hr);
+  const tbody = el("tbody");
+  c.rows.forEach((r, i) => {
+    const tr = el("tr");
+    if (kind === "pie") {
+      const sw = el("i", "psw"); sw.style.background = PIE_COLORS[i % PIE_COLORS.length];
+      tr.append(cell("td", sw, "sw"), cell("td", r.label), cell("td", fmt(r.value), "num b"), cell("td", r.share != null ? fmtPct(r.share) : "", "num"));
+    } else if (kind === "time") {
+      const ch = r.change != null ? fmtChg(r.change) : "";
+      tr.append(cell("td", r.label, "ltr"), cell("td", fmt(r.value), "num b"), cell("td", ch, "num " + (r.change == null ? "" : r.change >= 0 ? "up" : "down")));
+    } else {
+      const track = el("div", "pbar"), fill = el("i", r.value < 0 ? "neg" : "");
+      fill.style.width = (Math.abs(r.value) / mx) * 100 + "%";
+      track.appendChild(fill);
+      tr.append(cell("td", r.label, "lab"), cell("td", track, "bar"), cell("td", fmt(r.value), "num b"));
+      if (hasShare) tr.appendChild(cell("td", r.share != null ? fmtPct(r.share) : "", "num"));
+    }
+    tbody.appendChild(tr);
+  });
+  tb.appendChild(tbody);
+  return { table: tb, kind };
+}
+function buildPrintHead(d) {
+  const h = el("div", "print-head" + (reportLogo ? " has-logo" : ""));
+  if (reportLogo) {
+    const im = el("img", "ph-logo");
+    im.src = reportLogo.url;
+    im.alt = "";
+    h.appendChild(im);
+  }
+  const tx = el("div", "ph-text");
+  const date = new Date().toLocaleString(lang === "ar" ? "ar-IQ" : "en-US", { dateStyle: "medium", timeStyle: "short" });
+  const meta = [date, d.business_type ? `${t("business")}: ${d.business_type}` : ""].filter(Boolean).join("  ·  ");
+  const brand = el("div", "ph-brand");
+  const sp = el("span", "", "DATOVA — Discover What Data Hides.");
+  sp.dir = "ltr";
+  brand.appendChild(sp);
+  tx.appendChild(el("div", "ph-title", t("reportTitle")));
+  if (reportEntity.trim()) tx.appendChild(el("div", "ph-for", `${t("reportFor")}: ${reportEntity.trim()}`));
+  tx.append(el("div", "ph-meta", meta), brand);
+  h.appendChild(tx);
+  return h;
+}
+async function printResults() {
+  const root = $("resultsView");
+  const added = [], cards = [];
+  const head = buildPrintHead(lastData);
+  root.prepend(head);
+  added.push(head);
+  root.querySelectorAll(".charts .card").forEach((card, i) => {
+    const a = (lastData.analyses || [])[i];
+    const pt = a && buildPrintTable(a);
+    if (!pt) return;
+    card.appendChild(pt.table);
+    card.dataset.pt = pt.kind;
+    added.push(pt.table);
+    cards.push(card);
+  });
   document.body.classList.add("print-results");
-  const done = () => { document.body.classList.remove("print-results"); window.removeEventListener("afterprint", done); };
+  const done = () => {
+    document.body.classList.remove("print-results");
+    added.forEach((n) => n.remove());
+    cards.forEach((c) => delete c.dataset.pt);
+    window.removeEventListener("afterprint", done);
+  };
   window.addEventListener("afterprint", done);
+  try {                                            // ننتظر الخطوط والشعار حتى يطلعون بالـ PDF
+    const wait = [];
+    if (document.fonts && document.fonts.ready) wait.push(document.fonts.ready);
+    const logoImg = head.querySelector(".ph-logo");
+    if (logoImg && logoImg.decode) wait.push(logoImg.decode());
+    await Promise.all(wait);
+  } catch (e) {}
   window.print();
 }
-/* زر الحفظ: قائمة فيها PDF و Word */
+
+/* زر الحفظ: قائمة فيها PDF و Word + رفع شعار اختياري */
 function buildDownloadMenu() {
   const wrap = el("div", "dl");
   const toggle = el("button", "btn", t("dl") + " ▾");
   toggle.type = "button";
   toggle.setAttribute("aria-haspopup", "true");
   const menu = el("div", "dl-menu");
+  menu.addEventListener("click", (e) => e.stopPropagation());
   const icons = {
     pdf: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z M14 3v5h5 M9 14h6 M9 17h4",
-    docx: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z M14 3v5h5 M8.5 12l1.5 5 2-5 2 5 1.5-5"
+    docx: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z M14 3v5h5 M8.5 12l1.5 5 2-5 2 5 1.5-5",
+    logo: "M12 16V4 M7 9l5-5 5 5 M5 20h14"
   };
-  [["pdf", "dlPdf"], ["docx", "dlWord"]].forEach(([kind, key]) => {
+  const mkItem = (iconKey, text) => {
     const item = el("button", "dl-item");
     item.type = "button";
     const ic = svgEl("svg", { viewBox: "0 0 24 24", "aria-hidden": "true" });
-    ic.appendChild(svgEl("path", { d: icons[kind] }));
-    item.append(ic, el("span", "", t(key)));
+    ic.appendChild(svgEl("path", { d: icons[iconKey] }));
+    item.append(ic, el("span", "", text));
+    return item;
+  };
+  [["pdf", "dlPdf"], ["docx", "dlWord"]].forEach(([kind, key]) => {
+    const item = mkItem(kind, t(key));
     item.addEventListener("click", () => { menu.classList.remove("open"); if (kind === "pdf") printResults(); else exportWord(); });
     menu.appendChild(item);
   });
+  menu.appendChild(el("div", "dl-sep"));
+  const entityRow = el("div", "dl-entity");
+  const entityInp = fInput("text", reportEntity, t("entityPh"), (v) => { reportEntity = v.slice(0, 80); saveEntityStore(); }, { maxlength: "80" });
+  entityRow.appendChild(labeled(t("entityLabel"), entityInp));
+  menu.appendChild(entityRow);
+  const logoBox = el("div", "dl-logo");
+  const paintLogo = (errMsg) => {
+    logoBox.innerHTML = "";
+    if (reportLogo) {
+      const row = el("div", "dl-thumb");
+      const im = el("img");
+      im.src = reportLogo.url;
+      im.alt = "";
+      const rm = el("button", "dl-link", t("logoRemove"));
+      rm.type = "button";
+      rm.addEventListener("click", () => { reportLogo = null; saveLogoStore(); paintLogo(); });
+      row.append(im, el("span", "", t("logoOn")), rm);
+      logoBox.appendChild(row);
+    }
+    const input = el("input");
+    input.type = "file";
+    input.accept = "image/png,image/jpeg,image/webp,image/svg+xml";
+    input.style.display = "none";
+    input.addEventListener("change", async () => {
+      const f = input.files[0];
+      if (!f) return;
+      try { reportLogo = await readLogo(f); saveLogoStore(); paintLogo(); }
+      catch (err) { paintLogo(err.message); }
+    });
+    const pick = mkItem("logo", reportLogo ? t("logoChange") : t("logoAdd"));
+    pick.addEventListener("click", () => input.click());
+    logoBox.append(pick, input, el("div", "dl-hint", t("logoHint")));
+    if (errMsg) logoBox.appendChild(el("div", "dl-err", errMsg));
+  };
+  paintLogo();
+  menu.appendChild(logoBox);
   toggle.addEventListener("click", (e) => { e.stopPropagation(); menu.classList.toggle("open"); });
   wrap.append(toggle, menu);
   return wrap;
@@ -997,7 +1367,7 @@ function svgEl(tag, attrs) {
   return n;
 }
 function hBars(labels, values) {
-  const box = el("div");
+  const box = el("div", "hbars");
   const max = Math.max(...values.map((v) => Math.abs(v)), 1);
   labels.forEach((l, i) => {
     const row = el("div", "hbar");
