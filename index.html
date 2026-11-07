@@ -409,7 +409,7 @@ html{color-scheme:dark}
 /* ---------- طباعة صفحة التحليل (حفظ PDF من المتصفح بخط الموقع) ---------- */
 @media print{
   body.print-results{background:#fff!important;
-    --ink:#1b1d33;--body:#3d405c;--gray:#555a78;--purple:#6E6AA8;--purple-2:#A8A4D4;--lilac:#CCCCCC;
+    --ink:#111111;--body:#2b2b2b;--gray:#555555;--purple:#111111;--purple-2:#333333;--lilac:#BDBDBD;
     --glass:#fff;--glass-line:#ccc;--shadow:none}
   body.print-results *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body.print-results .wrap{max-width:none;padding:0}
@@ -419,13 +419,13 @@ html{color-scheme:dark}
   body.print-results .res-btns,body.print-results .fpanel,body.print-results .dbar,body.print-results .trow,
   body.print-results .mcta,body.print-results .fx,body.print-results .ctools,body.print-results .okmsg,
   body.print-results .btn,body.print-results .savestate{display:none!important}
-  body.print-results .hb-track{background:#E4E0F3!important}
-  body.print-results .hb-track i,body.print-results .vb-plot i{background:#A8A4D4!important}
-  body.print-results .hb-track i.neg{background:#E8B4CB!important}
-  body.print-results .donut-wrap circle:first-child{stroke:#E4E0F3!important}
+  body.print-results .hb-track{background:#E6E6E6!important}
+  body.print-results .hb-track i,body.print-results .vb-plot i{background:#333333!important}
+  body.print-results .hb-track i.neg{background:#9A9A9A!important}
+  body.print-results .donut-wrap circle:first-child{stroke:#E6E6E6!important}
   body.print-results .stat,body.print-results .chip,body.print-results .prob{background:#fff!important;border:1px solid #ccc!important}
-  body.print-results .note{background:#ECE9F8!important;color:#1b1d33!important}
-  body.print-results .note.warn{background:#F8DCE6!important}
+  body.print-results .note{background:#EDEDED!important;color:#111111!important}
+  body.print-results .note.warn{background:#DDDDDD!important}
   body.print-results .card,body.print-results .summary,body.print-results .stat,body.print-results .prob{break-inside:avoid}
 }
 
@@ -445,31 +445,31 @@ html{color-scheme:dark}
 
 /* ---------- حجم الورقة وترقيم الصفحات ---------- */
 @page{size:A4;margin:13mm 12mm 17mm;
-  @bottom-center{content:"DATOVA  ·  " counter(page);font-family:Cairo,Inter,sans-serif;font-size:8pt;color:#777B91}}
+  @bottom-center{content:"DATOVA  ·  " counter(page);font-family:Cairo,Inter,sans-serif;font-size:8pt;color:#666666}}
 
 /* ---------- تنسيق تقرير الـ PDF (الخط، الجداول، الرسومات) ---------- */
 @media print{
-  body.print-results{font-family:Cairo,Inter,system-ui,sans-serif;font-size:10.5pt;line-height:1.75;color:#1b1d33}
+  body.print-results{font-family:Cairo,Inter,system-ui,sans-serif;font-size:10.5pt;line-height:1.75;color:#111111}
   body.print-results .res-head{display:none!important}
   /* الرأس: الشعار + العنوان */
   body.print-results .print-head{display:flex;align-items:center;gap:18px;padding:12px 18px;margin:0 0 16px;
-    border:1px solid #CBC6EA;border-inline-start:5px solid #6E6AA8;border-radius:12px;background:#F5F3FB!important;break-inside:avoid}
+    border:1px solid #BDBDBD;border-radius:12px;background:#F4F4F4!important;break-inside:avoid}
   body.print-results .ph-logo{flex:none;max-height:17mm;max-width:52mm;object-fit:contain}
   body.print-results .ph-text{flex:1;min-width:0}
   body.print-results .print-head.has-logo .ph-text{text-align:end}
-  body.print-results .ph-title{font-size:19pt;font-weight:700;line-height:1.3;color:#272A43}
-  body.print-results .ph-for{font-size:12pt;font-weight:600;color:#6E6AA8;line-height:1.5}
-  body.print-results .ph-meta{font-size:9.5pt;color:#555A78}
-  body.print-results .ph-brand{font-size:8pt;letter-spacing:.06em;color:#6E6AA8}
+  body.print-results .ph-title{font-size:19pt;font-weight:700;line-height:1.3;color:#111111}
+  body.print-results .ph-for{font-size:12pt;font-weight:600;color:#111111;line-height:1.5}
+  body.print-results .ph-meta{font-size:9.5pt;color:#555555}
+  body.print-results .ph-brand{font-size:8pt;letter-spacing:.06em;color:#111111}
   /* العناوين */
-  body.print-results .sec-title{margin:20px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #CBC6EA;font-size:14pt;font-weight:700;color:#272A43}
-  body.print-results .summary h2,body.print-results .card h3{font-weight:700;color:#272A43}
+  body.print-results .sec-title{margin:20px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #BDBDBD;font-size:14pt;font-weight:700;color:#111111}
+  body.print-results .summary h2,body.print-results .card h3{font-weight:700;color:#111111}
   body.print-results .summary h2{font-size:13pt}
   body.print-results .summary p{font-size:11pt;line-height:1.85}
   body.print-results .card h3{font-size:12pt}
   /* الأرقام */
   body.print-results .stats{grid-template-columns:repeat(4,1fr)!important;gap:8px}
-  body.print-results .stat{padding:10px 12px;background:#F5F3FB!important}
+  body.print-results .stat{padding:10px 12px;background:#F4F4F4!important}
   body.print-results .stat small{font-size:8.5pt}
   body.print-results .stat b{font-size:17pt;font-weight:600}
   /* المخططات: عمود واحد، كل بطاقة ما تنكسر بين صفحتين */
@@ -486,28 +486,40 @@ html{color-scheme:dark}
   body.print-results .ptable{display:table;width:100%;margin-top:10px;border-collapse:collapse;font-size:9.5pt;line-height:1.5}
   body.print-results .ptable thead{display:table-header-group}
   body.print-results .ptable tr{break-inside:avoid}
-  body.print-results .ptable th{padding:5px 8px;background:#ECE9F8!important;color:#272A43;font-weight:700;text-align:start;border-bottom:1.5px solid #A8A4D4}
-  body.print-results .ptable td{padding:4px 8px;color:#1b1d33;border-bottom:.5pt solid #E4E0F3;vertical-align:middle}
-  body.print-results .ptable tbody tr:nth-child(even) td{background:#FAF9FD!important}
-  body.print-results .ptable tbody tr:last-child td{border-bottom:1px solid #CBC6EA}
+  body.print-results .ptable th{padding:5px 8px;background:#EDEDED!important;color:#111111;font-weight:700;text-align:start;border-bottom:1.5px solid #333333}
+  body.print-results .ptable td{padding:4px 8px;color:#111111;border-bottom:.5pt solid #E6E6E6;vertical-align:middle}
+  body.print-results .ptable tbody tr:nth-child(even) td{background:#F7F7F7!important}
+  body.print-results .ptable tbody tr:last-child td{border-bottom:1px solid #BDBDBD}
   body.print-results .ptable .num{direction:ltr;text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}
   body.print-results .ptable .b{font-weight:600}
   body.print-results .ptable .ltr{direction:ltr;text-align:start}
   body.print-results .ptable .lab{width:32%}
   body.print-results .ptable .bar{width:36%}
   body.print-results .ptable .sw{width:22px;text-align:center}
-  body.print-results .ptable .up{color:#2E7D5B}
-  body.print-results .ptable .down{color:#B0366B}
+  body.print-results .ptable .up{color:#111111}
+  body.print-results .ptable .down{color:#111111}
   body.print-results .psw{display:inline-block;width:10px;height:10px;border-radius:50%}
-  body.print-results .pbar{height:8px;border-radius:99px;background:#E4E0F3!important;overflow:hidden}
-  body.print-results .pbar i{display:block;height:100%;border-radius:99px;background:#A8A4D4!important}
-  body.print-results .pbar i.neg{background:#E8B4CB!important}
+  body.print-results .pbar{height:8px;border-radius:99px;background:#E6E6E6!important;overflow:hidden}
+  body.print-results .pbar i{display:block;height:100%;border-radius:99px;background:#333333!important}
+  body.print-results .pbar i.neg{background:#9A9A9A!important}
   /* القوائم والمشاكل (الألوان الفاتحة مال الثيم الغامق ما تنقرأ على ورق أبيض) */
   body.print-results .list li{margin-bottom:2px}
-  body.print-results .sev.high{background:#F8DCE6!important;color:#7A2148!important}
-  body.print-results .sev.medium{background:#FFE9B8!important;color:#7A4B00!important}
-  body.print-results .sev.low{background:#ECE9F8!important;color:#272A43!important}
+  body.print-results .sev.high{background:#111111!important;color:#FFFFFF!important}
+  body.print-results .sev.medium{background:#666666!important;color:#FFFFFF!important}
+  body.print-results .sev.low{background:#E6E6E6!important;color:#111111!important}
   body.print-results .prob{break-inside:avoid}
+}
+
+@media print{
+  body.print-results .list svg[fill="#9B87F5"]{fill:#111111!important}
+  body.print-results .list svg[stroke="#7C5CFF"]{stroke:#111111!important}
+  body.print-results .donut-wrap svg circle:nth-child(1){stroke:#F0F0F0!important}
+  body.print-results .donut-wrap svg circle:nth-child(2){stroke:#111111!important}
+  body.print-results .donut-wrap svg circle:nth-child(3){stroke:#4A4A4A!important}
+  body.print-results .donut-wrap svg circle:nth-child(4){stroke:#7A7A7A!important}
+  body.print-results .donut-wrap svg circle:nth-child(5){stroke:#A3A3A3!important}
+  body.print-results .donut-wrap svg circle:nth-child(6){stroke:#C2C2C2!important}
+  body.print-results .donut-wrap svg circle:nth-child(7){stroke:#DADADA!important}
 }
 </style>
 </head>
@@ -994,15 +1006,43 @@ function chartRows(a) {
   }));
   return { labels, values, isTime, rows };
 }
+const REPORT_PIE = ["#111111", "#4A4A4A", "#7A7A7A", "#A3A3A3", "#C2C2C2", "#DADADA"];   // ألوان الدائري بالتقرير: أسود ← رمادي فاتح
+/* مخطط دائري كامل كصورة PNG (Word ما يرسم مخططات من HTML) */
+function drawPiePng(rows) {
+  const S = 640, cv = document.createElement("canvas");
+  cv.width = cv.height = S;
+  const g = cv.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, S, S);
+  const vals = rows.map((r) => Math.max(r.value, 0)), total = vals.reduce((x, y) => x + y, 0) || 1;
+  const cx = S / 2, cy = S / 2, R = S / 2 - 14;
+  let ang = -Math.PI / 2;
+  vals.forEach((v, i) => {
+    if (v <= 0) return;
+    const sweep = (v / total) * 2 * Math.PI;
+    g.beginPath(); g.moveTo(cx, cy); g.arc(cx, cy, R, ang, ang + sweep); g.closePath();
+    g.fillStyle = REPORT_PIE[i % REPORT_PIE.length]; g.fill();
+    g.lineWidth = 5; g.strokeStyle = "#fff"; g.stroke();
+    const pct = (v / total) * 100;
+    if (pct >= 5) {
+      const m = ang + sweep / 2;
+      g.fillStyle = i < 3 ? "#fff" : "#111";
+      g.font = "bold 40px 'Segoe UI',Arial,sans-serif";
+      g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(pct.toFixed(1) + "%", cx + Math.cos(m) * R * 0.64, cy + Math.sin(m) * R * 0.64);
+    }
+    ang += sweep;
+  });
+  return cv.toDataURL("image/png");
+}
 const fmtPct = (x) => x.toFixed(1) + "%";
 const fmtChg = (x) => (x > 0 ? "+" : "") + x.toFixed(1) + "%";
 
 /* ---------- حفظ كملف Word من الصفحة نفسها (بدون السيرفر) ---------- */
-function buildWordHtml(d, logo) {
+function buildWordHtml(d, logo, pies) {
   const ar = lang === "ar", dir = ar ? "rtl" : "ltr", al = ar ? "right" : "left", oppo = ar ? "left" : "right";
-  const INK = "#1B1D33", GRAY = "#555A78", BORDER = "#D5D2E6", PURPLE = "#6E6AA8", BAR = "#A8A4D4", NEG = "#E8B4CB",
-    TRACK = "#E4E0F3", HEAD = "#ECE9F8", ZEBRA = "#FAF9FD", CARDBG = "#F5F3FB", LILAC = "#CBC6EA";
-  const PIE = ["#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0"];
+  const INK = "#111111", GRAY = "#555555", BORDER = "#CFCFCF", PURPLE = "#111111", BAR = "#333333", NEG = "#9A9A9A",
+    TRACK = "#E6E6E6", HEAD = "#EDEDED", ZEBRA = "#F7F7F7", CARDBG = "#F4F4F4", LILAC = "#BDBDBD";
+  const PIE = REPORT_PIE;
   const FONT = "Cairo,'Segoe UI',Tahoma,Arial,sans-serif";
   const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const gap = '<p style="margin:0;font-size:6pt">&nbsp;</p>';
@@ -1030,7 +1070,7 @@ function buildWordHtml(d, logo) {
   const table = (head, rows) =>
     `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0" style="border-collapse:collapse"><tr>${head}</tr>${rows}</table>`;
 
-  const chartHtml = (a) => {
+  const chartHtml = (a, idx) => {
     const c = chartRows(a);
     if (!c.rows.length) return "";
     const hasShare = c.rows.some((r) => r.share != null);
@@ -1041,6 +1081,8 @@ function buildWordHtml(d, logo) {
       let stack = `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0"><tr>`;
       pos.forEach((v, i) => { if (v > 0) stack += `<td width="${((v / total) * 100).toFixed(2)}%" bgcolor="${PIE[i % PIE.length]}" style="font-size:2pt;line-height:12pt;height:16px">&nbsp;</td>`; });
       stack += "</tr></table>" + gap;
+      const pi = pies && pies[idx];
+      if (pi) stack = `<p style="margin:0;text-align:center"><img src="${pi.src}" width="${pi.w}" height="${pi.h}" alt=""></p>` + gap;
       const head = hc("", "5%", "center") + hc(t("colItem"), "", al) + hc(t("colValue"), "20%", "right") + hc(t("colShare"), "16%", "right");
       const rows = c.rows.map((r, i) =>
         "<tr>" + tc(`<span style="color:${PIE[i % PIE.length]};font-size:12pt">&#9632;</span>`, i, "center", "5%") + tc(esc(r.label), i, al) +
@@ -1063,7 +1105,7 @@ function buildWordHtml(d, logo) {
       const head = hc(t("colPeriod"), "", al) + hc(t("colValue"), "30%", "right") + hc(t("colChange"), "25%", "right");
       const rows = c.rows.map((r, i) =>
         "<tr>" + tc(ltr(r.label), i, al) + tc(ltr(fmt(r.value)), i, "right", "30%", true) +
-        tc(r.change != null ? `<span dir="ltr" style="color:${r.change >= 0 ? "#2E7D5B" : "#B0366B"}">${esc(fmtChg(r.change))}</span>` : "", i, "right", "25%") + "</tr>").join("");
+        tc(r.change != null ? `<span dir="ltr">${esc(fmtChg(r.change))}</span>` : "", i, "right", "25%") + "</tr>").join("");
       return chart + table(head, rows);
     }
 
@@ -1079,16 +1121,15 @@ function buildWordHtml(d, logo) {
   const date = new Date().toLocaleString(ar ? "ar-IQ" : "en-US", { dateStyle: "medium", timeStyle: "short" });
 
   /* رأس التقرير: الشعار (إذا موجود) + العنوان، وخط ملوّن تحتهم */
-  const span = logo ? 2 : 1;
   let body =
     `<table width="100%" dir="${dir}" cellspacing="0" cellpadding="0" style="border-collapse:collapse"><tr>` +
     (logo ? `<td width="34%" valign="middle" style="padding:0 0 8pt;text-align:${al}"><img src="${logo.src}" width="${logo.w}" height="${logo.h}" alt=""></td>` : "") +
     `<td valign="middle" style="padding:0 0 8pt;text-align:${logo ? oppo : al}">` +
     `<p style="margin:0;font-size:22pt;font-weight:bold;color:${INK}">${esc(t("reportTitle"))}</p>` +
-    (reportEntity.trim() ? `<p style="margin:3pt 0 0;font-size:12.5pt;font-weight:bold;color:${PURPLE}">${esc(t("reportFor") + ": " + reportEntity.trim())}</p>` : "") +
+    (reportEntity.trim() ? `<p style="margin:3pt 0 0;font-size:12.5pt;font-weight:bold;color:#333333">${esc(t("reportFor") + ": " + reportEntity.trim())}</p>` : "") +
     `<p style="margin:2pt 0 0;font-size:10pt;color:${GRAY}">${esc(date)}${d.business_type ? esc("  ·  " + t("business") + ": " + d.business_type) : ""}</p>` +
     `<p style="margin:2pt 0 0;font-size:9pt;color:${PURPLE}"><span dir="ltr">DATOVA &mdash; Discover What Data Hides.</span></p></td></tr>` +
-    `<tr><td colspan="${span}" bgcolor="${PURPLE}" style="font-size:1pt;line-height:2.5pt;height:3px">&nbsp;</td></tr></table>${gap}${gap}`;
+    `</table>${gap}${gap}`;
 
   if (d.summary) body += card(t("summary"), `<p style="margin:0;font-size:11.5pt;line-height:160%">${esc(d.summary)}</p>`);
 
@@ -1104,19 +1145,19 @@ function buildWordHtml(d, logo) {
     (fi.descriptions || []).forEach((x) => (notes += chip(x, HEAD)));
   }
   Object.entries(rep.filled_columns || {}).forEach(([c, how]) => (notes += chip(`${t("filled")}: ${c} (${t(how) || how})`, HEAD)));
-  (rep.dropped_columns || []).forEach((c) => (notes += chip(`${t("dropped")}: ${c}`, "#F8DCE6")));
+  (rep.dropped_columns || []).forEach((c) => (notes += chip(`${t("dropped")}: ${c}`, "#DDDDDD")));
   if (notes) body += `<p style="margin:0 0 10pt;line-height:175%">${notes}</p>`;
 
   const analyses = d.analyses || [];
   if (analyses.length) {
     body += `<p style="margin:8pt 0 8pt;font-size:16pt;font-weight:bold;color:${INK}">${esc(t("charts"))}</p>`;
-    analyses.forEach((a) => (body += card(a.title || "-", chartHtml(a), 13)));
+    analyses.forEach((a, i) => (body += card(a.title || "-", chartHtml(a, i), 13)));
   }
   if ((d.insights || []).length) body += card(t("insights"), d.insights.map(bullet).join(""));
   if ((d.recommendations || []).length) body += card(t("recs"), d.recommendations.map(bullet).join(""));
   if ((d.problems || []).length) {
     const sevL = { high: t("sevHigh"), medium: t("sevMed"), low: t("sevLow") };
-    const sevC = { high: ["#F8DCE6", "#7A2148"], medium: ["#FFE9B8", "#7A4B00"], low: [HEAD, INK] };
+    const sevC = { high: ["#111111", "#FFFFFF"], medium: ["#666666", "#FFFFFF"], low: [HEAD, INK] };
     body += card(t("problemsTitle"), d.problems.map((p) => {
       const c = sevC[p.severity] || sevC.low;
       return `<p style="margin:0 0 2pt;font-size:11.5pt;font-weight:bold"><span style="background:${c[0]};color:${c[1]};font-size:9pt">&nbsp;${esc(sevL[p.severity] || "")}&nbsp;</span>&nbsp; ${esc(p.title)}</p>` +
@@ -1150,9 +1191,9 @@ function b64Utf8(str) {
   return btoa(bin);
 }
 const wrap76 = (s) => s.replace(/.{1,76}/g, "$&\r\n");
-function buildWordMht(html, pngDataUrl) {
+function buildWordMht(html, assets) {
   const B = "----=_NextPart_datova_" + Date.now().toString(16);
-  return [
+  const lines = [
     "MIME-Version: 1.0",
     `Content-Type: multipart/related; boundary="${B}"; type="text/html"`,
     "",
@@ -1161,27 +1202,37 @@ function buildWordMht(html, pngDataUrl) {
     "Content-Transfer-Encoding: base64",
     "Content-Location: file:///C:/datova/report.htm",
     "",
-    wrap76(b64Utf8(html)),
-    `--${B}`,
-    "Content-Type: image/png",
-    "Content-Transfer-Encoding: base64",
-    "Content-Location: file:///C:/datova/logo.png",
-    "",
-    wrap76(pngDataUrl.split(",")[1]),
-    `--${B}--`,
-    ""
-  ].join("\r\n");
+    wrap76(b64Utf8(html))
+  ];
+  assets.forEach((x) => lines.push(
+    `--${B}`, "Content-Type: image/png", "Content-Transfer-Encoding: base64",
+    `Content-Location: file:///C:/datova/${x.loc}`, "", wrap76(x.url.split(",")[1])
+  ));
+  lines.push(`--${B}--`, "");
+  return lines.join("\r\n");
 }
 function exportWord() {
   if (!lastData) return;
-  let blob;
+  const assets = [];                                   // صور تنحط داخل الملف: الشعار + المخططات الدائرية
+  let logo = null;
   if (reportLogo) {
     const s = Math.min(56 / reportLogo.h, 170 / reportLogo.w);        // حجم الشعار بالتقرير: ارتفاع أقصى 56px وعرض أقصى 170px
-    const logo = { src: "file:///C:/datova/logo.png", w: Math.round(reportLogo.w * s), h: Math.round(reportLogo.h * s) };
-    blob = new Blob([buildWordMht(buildWordHtml(lastData, logo), reportLogo.url)], { type: "application/msword" });
-  } else {
-    blob = new Blob(["\ufeff" + buildWordHtml(lastData, null)], { type: "application/msword;charset=utf-8" });
+    logo = { src: "file:///C:/datova/logo.png", w: Math.round(reportLogo.w * s), h: Math.round(reportLogo.h * s) };
+    assets.push({ loc: "logo.png", url: reportLogo.url });
   }
+  const pies = (lastData.analyses || []).map((a, i) => {
+    if (a.chart !== "pie") return null;
+    const rows = chartRows(a).rows;
+    if (!rows.length) return null;
+    try {
+      assets.push({ loc: `pie${i}.png`, url: drawPiePng(rows) });
+      return { src: `file:///C:/datova/pie${i}.png`, w: 210, h: 210 };
+    } catch (e) { return null; }
+  });
+  const html = buildWordHtml(lastData, logo, pies);
+  const blob = assets.length
+    ? new Blob([buildWordMht(html, assets)], { type: "application/msword" })
+    : new Blob(["\ufeff" + html], { type: "application/msword;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1215,7 +1266,7 @@ function buildPrintTable(a) {
   c.rows.forEach((r, i) => {
     const tr = el("tr");
     if (kind === "pie") {
-      const sw = el("i", "psw"); sw.style.background = PIE_COLORS[i % PIE_COLORS.length];
+      const sw = el("i", "psw"); sw.style.background = REPORT_PIE[i % REPORT_PIE.length];
       tr.append(cell("td", sw, "sw"), cell("td", r.label), cell("td", fmt(r.value), "num b"), cell("td", r.share != null ? fmtPct(r.share) : "", "num"));
     } else if (kind === "time") {
       const ch = r.change != null ? fmtChg(r.change) : "";
