@@ -36,6 +36,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 
 # لدعم العربي داخل الرسومات (pip install arabic-reshaper python-bidi)
 try:
@@ -1837,21 +1838,22 @@ async def delete_analysis(aid: str, x_owner: str | None = Header(default=None)):
 # ---------------------------------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent
 FONT = "DatovaFont"
+LOGO_PATH = BASE_DIR / "logo.png"
 _font_ready = False
 
 # ---------------------------------------------------------------- الألوان (نفس ثيم الفرونت)
-INK = HexColor("#272A43")
-PURPLE = HexColor("#6E6AA8")
-PURPLE2 = HexColor("#A8A4D4")
-LILAC = HexColor("#CBC6EA")
-GRAY = HexColor("#777B91")
-BODY = HexColor("#5A5D78")
-CARD = HexColor("#F5F3FB")
-TRACK = HexColor("#E4E0F3")
-CHIP = HexColor("#E7E3F5")
-WARN = HexColor("#F8DCE6")
-PINK = HexColor("#E8B4CB")
-PIE = [HexColor(c) for c in ("#6E6AA8", "#E8B4CB", "#8FC3E8", "#A8A4D4", "#B8B9C6", "#E7C6F0")]
+INK = HexColor("#1B1B1E")
+PURPLE = HexColor("#B8962E")
+PURPLE2 = HexColor("#D4AF37")
+LILAC = HexColor("#CDBE8A")
+GRAY = HexColor("#77756F")
+BODY = HexColor("#55534D")
+CARD = HexColor("#F7F5EE")
+TRACK = HexColor("#E6E3DA")
+CHIP = HexColor("#EFEAD8")
+WARN = HexColor("#E3E0D8")
+PINK = HexColor("#9A9A9E")
+PIE = [HexColor(c) for c in ("#D4AF37", "#9A9A9E", "#E8D48A", "#6E6E72", "#B8962E", "#C9C9CC")]
 
 M = 44
 PAGE_W, PAGE_H = A4
@@ -1992,7 +1994,7 @@ class _Report:
 
     # ---- الصفحات
     def footer(self):
-        self.put(f"DATOVA   -   {self.page}", PAGE_W / 2, 24, 8.5, GRAY, "c")
+        self.put(f"BEYOND   -   {self.page}", PAGE_W / 2, 24, 8.5, GRAY, "c")
 
     def new_page(self):
         self.footer()
@@ -2051,8 +2053,16 @@ class _Report:
         # العلامة على الجهة الثانية
         trail_w = iw - half - 10
         tl = self.reg(x0, iw, iw - trail_w, trail_w)
-        self.put("DATOVA", tl, top - 40, 17, white, "l")
-        self.put("Discover What Data Hides.", tl, top - 56, 8, LILAC, "l")
+        lw_ = 0
+        if LOGO_PATH.exists():
+            try:
+                self.c.drawImage(ImageReader(str(LOGO_PATH)), tl, top - h + 14, width=46, height=56,
+                                 mask="auto", preserveAspectRatio=True, anchor="sw")
+                lw_ = 54
+            except Exception:
+                lw_ = 0
+        self.put("BEYOND", tl + lw_, top - 40, 17, white, "l")
+        self.put("Beyond the Visible.", tl + lw_, top - 56, 8, LILAC, "l")
         self.y = top - h - 16
 
     def business_chip(self, business):
