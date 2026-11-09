@@ -210,36 +210,39 @@ def looks_too_messy(df: pd.DataFrame) -> bool:
 # ---------------------------------------------------------------------------
 # التنظيف بواسطة pandas
 # ---------------------------------------------------------------------------
-# === التنظيف (نسخة أقوى) ===================================================
-# كل الأرقام اللي تتحكم بسلوك التنظيف هنا، غيّرها من مكان واحد
-UNKNOWN_LABEL = "غير محدد"        # يُملأ فيه النص الناقص
-MAX_FILL_RATIO = 0.15             # رقم ناقص أكثر من 15%: ما نملاه (الملء بالوسيط يضخّم المجاميع)
-MAX_ROW_LOSS = 0.4                # ما نحذف صفوف إذا الحذف ياكل أكثر من 40% من الملف
-TYPE_THRESHOLD = 0.9              # نسبة نجاح التحويل المطلوبة حتى نغيّر نوع العمود
-HINT_THRESHOLD = 0.8              # إذا الذكاء الاصطناعي حدد النوع (رقم/تاريخ) نكتفي بنسبة أقل
-FUZZY_THRESHOLD = 0.85            # تشابه الكلمات لدمجها (0.85 = متحفظ، أقل = أجرأ)
-FUZZY_MIN_LEN = 4                 # الكلمات الأقصر من هذا ما تنقارن تقريبياً (A و B ما تندمج)
-MAX_FUZZY_UNIQUE = 1000           # أكثر من هذا العدد من القيم المختلفة: نوحّد الحروف بس بدون مقارنة تقريبية
-FUZZY_TIME_BUDGET = 1.5           # أقصى ثواني للمقارنة التقريبية لكل عمود (حماية من البطء)
-FUZZY_TOTAL_BUDGET = 4.0          # وأقصى ثواني لكل الملف
-MAX_STANDARD_LEN = 40             # أعمدة نصوصها طويلة (ملاحظات) ما نوحّد كلماتها
-DATE_DAYFIRST = True              # 05/03/2026 = 5 مارس
-DEDUP_MODE = "auto"               # "auto": نحذف المكرر إذا الجدول فيه معرّف/تاريخ/ساعة | "always" | "never"
-MISSING_TOKENS = {"", "nan", "null", "n/a", "#n/a", "-", "--", "غير متوفر"}
+# === التنظيف (v2) ==========================================================
+UNKNOWN_LABEL = "غير محدد"
+MAX_FILL_RATIO = 0.15             # رقم ناقص أكثر من 15%: ما نملاه
+MAX_DROP_COL_RATIO = 0.05         # تاريخ/ساعة/معرّف ناقص: نحذف الصفوف فقط إذا النقص أقل من 5%
+MAX_ROW_LOSS = 0.2                # ما نحذف صفوف إذا الحذف ياكل أكثر من 20% من الملف
+TYPE_THRESHOLD = 0.9
+HINT_THRESHOLD = 0.8
+FUZZY_THRESHOLD = 0.85
+FUZZY_MIN_LEN = 4
+FUZZY_DOMINANCE = 3               # الشكل الصحيح لازم يتكرر 3 أضعاف الشكل الغلط حتى ندمجهم
+MAX_FUZZY_UNIQUE = 1000
+FUZZY_TIME_BUDGET = 1.5
+FUZZY_TOTAL_BUDGET = 4.0
+MAX_STANDARD_LEN = 40
+DATE_DAYFIRST = True              # يُستعمل فقط إذا الملف ما يحسم (يوم/شهر أو شهر/يوم)
+DEDUP_MODE = "auto"               # "auto" | "always" | "never"
+MISSING_TOKENS = {"", "nan", "null", "none", "na", "n/a", "#n/a", "n.a", "nil", "undefined", "?", "-", "--",
+                  "—", "–", "غير متوفر", "لا يوجد", "لايوجد", "فارغ", "#value!", "#div/0!", "#ref!", "#name?"}
 
 _SPACES = re.compile(r"\s+")
 _ZERO_WIDTH = re.compile(r"[\u200b-\u200f\u202a-\u202e\u2060\ufeff]")
 _TIME_PAT = r"^\d{1,2}:\d{2}(?::\d{2})?\s*(?:[AaPp][Mm]|ص|م)?$"
 _DATE_PAT = r"^\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}"
-_OFFSET_PAT = r"(?<=\d:\d{2})\s*(?:Z|[+-]\d{2}:?\d{2})$"      # فرق التوقيت (+03:00 / Z) نشيله ونحافظ على الساعة المحلية
+_MONTH_PAT = r"(?i)\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b"
+_OFFSET_PAT = r"(?<=\d:\d{2})\s*(?:Z|[+-]\d{2}:?\d{2})$"
 _CURRENCY_PAT = r"(?i)(?:iqd|usd|eur|د\.ع|دينار|دولار|[$€£%])"
 _DIGITS = str.maketrans("٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹٫٬", "01234567890123456789.,")
 _AR_MAP = str.maketrans({"ة": "ه", "ى": "ي", "ی": "ي", "ک": "ك", "ـ": ""})
+_TOTAL_PAT = re.compile(r"^\s*(?:grand\s*total|sub\s*total|total|sum|المجموع(?:\s*الكلي)?|الاجمالي|الإجمالي|اجمالي|إجمالي|مجموع)\s*:?\s*$", re.I)
 _PD2 = int(pd.__version__.split(".")[0]) >= 2
 
 
 def _clean_cell(v):
-    """يشيل المسافات الزايدة (بالأول والآخر ووسط الكلمات) والرموز المخفية، ويحوّل 'nan' و'-' وغيرها لقيمة ناقصة."""
     if not isinstance(v, str):
         return v
     s = _SPACES.sub(" ", _ZERO_WIDTH.sub("", v)).strip()
@@ -247,7 +250,6 @@ def _clean_cell(v):
 
 
 def _clean_columns(cols) -> list[str]:
-    """أسماء أعمدة نظيفة، غير فارغة، وغير مكررة."""
     out, seen = [], {}
     for i, c in enumerate(cols, 1):
         name = _SPACES.sub(" ", _ZERO_WIDTH.sub("", str(c))).strip() or f"column_{i}"
@@ -256,27 +258,47 @@ def _clean_columns(cols) -> list[str]:
     return out
 
 
+def _parse_dates(part: pd.Series, dayfirst: bool) -> pd.Series:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        try:
+            kw = {"errors": "coerce", "dayfirst": dayfirst}
+            if _PD2:
+                kw["format"] = "mixed"
+            out = pd.to_datetime(part, **kw)
+            return out.where((out.dt.year >= 1900) & (out.dt.year <= 2100))   # 1.1.1 مو تاريخ
+        except Exception:
+            return pd.Series(pd.NaT, index=part.index, dtype="datetime64[ns]")
+
+
 def _to_datetime(s: pd.Series) -> pd.Series:
-    """2026-01-05 (سنة أول) تنقرأ سنة-شهر-يوم، و05/01/2026 تنقرأ يوم/شهر/سنة (حسب DATE_DAYFIRST)."""
+    """سنة-أول تنقرأ سنة-شهر-يوم. الباقي: نجرّب يوم/شهر وشهر/يوم ونختار اللي يطلع منه تواريخ أكثر (مو قيمة ثابتة)."""
     s = s.astype("string").str.replace(_OFFSET_PAT, "", regex=True)
-    year_first = s.str.match(r"^\s*\d{4}[-/.]").fillna(False)
+    year_first = s.str.match(r"^\s*\d{4}[-/.]").fillna(False).astype(bool)
+    rest = s.where(~year_first)
+    a, b = _parse_dates(rest, DATE_DAYFIRST), _parse_dates(rest, not DATE_DAYFIRST)
+    other = b if b.notna().sum() > a.notna().sum() else a
+    return _parse_dates(s.where(year_first), False).fillna(other)
 
-    def parse(part, dayfirst):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            try:
-                kwargs = {"errors": "coerce", "dayfirst": dayfirst}
-                if _PD2:
-                    kwargs["format"] = "mixed"
-                return pd.to_datetime(part, **kwargs)
-            except Exception:
-                return pd.Series(pd.NaT, index=part.index, dtype="datetime64[ns]")
 
-    return parse(s.where(year_first), False).fillna(parse(s.where(~year_first), DATE_DAYFIRST))
+def _numeric_to_date(s: pd.Series):
+    """أرقام مثل 20260105 أو رقم تاريخ الإكسل (45000) تتحول لتاريخ (فقط إذا الذكاء الاصطناعي قال إنه تاريخ)."""
+    d = s.dropna()
+    if d.empty or (d % 1 != 0).any():
+        return None
+    try:
+        if d.min() >= 19000101 and d.max() <= 21001231:
+            out = pd.to_datetime(s.astype("Int64").astype("string"), format="%Y%m%d", errors="coerce")
+        elif d.min() >= 20000 and d.max() <= 80000:
+            out = pd.to_datetime(s, unit="D", origin="1899-12-30", errors="coerce")
+        else:
+            return None
+    except Exception:
+        return None
+    return out if out.notna().mean() >= HINT_THRESHOLD else None
 
 
 def _norm_num(s: str):
-    """يفهم 1,234.56 و 1.234,56 و 12,5 و (500) و 500-  ويرجع نص رقم صالح أو None."""
     neg = False
     if s.startswith("(") and s.endswith(")"):
         neg, s = True, s[1:-1]
@@ -286,35 +308,51 @@ def _norm_num(s: str):
         s = s[1:]
     if s.endswith("-"):
         neg, s = True, s[:-1]
-    if "," in s and "." in s:                       # الفاصل الأخير هو العشري
+    if "," in s and "." in s:
         dec = "," if s.rfind(",") > s.rfind(".") else "."
         grp = "." if dec == "," else ","
         s = s.replace(grp, "").replace(dec, ".")
     elif "," in s:
-        if re.fullmatch(r"\d{1,3}(?:,\d{3})+", s):  # 1,234 أو 12,500 = آلاف
+        if re.fullmatch(r"\d{1,3}(?:,\d{3})+", s):
             s = s.replace(",", "")
-        elif re.fullmatch(r"\d+,\d{1,2}", s):       # 12,5 أو 7,25 = عشري
+        elif re.fullmatch(r"\d+,\d{1,2}", s):
             s = s.replace(",", ".")
         else:
             return None
     elif s.count(".") > 1:
-        if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", s):  # 1.234.567 = آلاف
+        if re.fullmatch(r"\d{1,3}(?:\.\d{3})+", s):
             s = s.replace(".", "")
         else:
             return None
     return ("-" if neg else "") + s if re.fullmatch(r"\d+(?:\.\d+)?", s) else None
 
 
-def _detect(series: pd.Series, hint: str | None):
-    """يرجع (النوع, العمود المحوّل, mask بالقيم اللي فشل تحويلها). الأنواع: numeric/date/time/id/bool/text."""
+def _numeric_is_id(s: pd.Series, name: str, hint=None) -> bool:
+    """رقم صحيح اسمه (رقم/كود/id/هاتف) أو تسلسل 1,2,3...: هذا معرّف مو مقياس. ما نملاه بالوسيط ولا نجمعه."""
+    d = s.dropna()
+    if d.empty or (d % 1 != 0).any():
+        return False
+    if hint == "id" or _ID_COL.search(str(name)):
+        return True
+    return len(d) >= 20 and d.is_unique and d.is_monotonic_increasing and bool((d.diff().dropna() == 1).mean() > 0.95)
+
+
+def _detect(series: pd.Series, hint: str | None, name: str = ""):
+    """يرجع (النوع, العمود المحوّل, mask بالقيم اللي فشل تحويلها)."""
     if pd.api.types.is_bool_dtype(series):
         return "bool", series, None
-    if hint == "id":
-        return "id", series, None
     if pd.api.types.is_numeric_dtype(series):
+        if hint == "date":
+            as_date = _numeric_to_date(series)
+            if as_date is not None:
+                return "date", as_date, None
+        if _numeric_is_id(series, name, hint):
+            return "id", series, None
         return "numeric", series, None
     if pd.api.types.is_datetime64_any_dtype(series):
         return "date", series, None
+    if hint == "id":
+        return "id", series, None
     nn = series.dropna()
     if nn.empty:
         return "text", series, None
@@ -324,7 +362,6 @@ def _detect(series: pd.Series, hint: str | None):
     present = txt.notna()
     n = int(present.sum())
 
-    # --- ساعة (14:30 / 2:15 PM / 9:00 ص)
     is_time = txt.str.match(_TIME_PAT).fillna(False)
     if is_time.sum() / n >= 0.8:
         fixed = txt.str.replace(r"\s*ص$", " AM", regex=True).str.replace(r"\s*م$", " PM", regex=True)
@@ -332,23 +369,24 @@ def _detect(series: pd.Series, hint: str | None):
         if parsed.notna().sum() / n >= TYPE_THRESHOLD:
             return "time", parsed.dt.time, present & parsed.isna()
 
-    # --- تاريخ
-    date_like = txt.str.match(_DATE_PAT).fillna(False)
+    date_like = txt.str.match(_DATE_PAT).fillna(False) | (
+        txt.str.contains(_MONTH_PAT, regex=True).fillna(False) & txt.str.contains(r"\d", regex=True).fillna(False))
     if hint == "date" or date_like.sum() / n >= 0.8:
         parsed = _to_datetime(txt)
         if parsed.notna().sum() / n >= (HINT_THRESHOLD if hint == "date" else TYPE_THRESHOLD):
             return "date", parsed, present & parsed.isna()
 
-    # --- رقم (أرقام عربية، آلاف/عشري، عملات، أقواس سالبة)
     cleaned = (txt.str.translate(_DIGITS)
                   .str.replace(_CURRENCY_PAT, "", regex=True)
                   .str.replace(r"\s", "", regex=True))
     normed = cleaned.map({u: _norm_num(u) for u in cleaned.dropna().unique()})
     ok = normed.notna()
     if ok.sum() / n >= (HINT_THRESHOLD if hint == "numeric" else TYPE_THRESHOLD):
-        if cleaned[ok].str.match(r"^0\d+$").mean() > 0.3:   # 0770... أرقام هواتف/معرّفات: تبقى نص
+        if cleaned[ok].str.match(r"^0\d+$").mean() > 0.3:   # 0770... هواتف: تبقى نص
             return "id", series, None
         num = pd.to_numeric(normed.where(ok), errors="coerce").astype("float64")
+        if _numeric_is_id(num, name, hint):
+            return "id", series, None
         if num.notna().all() and (num % 1 == 0).all():
             num = num.astype("int64")
         return "numeric", num, present & ~ok
@@ -362,17 +400,14 @@ def _tokens(text: str) -> list[str]:
 
 
 def _key(text: str) -> str:
-    """مفتاح مقارنة. للنص: بدون حروف كبيرة/صغيرة، تشكيل، همزات، ة/ه، ى/ي، مسافات ورموز.
-    للقيم اللي فيها أرقام (أكواد، 1-2): نوحّد الحروف والمسافات فقط، وما نشيل الرموز."""
     strict = _SPACES.sub(" ", text).strip().casefold()
     if any(ch.isdigit() for ch in text):
         return strict
     loose = "".join(_tokens(text))
-    return loose if len(loose) >= 3 else strict        # C++ غير C#
+    return loose if len(loose) >= 3 else strict
 
 
 def _tokens_close(a: list[str], b: list[str], sm: SequenceMatcher) -> bool:
-    """نفس عدد الكلمات، وكل كلمة مختلفة لازم تكون طويلة ومتشابهة. (Category A و Category B ما يندمجون)"""
     if len(a) != len(b):
         return False
     differs = False
@@ -389,25 +424,24 @@ def _tokens_close(a: list[str], b: list[str], sm: SequenceMatcher) -> bool:
 
 
 def _standardize_column(s: pd.Series, deadline: float) -> tuple[pd.Series, dict]:
-    """يوحّد الكلمات المكتوبة بأكثر من طريقة (Fatima / fatma / FATIMA / فاطمة / فاطمه) على أكثر شكل مكرر."""
+    """يوحّد الأشكال المتطابقة (حروف/مسافات/همزات) دايماً، والأخطاء الإملائية فقط إذا الشكل الغلط نادر
+    مقارنة بالشكل الصحيح (3 أضعاف). هيج 'Ahmed' و'Ahmad' الحقيقيين ما يندمجون بالغلط."""
     vals = s.dropna()
     vals = vals[vals.map(lambda v: isinstance(v, str))]
     if vals.empty or vals.map(len).mean() > MAX_STANDARD_LEN:
         return s, {}
     counts = vals.value_counts()
-
-    # 1) تجميع الأشكال المتطابقة بعد التطبيع
     groups: dict[str, list] = {}
     for original, c in counts.items():
         groups.setdefault(_key(original) or original, []).append((original, int(c)))
+    totals = {k: sum(c for _, c in v) for k, v in groups.items()}
+    order = sorted(groups, key=lambda k: -totals[k])
 
-    # 2) دمج الكلمات المتقاربة (أخطاء إملائية) بحذر
-    order = sorted(groups, key=lambda k: -sum(c for _, c in groups[k]))
     parent: dict[str, str] = {}
-    if len(order) <= MAX_FUZZY_UNIQUE:
+    if len(order) <= MAX_FUZZY_UNIQUE and totals[order[0]] >= FUZZY_DOMINANCE:
         sm = SequenceMatcher(autojunk=False)
         toks: dict[str, list[str]] = {}
-        buckets: dict[str, list[str]] = {}               # نقارن فقط الكلمات اللي تبدأ بنفس الحرف (أسرع بكثير)
+        buckets: dict[str, list[str]] = {}
         for k in order:
             if _time.perf_counter() > deadline:
                 break
@@ -416,7 +450,9 @@ def _standardize_column(s: pd.Series, deadline: float) -> tuple[pd.Series, dict]
             toks[k] = _tokens(groups[k][0][0])
             target, best = None, 0.0
             for c in buckets.get(k[0], []):
-                if abs(len(c) - len(k)) > 2 or not _tokens_close(toks[c], toks[k], sm):
+                if totals[c] < FUZZY_DOMINANCE * totals[k] or abs(len(c) - len(k)) > 2:
+                    continue
+                if not _tokens_close(toks[c], toks[k], sm):
                     continue
                 r = SequenceMatcher(None, c, k).ratio()
                 if r > best:
@@ -429,8 +465,6 @@ def _standardize_column(s: pd.Series, deadline: float) -> tuple[pd.Series, dict]
     members: dict[str, list] = {}
     for k, items in groups.items():
         members.setdefault(parent.get(k, k), []).extend(items)
-
-    # 3) الشكل النهائي = الأكثر تكراراً (وعند التعادل نفضّل الشكل Capitalized)
     mapping = {}
     for items in members.values():
         if len(items) < 2:
@@ -444,25 +478,60 @@ def _standardize_column(s: pd.Series, deadline: float) -> tuple[pd.Series, dict]
     return s.map(lambda v: mapping.get(v, v) if isinstance(v, str) else v), mapping
 
 
+def _drop_repeated_headers(df: pd.DataFrame):
+    """صفوف عناوين مكررة وسط البيانات (جداول ملصوقة ورا بعض)."""
+    if len(df) < 3:
+        return df, 0
+    names = [str(c).casefold() for c in df.columns]
+    hits = pd.Series(0, index=df.index)
+    for i in range(len(df.columns)):
+        col = df.iloc[:, i]
+        if col.dtype == object or pd.api.types.is_string_dtype(col):
+            hits += col.map(lambda v, nm=names[i]: isinstance(v, str) and v.strip().casefold() == nm).astype(int)
+    mask = hits >= max(2, int(0.5 * len(df.columns)))
+    return df[~mask], int(mask.sum())
+
+
+def _drop_total_rows(df: pd.DataFrame):
+    """صف 'المجموع / Total' بآخر الملف (شائع بتقارير الإكسل): إذا بقى راح يضاعف كل المجاميع."""
+    removed = 0
+    while len(df) > 3:
+        if any(isinstance(v, str) and _TOTAL_PAT.match(v) for v in df.iloc[-1]):
+            df, removed = df.iloc[:-1], removed + 1
+        else:
+            break
+    return df, removed
+
+
+def _has_time_part(s: pd.Series) -> bool:
+    d = s.dropna()
+    try:
+        return len(d) > 0 and bool((d != d.dt.normalize()).any())
+    except Exception:
+        return False
+
+
+def _restore_int(s: pd.Series) -> pd.Series:
+    try:
+        if pd.api.types.is_float_dtype(s) and s.notna().all() and (s % 1 == 0).all() and s.abs().max() < 9e15:
+            return s.astype("int64")
+    except Exception:
+        pass
+    return s
+
+
 def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dict]:
     report = {
-        "rows_before": len(df),
-        "columns_before": len(df.columns),
-        "filled_columns": {},        # عمود: طريقة الملء (mean/median/zero/unknown)
-        "filled_cells": {},          # عمود: كم خلية انملت
-        "dropped_columns": [],       # أعمدة فاضية تماماً فقط
-        "dropped_rows_missing": 0,
-        "duplicates_removed": 0,
-        "duplicates_kept": 0,        # صفوف متطابقة تركناها لأن ما اكو معرّف/تاريخ يثبت إنها تكرار
-        "converted_columns": {},     # عمود: النوع اللي تحوّل إله (numeric/date/time)
-        "conversion_losses": {},     # عمود: كم قيمة ما قدرنا نحوّلها وصارت فاضية
-        "standardized_columns": {},  # عمود: {unique_before, unique_after, examples}
-        "sparse_columns": [],        # أعمدة أغلبها فاضي: انحفظت بدون ملء وبدون حذف صفوف
+        "rows_before": len(df), "columns_before": len(df.columns),
+        "filled_columns": {}, "filled_cells": {}, "dropped_columns": [],
+        "dropped_rows_missing": 0, "duplicates_removed": 0, "duplicates_kept": 0,
+        "converted_columns": {}, "conversion_losses": {}, "standardized_columns": {},
+        "sparse_columns": [],
+        "total_rows_removed": 0, "repeated_headers_removed": 0, "duplicate_ids": {},   # جديد
     }
     df = df.copy()
     understanding = understanding if isinstance(understanding, dict) else {}
 
-    # 1) أسماء الأعمدة (ونربط تعليمات الذكاء الاصطناعي بالأسماء الجديدة)
     old = [str(c) for c in df.columns]
     df.columns = _clean_columns(df.columns)
     rename = dict(zip(old, df.columns))
@@ -473,7 +542,7 @@ def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dic
     types = remap(understanding.get("column_types"))
     strategy = remap(understanding.get("fill_strategy"))
 
-    # 2) تنظيف الخلايا النصية: مسافات زايدة، رموز مخفية، 'nan' و'-' = ناقص
+    # 1) تنظيف الخلايا النصية
     for col in df.columns:
         s = df[col]
         if pd.api.types.is_numeric_dtype(s) or pd.api.types.is_datetime64_any_dtype(s) or pd.api.types.is_bool_dtype(s):
@@ -482,28 +551,31 @@ def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dic
             s = s.astype(object)
         df[col] = s.map(_clean_cell)
 
-    # 3) حذف الصفوف الفاضية تماماً + الأعمدة الفاضية تماماً (فقط)
+    # 2) صفوف/أعمدة فاضية + عناوين مكررة + صف المجموع
     df = df.dropna(how="all")
     empty = [c for c in df.columns if df[c].isna().all()]
     if empty:
         df = df.drop(columns=empty)
         report["dropped_columns"].extend(empty)
+    df, report["repeated_headers_removed"] = _drop_repeated_headers(df)
+    df, report["total_rows_removed"] = _drop_total_rows(df)
+    df = df.reset_index(drop=True)
 
-    # 4) تحويل الأنواع: رقم = رقم، تاريخ = تاريخ، ساعة = ساعة، والنص يبقى نص
+    # 3) الأنواع
     kinds = {}
-    protected = pd.Series(False, index=df.index)   # صفوف فيها قيمة فشل تحويلها: ما نعتبرها مكررة
+    protected = pd.Series(False, index=df.index)
     for col in df.columns:
-        was_object = df[col].dtype == object or pd.api.types.is_string_dtype(df[col])
-        kind, converted, lost = _detect(df[col], types.get(col))
+        original = df[col]
+        kind, converted, lost = _detect(original, types.get(col), col)
         kinds[col] = kind
-        if kind in {"numeric", "date", "time"} and was_object:
+        if kind in {"numeric", "date", "time"} and converted is not original:
             df[col] = converted
             report["converted_columns"][col] = kind
             if lost is not None and int(lost.sum()) > 0:
                 report["conversion_losses"][col] = int(lost.sum())
                 protected |= lost.reindex(df.index, fill_value=False).astype(bool)
 
-    # 5) توحيد الكلمات المكتوبة بأكثر من طريقة (قبل حذف التكرار حتى تنكشف الصفوف المكررة)
+    # 4) توحيد الكلمات
     total_deadline = _time.perf_counter() + FUZZY_TOTAL_BUDGET
     for col in df.columns:
         if kinds[col] != "text":
@@ -512,60 +584,68 @@ def clean_data(df: pd.DataFrame, understanding: dict) -> tuple[pd.DataFrame, dic
         new_col, mapping = _standardize_column(df[col], min(total_deadline, _time.perf_counter() + FUZZY_TIME_BUDGET))
         if mapping:
             df[col] = new_col
-            report["standardized_columns"][col] = {
-                "unique_before": before,
-                "unique_after": int(df[col].nunique()),
-                "examples": dict(list(mapping.items())[:8]),
-            }
+            report["standardized_columns"][col] = {"unique_before": before, "unique_after": int(df[col].nunique()),
+                                                   "examples": dict(list(mapping.items())[:8])}
 
-    # 6) المكرر: نحذفه فقط إذا اكو دليل إنه تكرار فعلاً (معرّف/تاريخ/ساعة)، وإلا نتركه ونبلّغ عنه
+    # 5) المكرر: نحذفه فقط إذا اكو معرّف أو تاريخ+ساعة (تاريخ بدون ساعة ما يثبت التكرار: مبيعتين نفس اليوم ممكن تتطابق)
     try:
         dup = df.duplicated(keep="first") & ~protected
-    except TypeError:  # قيم غير قابلة للمقارنة
+    except TypeError:
         dup = pd.Series(False, index=df.index)
-    has_identity = any(k in {"id", "date", "time"} for k in kinds.values()) or any(
-        kinds[c] == "numeric" and pd.api.types.is_integer_dtype(df[c]) and len(df) > 0
-        and df[c].nunique() >= 0.95 * len(df)
-        for c in df.columns
-    )
-    if DEDUP_MODE == "always" or (DEDUP_MODE == "auto" and has_identity):
+    has_id = any(k == "id" for k in kinds.values())
+    has_ts = any(k == "date" and _has_time_part(df[c]) for c, k in kinds.items())
+    if DEDUP_MODE == "always" or (DEDUP_MODE == "auto" and (has_id or has_ts)):
         report["duplicates_removed"] = int(dup.sum())
         df = df[~dup]
     else:
         report["duplicates_kept"] = int(dup.sum())
+    for c, k in kinds.items():                         # نفس المعرّف مكرر بصفوف مختلفة: نبلّغ فقط
+        if k == "id" and c in df.columns:
+            nn = df[c].dropna()
+            if len(nn) >= 20 and nn.nunique() >= 0.5 * len(nn) and int(nn.duplicated().sum()):
+                report["duplicate_ids"][c] = int(nn.duplicated().sum())
 
-    # 7) القيم الفارغة: نملأ إذا نكدر، وإذا ما نكدر نحذف الصف (بحدود تمنع خراب الملف)
+    # 6) القيم الفارغة
     n = max(len(df), 1)
-    drop_cols = []
+    drop_rows_cols, drop_text_cols = [], []
     for col in df.columns:
         miss = int(df[col].isna().sum())
         if miss == 0:
             continue
         ratio, kind, how = miss / n, kinds[col], strategy.get(col)
         if kind == "numeric":
-            if how == "drop_rows":
-                drop_cols.append(col)
+            if how == "drop_rows" and ratio <= MAX_DROP_COL_RATIO:
+                drop_rows_cols.append(col)
             elif ratio <= MAX_FILL_RATIO:
                 how = how if how in {"mean", "median", "zero"} else "median"
                 value = {"mean": df[col].mean(), "median": df[col].median(), "zero": 0}[how]
-                df[col] = df[col].fillna(0 if pd.isna(value) else value)
+                df[col] = _restore_int(df[col].fillna(0 if pd.isna(value) else value))
                 report["filled_columns"][col] = how
                 report["filled_cells"][col] = miss
             else:
-                report["sparse_columns"].append(col)   # أغلبه فاضي: نبقيه كما هو، والتحليل يتجاهل الفاضي
+                report["sparse_columns"].append(col)
         elif kind == "text":
-            df[col] = df[col].fillna(UNKNOWN_LABEL)
-            report["filled_columns"][col] = "unknown"
-            report["filled_cells"][col] = miss
+            if ratio > MAX_MISSING_RATIO_COLUMN:       # أغلبه فاضي: عمود "غير محدد" بنسبة 70% يخرّب كل المخططات
+                drop_text_cols.append(col)
+            else:
+                df[col] = df[col].fillna(UNKNOWN_LABEL)
+                report["filled_columns"][col] = "unknown"
+                report["filled_cells"][col] = miss
         elif kind in {"date", "time", "id"}:
-            drop_cols.append(col)                      # ما نخترع تاريخ ولا ساعة ولا رقم هوية
-    if drop_cols:
-        mask = df[drop_cols].isna().any(axis=1)
+            if ratio <= MAX_DROP_COL_RATIO:
+                drop_rows_cols.append(col)
+            else:
+                report["sparse_columns"].append(col)   # ما نحذف 30% من الملف بسبب عمود ثانوي
+    if drop_text_cols:
+        df = df.drop(columns=drop_text_cols)
+        report["dropped_columns"].extend(drop_text_cols)
+    if drop_rows_cols:
+        mask = df[drop_rows_cols].isna().any(axis=1)
         if mask.mean() <= MAX_ROW_LOSS:
             report["dropped_rows_missing"] = int(mask.sum())
             df = df[~mask]
-        else:                                          # الحذف راح ياكل الملف: نتركه ونعلّمه
-            report["sparse_columns"].extend(drop_cols)
+        else:
+            report["sparse_columns"].extend(drop_rows_cols)
 
     df = df.reset_index(drop=True)
     report["rows_after"] = len(df)
@@ -637,66 +717,130 @@ def _analysis_stats(series: pd.Series, kind: str, additive: bool) -> dict:
     return stats
 
 
+MIN_GROUP_ROWS = 3          # بالمتوسط/الوسيط: مجموعة أقل من 3 صفوف ما تنافس على "الأعلى"
+MAX_NUMERIC_GROUPS = 20     # عمود رقمي أكثر من هذا العدد من القيم نقسمه لشرائح بدل ما نعرض كل قيمة
+MAX_BINS = 8
+
+
+def _fnum(x) -> str:
+    return f"{x:,.2f}".rstrip("0").rstrip(".")
+
+
+def _is_time_col(s: pd.Series) -> bool:
+    if s.dtype != object:
+        return False
+    nn = s.dropna().head(50)
+    return len(nn) > 0 and all(isinstance(v, dt_time) for v in nn)
+
+
+def _bin_numeric(s: pd.Series):
+    """شرائح بعدد متساوي تقريباً (مناسبة للأسعار والأعمار). يرجع None إذا ما نكدر."""
+    try:
+        cats = pd.qcut(s, q=MAX_BINS, duplicates="drop")
+    except (ValueError, TypeError):
+        return None
+    names = {iv: f"{_fnum(iv.left)} – {_fnum(iv.right)}" for iv in cats.cat.categories}
+    if len(names) < 2:
+        return None
+    lab = cats.astype(object).map(lambda iv: names.get(iv) if pd.notna(iv) else None)
+    return pd.Series(pd.Categorical(lab, categories=[names[iv] for iv in cats.cat.categories], ordered=True), index=s.index)
+
+
 def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M", lang: str = "ar") -> dict | None:
-    """ينفذ خطة التحليل باستخدام pandas؛ ويتجاهل أي شيء غير مسموح."""
     kind = spec.get("kind", "group_agg")
-    group_by = spec.get("group_by")
-    value = spec.get("value")
+    group_by, value = spec.get("group_by"), spec.get("value")
     agg = spec.get("agg", "count")
     chart = spec.get("chart") if spec.get("chart") in ALLOWED_CHARTS else "bar"
     try:
         top_n = max(1, min(int(spec.get("top_n", 10)), MAX_TOP_N))
     except (TypeError, ValueError):
         top_n = 10
-    if group_by not in df.columns or agg not in ALLOWED_AGG:
-        return None
-    if value and value not in df.columns:
+    if group_by not in df.columns or agg not in ALLOWED_AGG or (value and value not in df.columns):
         return None
     df = df.dropna(subset=[group_by])
     if df.empty:
         return None
-    numeric_group = (kind != "monthly_trend" and pd.api.types.is_numeric_dtype(df[group_by])
-                     and not pd.api.types.is_bool_dtype(df[group_by]))
+    g, extra, natural = df[group_by], {}, False
+    additive = agg in ("sum", "count") or not value
+
     if kind == "monthly_trend":
-        if not pd.api.types.is_datetime64_any_dtype(df[group_by]):
+        if not pd.api.types.is_datetime64_any_dtype(g):
             return None
-        per = df[group_by].dt.to_period(period)
-        # أسبوعي: نعرض تاريخ بداية الأسبوع. يومي وشهري: الاسم الافتراضي للفترة
-        keys = per.dt.start_time.dt.strftime("%Y-%m-%d") if period == "W" else per.astype(str)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            keys = g.dt.to_period(period)
         chart = "bar"
+    elif pd.api.types.is_datetime64_any_dtype(g):
+        return None                                   # تاريخ كامل كمجموعة ما يفيد: نستعمل الاتجاه الزمني
+    elif _is_time_col(g):                             # ساعة: نجمّع حسب الساعة بدل الدقيقة
+        keys, natural = g.map(lambda v: f"{v.hour:02d}:00"), True
+    elif pd.api.types.is_numeric_dtype(g) and not pd.api.types.is_bool_dtype(g):
+        if _ID_COL.search(str(group_by)):
+            return None
+        if g.nunique() > MAX_NUMERIC_GROUPS:
+            keys = _bin_numeric(g)
+            if keys is None:
+                return None
+        else:
+            keys = g
+        natural = True
     else:
-        keys = df[group_by] if numeric_group else df[group_by].astype(str)
+        if len(df) >= 30 and g.nunique() > 0.95 * len(df):
+            return None                               # كل صف قيمة مختلفة (أرقام فواتير، أسماء فريدة): مو تصنيف
+        sg = g.astype(str)
+        unk = sg == UNKNOWN_LABEL
+        if unk.any() and not unk.all():               # "غير محدد" ما ينافس على الأعلى، بس نبلّغ عن عدده
+            extra["unknown_rows"] = int(unk.sum())
+            df, sg = df[~unk], sg[~unk]
+        keys = sg
+
+    counts = None
     if agg == "count" or not value:
-        series = df.groupby(keys).size()
+        series = df.groupby(keys, observed=True).size()
     else:
         if not pd.api.types.is_numeric_dtype(df[value]):
             return None
-        series = df.groupby(keys)[value].agg(agg)
+        grouped = df.groupby(keys, observed=True)
+        series, counts = grouped[value].agg(agg), grouped.size()
     series = series.dropna()
     if series.empty:
         return None
-    additive = agg in ("sum", "count") or not value
+
+    if kind == "monthly_trend":
+        if additive and len(series) > 1:              # الأشهر الفاضية تظهر صفر بدل ما تنحذف من المخطط
+            full = pd.period_range(series.index.min(), series.index.max(), freq=period)
+            if len(full) <= 5000:
+                series = series.reindex(full, fill_value=0)
+        series.index = [p.start_time.strftime("%Y-%m-%d") if period == "W" else str(p) for p in series.index]
+    elif counts is not None and agg in ("mean", "median") and len(series) > 3:
+        min_n = max(MIN_GROUP_ROWS, int(len(df) * 0.005))
+        enough = counts.reindex(series.index).fillna(0) >= min_n
+        if enough.sum() >= 2 and not enough.all():    # متوسط مجموعة من صف واحد مو "أعلى" حقيقي
+            extra["excluded_groups"] = int((~enough).sum())
+            series = series[enough]
+
     non_negative = bool((series >= 0).all())
-    if chart == "pie" and not non_negative:
-        chart = "bar"
-    stats = _analysis_stats(series, kind, additive and non_negative)   # على كل المجموعات قبل القص
+    if chart == "pie" and not (non_negative and additive):
+        chart = "bar"                                 # دائري لمتوسطات/قيم سالبة ما له معنى
+    stats = _analysis_stats(series, kind, additive and non_negative)
+    stats.update(extra)
+    stats["rows"] = int(len(df))
+
     if kind == "monthly_trend":
         series = series.sort_index().tail(TREND_POINTS.get(period, 24))
-    elif numeric_group and chart != "pie" and len(series) <= MAX_TOP_N:
-        series = series.sort_index()                       # ترتيب طبيعي (سنة، تقييم 1..5)
+    elif natural and chart != "pie" and len(series) <= MAX_TOP_N:
+        series = series.sort_index()
     else:
         series = series.sort_values(ascending=False)
         if chart == "pie":
             keep = min(top_n, 5)
-            rest = series.iloc[keep:]
-            series = series.iloc[:keep]
-            if additive and not rest.empty and float(rest.sum()) > 0:   # "أخرى" حتى تكمل النسب 100%
+            rest, series = series.iloc[keep:], series.iloc[:keep]
+            if not rest.empty and float(rest.sum()) > 0:
                 series = pd.concat([series, pd.Series({OTHERS_LABEL.get(lang, "أخرى"): float(rest.sum())})])
         else:
             series = series.head(top_n)
     return {
-        "title": spec.get("title", "تحليل"),
-        "chart": chart,
+        "title": spec.get("title", "تحليل"), "chart": chart,
         "labels": [_label(i) for i in series.index],
         "values": [round(float(v), 2) for v in series.values],
         "stats": stats,
@@ -706,23 +850,45 @@ def run_analysis(df: pd.DataFrame, spec: dict, period: str = "M", lang: str = "a
     }
 
 
+def dedupe_specs(specs: list) -> list:
+    seen, out = set(), []
+    for s in specs:
+        if not isinstance(s, dict):
+            continue
+        key = (s.get("kind", "group_agg"), s.get("group_by"), s.get("value") or None, s.get("agg"))
+        if key not in seen:
+            seen.add(key)
+            out.append(s)
+    return out
+
+
+def _idlike(col: pd.Series, name) -> bool:
+    if _ID_COL.search(str(name)):
+        return True
+    if pd.api.types.is_numeric_dtype(col) and not pd.api.types.is_bool_dtype(col):
+        d = col.dropna()
+        return len(d) >= 20 and bool((d % 1 == 0).all()) and d.is_unique and d.is_monotonic_increasing
+    return False
+
+
 def augment_specs(df: pd.DataFrame, specs: list) -> list:
-    """يكمّل خطة الذكاء الاصطناعي بالكود حتى ما يضيع شي مهم: كل عمود تصنيفي (مثل المحافظة والمدينة)،
-    الاتجاه الزمني، وكل مقياس رقمي مهم. يرجع الخطط الجديدة فقط."""
-    specs = [s for s in specs if isinstance(s, dict)]
+    """يكمّل خطة الذكاء الاصطناعي: كل عمود تصنيفي، الاتجاه الزمني، تحليل الساعات، والمقاييس المهمة."""
+    specs = dedupe_specs(specs)
     n = len(df)
     numeric = [str(c) for c in df.columns
                if pd.api.types.is_numeric_dtype(df[c]) and not pd.api.types.is_bool_dtype(df[c])
-               and not _ID_COL.search(str(c)) and df[c].nunique(dropna=True) > 1]
+               and not _idlike(df[c], c) and df[c].nunique(dropna=True) > 1]
+    time_cols = [str(c) for c in df.columns if _is_time_col(df[c])]
     dims = []
     for c in df.columns:
         col = df[c]
-        if pd.api.types.is_numeric_dtype(col) or pd.api.types.is_datetime64_any_dtype(col) or _ID_COL.search(str(c)):
+        if (pd.api.types.is_numeric_dtype(col) or pd.api.types.is_datetime64_any_dtype(col)
+                or _idlike(col, c) or str(c) in time_cols):
             continue
         u = col.nunique(dropna=True)
         if 2 <= u <= MAX_DIM_UNIQUE and u <= 0.6 * n and col.dropna().astype(str).str.len().mean() <= 40:
             dims.append((u, str(c)))
-    dims.sort()                                            # الأقل تنوعاً أولاً
+    dims.sort()
     dates = [str(c) for c in df.columns if pd.api.types.is_datetime64_any_dtype(df[c])]
     ai_values = [s.get("value") for s in specs if s.get("value") in numeric]
     if ai_values:
@@ -743,16 +909,20 @@ def augment_specs(df: pd.DataFrame, specs: list) -> list:
         spec["title"] = auto_title(spec, "ar")
         extra.append(spec)
 
-    for u, c in dims:                                      # 1) كل عمود تصنيفي ياخذ تحليل
+    for u, c in dims:
         if c in used_groups:
             continue
-        pie = u <= 6 and (not measure or float(df[measure].min()) >= 0)
+        pie = u <= 6 and bool(measure) and float(df[measure].min()) >= 0 and _ADDITIVE_COL.search(measure) is not None
+        pie = pie or (u <= 6 and not measure)
         add({"kind": "group_agg", "group_by": c, "value": measure, "agg": "sum" if measure else "count",
              "top_n": 10, "chart": "pie" if pie else "bar"})
-    if dates and not any(s.get("kind") == "monthly_trend" for s in specs):   # 2) الاتجاه الزمني
+    if dates and not any(s.get("kind") == "monthly_trend" for s in specs):
         add({"kind": "monthly_trend", "group_by": dates[0], "value": measure,
              "agg": "sum" if measure else "count", "chart": "bar"})
-    if dims:                                               # 3) مقاييس رقمية مهمة ما اتغطت
+    if time_cols and not any(s.get("group_by") in time_cols for s in specs):
+        add({"kind": "group_agg", "group_by": time_cols[0], "value": measure,
+             "agg": "sum" if measure else "count", "top_n": 24, "chart": "bar"})
+    if dims:
         for m in numeric:
             if m not in used_values and m != measure:
                 add({"kind": "group_agg", "group_by": dims[0][1], "value": m,
@@ -873,7 +1043,7 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
         ANALYSIS_PROMPT,
         {"business_type": business_type, "profile": profile_data(df)},
     )
-    specs = [s for s in plan.get("analyses", []) if isinstance(s, dict)][:MAX_ANALYSES]
+    specs = dedupe_specs([s for s in plan.get("analyses", []) if isinstance(s, dict)])[:MAX_ANALYSES]
     pairs = await asyncio.to_thread(lambda: [(s, run_analysis(df, s)) for s in specs])
     results = [r for _, r in pairs if r]
     used_specs = [s for s, r in pairs if r]
@@ -2409,5 +2579,6 @@ async def db_check():
     except Exception as error:
         logger.error("db-check failed:\n%s", traceback.format_exc())
         return {"connected": False, "error_type": type(error).__name__}
+
 
 
