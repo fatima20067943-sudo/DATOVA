@@ -20,7 +20,8 @@ from typing import Literal
 from database import Base, SessionLocal
 from models import Upload
 from datetime import datetime
-from io import BytesIO
+from io import BytesIO, StringIO
+import csv
 import unicodedata
 import warnings
 import asyncio
@@ -86,15 +87,50 @@ MESSY_MESSAGE = (
 # ---------------------------------------------------------------------------
 # قراءة الملف + البروفايل (نفس كودك)
 # ---------------------------------------------------------------------------
+def _promote_header(raw: pd.DataFrame) -> pd.DataFrame:
+    """يشيل الصفوف/الأعمدة الفاضية ويلقى صف العناوين الحقيقي (حتى لو فوقه عنوان أو سطور فاضية)."""
+    raw = raw.dropna(how="all").dropna(axis=1, how="all").reset_index(drop=True)
+    if raw.empty:
+        return raw
+    counts = raw.head(15).notna().sum(axis=1)
+    mx = counts.max()
+    pos = next(i for i, c in enumerate(counts) if c >= 0.7 * mx)
+    header = raw.iloc[pos]
+    names = [str(v).strip() if pd.notna(v) and str(v).strip() else f"column_{i}"
+             for i, v in enumerate(header, 1)]
+    body = raw.iloc[pos + 1:].reset_index(drop=True)
+    body.columns = _clean_columns(names)
+    return body.dropna(how="all").reset_index(drop=True).infer_objects()
+
+
 def read_file(file_path: Path, file_type: str) -> pd.DataFrame:
     try:
         if file_type == ".csv":
-            df = pd.read_csv(file_path)
+            data = file_path.read_bytes()
+            encodings = ["utf-8-sig", "cp1256", "latin-1"]
+            if data[:2] in (b"\xff\xfe", b"\xfe\xff"):
+                encodings.insert(0, "utf-16")
+            text = None
+            for enc in encodings:
+                try:
+                    text = data.decode(enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            sample = text[:20000]
+            try:
+                sep = csv.Sniffer().sniff(sample, delimiters=",;\t|").delimiter
+            except csv.Error:
+                sep = ","
+            ncols = max((len(r) for _, r in zip(range(2000), csv.reader(StringIO(text), delimiter=sep))), default=1)
+            raw = pd.read_csv(StringIO(text), sep=sep, header=None, names=list(range(ncols)),
+                              dtype=object, on_bad_lines="skip", skip_blank_lines=True)
         elif file_type == ".xlsx":
-            df = pd.read_excel(file_path)
+            sheets = pd.read_excel(file_path, sheet_name=None, header=None)
+            raw = max(sheets.values(), key=lambda d: int(d.notna().sum().sum()))   # أكبر ورقة فيها بيانات
         else:
             raise ValueError("unsupported file type.")
-        return df
+        return _promote_header(raw)
     except Exception as error:
         raise ValueError(f"could not read the file: {error}")
 
@@ -165,12 +201,10 @@ Use only column names that exist in the profile."""
 
 def looks_too_messy(df: pd.DataFrame) -> bool:
     """فحص سريع بدون AI."""
-    if df.size == 0 or len(df) < 5:
+    if df.size == 0 or len(df) < 2 or len(df.columns) < 2:
         return True
     missing_ratio = df.isnull().sum().sum() / df.size
-    unnamed_ratio = sum(str(c).startswith("Unnamed") for c in df.columns) / len(
-        df.columns
-    )
+    unnamed_ratio = sum(str(c).startswith(("Unnamed", "column_")) for c in df.columns) / len(df.columns)
     return missing_ratio > MAX_MISSING_RATIO_FILE or unnamed_ratio > 0.5
 
 # ---------------------------------------------------------------------------
@@ -821,12 +855,16 @@ async def upload_file(file: UploadFile = File(...), x_owner: str | None = Header
     # ---- Agent 1: فهم نوع النشاط ----
     profile = profile_data(df)
     understanding = await ask_json(UNDERSTAND_PROMPT, {"profile": profile})
-    if not understanding.get("is_understandable", False):
-        file_path.unlink(missing_ok=True)
-        raise HTTPException(status_code=422, detail=MESSY_MESSAGE)
+    if not understanding.get("is_understandable", True):
+        logger.warning("AI said not understandable: %s", understanding.get("reason_if_not"))
+        understanding = {}   # نكمّل بالإعدادات الافتراضية؛ إذا فعلاً ما اكو تحليل مفيد راح يوقف لاحقاً
     business_type = understanding.get("business_type", "غير معروف")
     # ---- التنظيف ----
-    df, cleaning_report = await asyncio.to_thread(clean_data, df, understanding)
+    raw_df = df
+    df, cleaning_report = await asyncio.to_thread(clean_data, raw_df, understanding)
+    if df.empty or len(df.columns) < 2:
+        logger.warning("Cleaning emptied the data (rows=%s, cols=%s). Retrying without AI hints.", len(df), len(df.columns))
+        df, cleaning_report = await asyncio.to_thread(clean_data, raw_df, {})
     if df.empty or len(df.columns) < 2:
         file_path.unlink(missing_ok=True)
         raise HTTPException(status_code=422, detail=MESSY_MESSAGE)
